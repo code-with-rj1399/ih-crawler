@@ -1,6 +1,5 @@
 package ai.interviewhq.crawler.crawl;
 
-import ai.interviewhq.crawler.config.CrawlerSettings;
 import ai.interviewhq.crawler.domain.CrawlSource;
 import ai.interviewhq.crawler.domain.InterviewQuestion;
 import ai.interviewhq.crawler.extract.OpenAiQuestionExtractor;
@@ -11,8 +10,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class CrawlRunner {
@@ -22,16 +22,13 @@ public class CrawlRunner {
     private final CrawlSourceRepository sourceRepository;
     private final InterviewQuestionRepository questionRepository;
     private final OpenAiQuestionExtractor extractor;
-    private final CrawlerSettings settings;
 
     public CrawlRunner(CrawlSourceRepository sourceRepository,
                        InterviewQuestionRepository questionRepository,
-                       OpenAiQuestionExtractor extractor,
-                       CrawlerSettings settings) {
+                       OpenAiQuestionExtractor extractor) {
         this.sourceRepository = sourceRepository;
         this.questionRepository = questionRepository;
         this.extractor = extractor;
-        this.settings = settings;
     }
 
     @Scheduled(fixedDelayString = "${crawler.interval-ms:3600000}")
@@ -41,37 +38,92 @@ public class CrawlRunner {
 
     public synchronized void runOnce() {
         log.info("=== OpenAI discovery run started ===");
-        Instant lookback = Instant.now().minusSeconds(settings.lookbackHours() * 3600L);
-        int sourceCount = sourceRepository.findByEnabledTrueOrderByIdAsc().size();
-        log.info("Enabled sources: {}, lookback: {}", sourceCount, lookback);
 
-        for (CrawlSource source : sourceRepository.findByEnabledTrueOrderByIdAsc()) {
-            log.info("Starting OpenAI discovery: source={}, platform={}, scope={}",
-                    source.getSlug(), source.getName(), source.getUrl());
-            try {
-                List<InterviewQuestion> questions = extractor.extract(source);
+        List<CrawlSource> sources = sourceRepository.findByEnabledTrueOrderByIdAsc();
+        log.info("Enabled sources: {}", sources.size());
 
-                int saved = 0;
-                for (InterviewQuestion question : questions) {
-                    if (question.getOriginalPostUrl() == null || question.getOriginalPostUrl().isBlank()) {
-                        log.warn("Skipping question without originalPostUrl: source={}, question={}",
-                                source.getSlug(), question.getQuestionText());
-                        continue;
-                    }
-
-                    if (questionRepository.findByDedupeHash(question.getDedupeHash()).isEmpty()) {
-                        questionRepository.save(question);
-                        saved++;
-                    }
-                }
-
-                log.info("OpenAI discovery finished: source={}, discovered={}, saved={}",
-                        source.getSlug(), questions.size(), saved);
-            } catch (Exception e) {
-                log.error("OpenAI discovery failed: source={}, error={}", source.getSlug(), e.getMessage(), e);
-            }
+        for (CrawlSource source : sources) {
+            crawlSource(source);
         }
+
         log.info("=== OpenAI discovery run finished ===");
     }
 
+    private void crawlSource(CrawlSource source) {
+        log.info(
+                "Starting OpenAI discovery: source={}, platform={}, scope={}",
+                source.getSlug(),
+                source.getName(),
+                source.getUrl()
+        );
 
+        try {
+            List<InterviewQuestion> questions = extractor.extract(source);
+
+            int saved = 0;
+            int skipped = 0;
+            Set<String> seenHashes = new HashSet<>();
+
+            for (InterviewQuestion question : questions) {
+                if (question.getOriginalPostUrl() == null
+                        || question.getOriginalPostUrl().isBlank()) {
+                    log.warn(
+                            "Skipping question without originalPostUrl: source={}, question={}",
+                            source.getSlug(),
+                            question.getQuestionText()
+                    );
+                    skipped++;
+                    continue;
+                }
+
+                String dedupeHash = question.getDedupeHash();
+                if (dedupeHash == null || dedupeHash.isBlank()) {
+                    log.warn(
+                            "Skipping question without dedupeHash: source={}, question={}",
+                            source.getSlug(),
+                            question.getQuestionText()
+                    );
+                    skipped++;
+                    continue;
+                }
+
+                if (!seenHashes.add(dedupeHash)) {
+                    log.debug(
+                            "Skipping duplicate question in OpenAI response: source={}, hash={}",
+                            source.getSlug(),
+                            dedupeHash
+                    );
+                    skipped++;
+                    continue;
+                }
+
+                if (questionRepository.findByDedupeHash(dedupeHash).isPresent()) {
+                    log.debug(
+                            "Question already exists: source={}, hash={}",
+                            source.getSlug(),
+                            dedupeHash
+                    );
+                    skipped++;
+                    continue;
+                }
+
+                questionRepository.save(question);
+                saved++;
+            }
+
+            log.info(
+                    "OpenAI discovery finished: source={}, discovered={}, saved={}, skipped={}",
+                    source.getSlug(),
+                    questions.size(),
+                    saved,
+                    skipped
+            );
+        } catch (Exception e) {
+            log.error(
+                    "OpenAI discovery failed: source={}",
+                    source.getSlug(),
+                    e
+            );
+        }
+    }
+}
