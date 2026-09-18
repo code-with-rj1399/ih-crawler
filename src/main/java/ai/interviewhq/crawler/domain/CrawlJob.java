@@ -1,16 +1,7 @@
 package ai.interviewhq.crawler.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Table;
 
 import java.time.Instant;
-
-@Entity
 @Table(name = "crawl_jobs")
 public class CrawlJob {
 
@@ -19,8 +10,6 @@ public class CrawlJob {
     public static final String SUCCEEDED = "succeeded";
     public static final String FAILED = "failed";
     public static final String PARTIAL = "partial";
-
-    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
@@ -74,8 +63,6 @@ public class CrawlJob {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
-
-    @PrePersist
     void onCreate() {
         if (createdAt == null) {
             createdAt = Instant.now();
