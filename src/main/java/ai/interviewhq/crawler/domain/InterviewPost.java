@@ -3,51 +3,36 @@ package ai.interviewhq.crawler.domain;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import java.time.Instant;
-@Table(name = "interview_posts", uniqueConstraints = @UniqueConstraint(columnNames = {"source_id", "url"}))
 public class InterviewPost {
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "source_id")
     private Integer sourceId;
 
-    @Column(name = "page_id")
     private Integer pageId;
 
-    @Column(name = "job_id")
     private Integer jobId;
 
-    @Column(name = "external_id")
     private String externalId;
 
-    @Column(nullable = false)
     private String url;
 
     private String title;
 
     private String author;
 
-    @Column(name = "posted_at")
     private Instant postedAt;
 
-    @Column(name = "raw_company")
     private String rawCompany;
 
-    @Column(name = "raw_role")
     private String rawRole;
 
-    @Column(name = "body_text")
     private String bodyText;
 
-    @Column(name = "content_hash")
     private String contentHash;
 
-    @Column(nullable = false)
     private boolean extracted;
-    @Column(name = "extraction_json", columnDefinition = "jsonb")
     private JsonNode extractionJson;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
     void onCreate() {
         if (createdAt == null) {
