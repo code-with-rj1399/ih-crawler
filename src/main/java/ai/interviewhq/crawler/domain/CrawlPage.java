@@ -1,7 +1,10 @@
 package ai.interviewhq.crawler.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 
 import java.time.Instant;
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class CrawlPage {
     private Integer id;
 
