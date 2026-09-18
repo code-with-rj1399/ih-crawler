@@ -3,8 +3,6 @@ package ai.interviewhq.crawler.extract;
 import ai.interviewhq.crawler.config.CrawlerSettings;
 import ai.interviewhq.crawler.domain.CrawlSource;
 import ai.interviewhq.crawler.domain.InterviewQuestion;
-import ai.interviewhq.crawler.crawl.http.FetchResult;
-import ai.interviewhq.crawler.crawl.http.PoliteFetcher;
 import ai.interviewhq.crawler.util.Hashing;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,18 +38,15 @@ public class OpenAiQuestionExtractor {
     private final CrawlerSettings settings;
     private final String apiKey;
     private final Environment environment;
-    private final PoliteFetcher politeFetcher;
 
     public OpenAiQuestionExtractor(ObjectMapper objectMapper, CrawlerSettings settings,
                                    Environment environment,
-                                   @Value("${OPENAI_API_KEY:}") String apiKey,
-                                   PoliteFetcher politeFetcher) {
+                                   @Value("${OPENAI_API_KEY:}") String apiKey) {
         this.httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(15)).build();
         this.objectMapper = objectMapper;
         this.settings = settings;
         this.environment = environment;
         this.apiKey = apiKey;
-        this.politeFetcher = politeFetcher;
     }
 
     public List<DiscoveredPost> discoverPostUrls(CrawlSource source) {
@@ -117,41 +112,32 @@ public class OpenAiQuestionExtractor {
         }
 
         try {
-            FetchResult fetched = politeFetcher.get(source, post.url());
-            if (!fetched.isSuccess()) {
-                log.warn("Skipping discovered post fetch: source={}, url={}, status={}, error={}",
-                        source.getSlug(), post.url(), fetched.status(), fetched.error());
-                return Collections.emptyList();
-            }
-
-            String body = fetched.bodyAsString();
-            if (body.isBlank()) return Collections.emptyList();
-
-            // Bound input size so one large article cannot consume the whole model context.
-            if (body.length() > 60_000) body = body.substring(0, 60_000);
-
             String prompt = """
-                    Extract interview questions from this post.
+                    Extract interview questions from this specific public post.
 
+                    POST URL: %s
                     TITLE: %s
-                    URL: %s
                     PUBLICATION DATE: %s
-                    TEXT:
-                    %s
+
+                    Open and read the specified post URL before extracting anything.
+                    The page may contain navigation, ads, comments, scripts, or other unrelated content.
+                    Focus on the actual post content.
 
                     Rules:
-                    - Only questions the candidate was actually asked in a real interview.
-                    - The post must describe an actual interview experience.
+                    - Only questions explicitly described as having been asked in a real interview.
+                    - The post should describe an actual software interview experience.
                     - One object per distinct question.
-                    - Never invent or infer a question that is not explicitly supported by the text.
-                    - Exclude preparation advice, tutorials, hypothetical questions and generic discussion.
-                    - Use null when unknown.
+                    - Never invent or infer a question that is not supported by the post.
+                    - Exclude preparation advice, tutorials, hypothetical questions and generic interview discussions.
+                    - Use null when metadata is unknown.
                     - questionType: CODING, SYSTEM_DESIGN, LOW_LEVEL_DESIGN, BEHAVIORAL, TECHNICAL, DATABASE, DEVOPS, AI_ML, or OTHER.
                     - difficulty: Easy, Medium, or Hard only when supported.
-                    """.formatted(post.title(), post.url(), post.postDate(), body);
+                    """.formatted(post.url(), post.title(), post.postDate());
 
-            JsonNode root = callOpenAi(prompt, questionExtractionSchema(), source, false);
+            JsonNode root = callOpenAi(prompt, questionExtractionSchema(), source, true);
             String output = extractOutputText(root);
+            log.info("OpenAI Stage 2 raw output: source={}, url={}, output={}",
+                    source.getSlug(), post.url(), output);
             if (output == null || output.isBlank()) return Collections.emptyList();
 
             ExtractedQuestions extracted = objectMapper.readValue(cleanJson(output), ExtractedQuestions.class);
@@ -165,7 +151,7 @@ public class OpenAiQuestionExtractor {
                 question.setSourcePlatform(firstNonBlank(item.sourcePlatform(), source.getName()));
                 question.setOriginalPostUrl(post.url());
                 question.setProblemUrl(normalizeProblemUrl(item.problemUrl()));
-                question.setPostDate(post.postDate());
+                question.setPostDate(item.postDate() != null ? item.postDate() : post.postDate());
                 question.setCompany(item.company());
                 question.setRole(item.role());
                 question.setLevel(item.level());
@@ -185,10 +171,11 @@ public class OpenAiQuestionExtractor {
                 questions.add(question);
             }
             return questions;
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new IllegalStateException("Post extraction interrupted", e);
         } catch (Exception e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+                throw new IllegalStateException("Post extraction interrupted", e);
+            }
             throw new IllegalStateException("Unable to extract interview questions from " + post.url(), e);
         }
     }
