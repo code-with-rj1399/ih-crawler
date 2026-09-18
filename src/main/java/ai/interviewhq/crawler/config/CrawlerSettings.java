@@ -5,7 +5,6 @@ import ai.interviewhq.crawler.repo.CrawlerConfigRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.LinkedHashMap;
 import java.util.Locale;
@@ -119,8 +118,7 @@ public class CrawlerSettings {
         return defaults;
     }
 
-    @Transactional(readOnly = true)
-    public Map<String, String> asMap() {
+        public Map<String, String> asMap() {
         Map<String, String> out = new LinkedHashMap<>();
         for (CrawlerConfig row : repository.findAll()) {
             out.put(row.getKey(), row.getValue());
