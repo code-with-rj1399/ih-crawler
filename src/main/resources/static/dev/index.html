@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>InterviewHQ Crawler</title>
+<style>
+body{font-family:system-ui,sans-serif;max-width:1100px;margin:32px auto;padding:0 20px;background:#f7f7f8;color:#222}
+h1{margin-bottom:4px}.muted{color:#777}.bar{display:flex;gap:12px;align-items:center;margin:22px 0}
+button{padding:9px 16px;border:0;border-radius:7px;background:#111;color:#fff;cursor:pointer}
+button:disabled{opacity:.5}section{background:#fff;border:1px solid #ddd;border-radius:10px;padding:18px;margin:18px 0}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:9px;border-bottom:1px solid #eee;vertical-align:top}
+th{font-size:13px;color:#666}.q{font-weight:600}.pill{font-size:12px;background:#eee;padding:3px 7px;border-radius:10px;margin:2px}
+a{color:#2563eb}
+</style>
+</head>
+<body>
+<h1>InterviewHQ Crawler</h1><div class="muted">Local / dev dashboard</div>
+<div class="bar"><button id="crawl" onclick="runCrawl()">▶ Run Crawl</button><span id="status"></span></div>
+<section><h2>Seeds</h2><div id="sources">Loading...</div></section>
+<section><h2>Questions</h2><div id="questions">Loading...</div></section>
+<script>
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+async function load(){
+ const [s,q]=await Promise.all([fetch('/dev/api/sources'),fetch('/dev/api/questions')]);
+ renderSources(await s.json()); renderQuestions(await q.json());
+}
+function renderSources(rows){
+ document.getElementById('sources').innerHTML=rows.length?'<table><tr><th>Name</th><th>Kind</th><th>URL</th><th>Enabled</th></tr>'+rows.map(x=>
+ '<tr><td>'+esc(x.name||x.slug)+'</td><td>'+esc(x.sourceKind)+'</td><td><a href="'+esc(x.url)+'" target="_blank">'+esc(x.url)+'</a></td><td>'+(x.enabled?'✓':'—')+'</td></tr>').join('')+'</table>':'No seeds';
+}
+function renderQuestions(rows){
+ document.getElementById('questions').innerHTML=rows.length?'<table><tr><th>Question</th><th>Company</th><th>Role</th><th>Type</th><th>Difficulty</th><th>Topics</th></tr>'+rows.map(x=>
+ '<tr><td class="q">'+esc(x.questionText||'—')+'</td><td>'+esc(x.company||'—')+'</td><td>'+esc(x.role||'—')+'</td><td>'+esc(x.questionType||'—')+'</td><td>'+esc(x.difficulty||'—')+'</td><td>'+(x.topics||[]).map(t=>'<span class="pill">'+esc(t)+'</span>').join('')+'</td></tr>').join('')+'</table>':'No questions yet';
+}
+async function runCrawl(){
+ const b=document.getElementById('crawl'),s=document.getElementById('status');b.disabled=true;s.textContent='Crawling...';
+ try{await fetch('/dev/api/crawl',{method:'POST'});s.textContent='Crawl finished';await load();}
+ catch(e){s.textContent='Crawl failed';} finally{b.disabled=false;}
+}
+load();
+</script>
+</body>
+</html>
