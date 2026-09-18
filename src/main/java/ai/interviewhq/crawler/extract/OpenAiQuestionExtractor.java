@@ -23,6 +23,8 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -85,13 +87,14 @@ public class OpenAiQuestionExtractor {
             DiscoveredPosts discovered = objectMapper.readValue(cleanJson(output), DiscoveredPosts.class);
             if (discovered.posts() == null) return Collections.emptyList();
 
-            LocalDate cutoff = LocalDate.now().minusHours(settings.lookbackHours()).plusDays(1);
+            Instant cutoff = Instant.now().minus(settings.lookbackHours(), ChronoUnit.HOURS);
+            LocalDate cutoffDate = cutoff.atZone(ZoneOffset.UTC).toLocalDate();
             List<DiscoveredPost> result = new ArrayList<>();
             Set<String> seen = new java.util.HashSet<>();
 
             for (DiscoveredPost post : discovered.posts()) {
                 if (post == null || post.url() == null || post.url().isBlank() || post.postDate() == null) continue;
-                if (post.postDate().isBefore(cutoff)) continue;
+                if (post.postDate().isBefore(cutoffDate)) continue;
                 if (!seen.add(post.url().trim())) continue;
                 result.add(new DiscoveredPost(post.url().trim(), post.title(), post.postDate()));
                 if (result.size() >= 5) break;
@@ -247,15 +250,19 @@ public class OpenAiQuestionExtractor {
                 .put("name", "interview_post_discovery")
                 .put("strict", true);
         var post = objectMapper.createObjectNode().put("type", "object").put("additionalProperties", false);
-        post.set("properties", objectMapper.createObjectNode()
-                .set("url", nullableStringSchema())
-                .set("title", nullableStringSchema())
-                .set("postDate", nullableStringSchema()));
+        ObjectNode postProperties = objectMapper.createObjectNode();
+        postProperties.set("url", nullableStringSchema());
+        postProperties.set("title", nullableStringSchema());
+        postProperties.set("postDate", nullableStringSchema());
+        post.set("properties", postProperties);
         post.set("required", objectMapper.createArrayNode().add("url").add("title").add("postDate"));
 
         var schema = objectMapper.createObjectNode().put("type", "object").put("additionalProperties", false);
-        schema.set("properties", objectMapper.createObjectNode()
-                .set("posts", objectMapper.createObjectNode().put("type", "array").set("items", post)));
+        ObjectNode schemaProperties = objectMapper.createObjectNode();
+        ObjectNode postsSchema = objectMapper.createObjectNode().put("type", "array");
+        postsSchema.set("items", post);
+        schemaProperties.set("posts", postsSchema);
+        schema.set("properties", schemaProperties);
         schema.set("required", objectMapper.createArrayNode().add("posts"));
         format.set("schema", schema);
         return objectMapper.createObjectNode().set("format", format);
@@ -282,8 +289,9 @@ public class OpenAiQuestionExtractor {
         properties.set("questionText", nullableStringSchema());
         properties.set("candidateApproach", nullableStringSchema());
         properties.set("difficulty", nullableStringSchema());
-        properties.set("topics", objectMapper.createObjectNode().put("type", "array")
-                .set("items", objectMapper.createObjectNode().put("type", "string")));
+        ObjectNode topicsSchema = objectMapper.createObjectNode().put("type", "array");
+        topicsSchema.set("items", objectMapper.createObjectNode().put("type", "string"));
+        properties.set("topics", topicsSchema);
         properties.set("confidence", nullableNumberSchema());
         question.set("properties", properties);
         question.set("required", objectMapper.createArrayNode()
@@ -293,8 +301,11 @@ public class OpenAiQuestionExtractor {
                 .add("difficulty").add("topics").add("confidence"));
 
         var schema = objectMapper.createObjectNode().put("type", "object").put("additionalProperties", false);
-        schema.set("properties", objectMapper.createObjectNode()
-                .set("questions", objectMapper.createObjectNode().put("type", "array").set("items", question)));
+        ObjectNode schemaProperties = objectMapper.createObjectNode();
+        ObjectNode questionsSchema = objectMapper.createObjectNode().put("type", "array");
+        questionsSchema.set("items", question);
+        schemaProperties.set("questions", questionsSchema);
+        schema.set("properties", schemaProperties);
         schema.set("required", objectMapper.createArrayNode().add("questions"));
         format.set("schema", schema);
         return objectMapper.createObjectNode().set("format", format);
@@ -302,140 +313,6 @@ public class OpenAiQuestionExtractor {
 
     public record DiscoveredPost(String url, String title, LocalDate postDate) {}
     private record DiscoveredPosts(List<DiscoveredPost> posts) {}
-
-    public List<InterviewQuestion> extract(CrawlSource source) {
-        if (source == null || source.getName() == null || source.getName().isBlank()) {
-            return Collections.emptyList();
-        }
-        if (apiKey == null || apiKey.isBlank()) {
-            throw new IllegalStateException("OPENAI_API_KEY is not configured");
-        }
-
-        try {
-            ObjectNode request = objectMapper.createObjectNode();
-            request.put("model", settings.extractModel());
-            request.put("input", buildPrompt(source));
-            request.put("max_output_tokens", settings.extractMaxTokens());
-
-            ObjectNode reasoning = objectMapper.createObjectNode();
-            reasoning.put("effort", "low");
-            request.set("reasoning", reasoning);
-
-            ArrayNode tools = objectMapper.createArrayNode();
-            ObjectNode webSearch = objectMapper.createObjectNode();
-            webSearch.put("type", "web_search");
-            webSearch.put("search_context_size", "low");
-
-            String sourceHost = sourceHost(source.getUrl());
-            if (sourceHost != null) {
-                ObjectNode filters = objectMapper.createObjectNode();
-                ArrayNode allowedDomains = objectMapper.createArrayNode();
-                allowedDomains.add(sourceHost);
-                filters.set("allowed_domains", allowedDomains);
-                webSearch.set("filters", filters);
-            }
-
-            tools.add(webSearch);
-            request.set("tools", tools);
-
-            ObjectNode text = objectMapper.createObjectNode();
-            text.set("format", structuredOutputSchema().path("format"));
-            text.put("verbosity", "low");
-            request.set("text", text);
-
-            HttpRequest httpRequest = HttpRequest.newBuilder(RESPONSES_URI)
-                    .timeout(Duration.ofSeconds(180))
-                    .header("Authorization", "Bearer " + apiKey)
-                    .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(request.toString()))
-                    .build();
-
-            HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-
-            if (response.statusCode() < 200 || response.statusCode() >= 300) {
-                String body = response.body();
-                if (body.length() > 3000) body = body.substring(0, 3000) + "...<truncated>";
-                throw new IllegalStateException("OpenAI API request failed: HTTP "
-                        + response.statusCode() + " - " + body);
-            }
-
-            JsonNode root = objectMapper.readTree(response.body());
-            logResponseDiagnostics(source, root);
-
-            if (isDevOrLocalProfile()) {
-                log.info("OpenAI discovery response body: source={}, body={}",
-                        source.getSlug(), response.body());
-            }
-
-            String status = root.path("status").asText("unknown");
-            if ("incomplete".equals(status)) {
-                String reason = root.path("incomplete_details").path("reason").asText("unknown");
-                JsonNode usage = root.path("usage");
-                throw new IllegalStateException(
-                        "OpenAI response incomplete: reason=" + reason
-                                + ", outputTypes=" + outputTypes(root)
-                                + ", usage=" + usage);
-            }
-
-            String output = extractOutputText(root);
-            if (output == null || output.isBlank()) {
-                throw new IllegalStateException(
-                        "OpenAI response contained no output_text: status=" + status
-                                + ", outputTypes=" + outputTypes(root)
-                                + ", usage=" + root.path("usage"));
-            }
-
-            ExtractedQuestions extracted;
-            try {
-                extracted = objectMapper.readValue(cleanJson(output), ExtractedQuestions.class);
-            } catch (com.fasterxml.jackson.core.JsonProcessingException parseError) {
-                String preview = cleanJson(output);
-                if (preview.length() > 1500) preview = preview.substring(0, 1500) + "...<truncated>";
-                throw new IllegalStateException("OpenAI returned invalid structured JSON: " + preview, parseError);
-            }
-
-            List<InterviewQuestion> questions = new ArrayList<>();
-            if (extracted.questions() == null) return questions;
-
-            for (ExtractedQuestion item : extracted.questions()) {
-                if (item == null || item.questionText() == null || item.questionText().isBlank()) continue;
-
-                InterviewQuestion question = new InterviewQuestion();
-                question.setSourcePlatform(firstNonBlank(item.sourcePlatform(), source.getName()));
-                question.setOriginalPostUrl(item.originalPostUrl());
-                question.setProblemUrl(normalizeProblemUrl(item.problemUrl()));
-                question.setPostDate(item.postDate());
-                question.setCompany(item.company());
-                question.setRole(item.role());
-                question.setLevel(item.level());
-                question.setLocation(item.location());
-                question.setCandidateYoE(item.candidateYoE());
-                question.setOutcome(item.outcome());
-                question.setRoundType(item.roundType());
-                question.setQuestionType(item.questionType());
-                question.setQuestionText(item.questionText().trim());
-                question.setCandidateApproach(item.candidateApproach());
-                question.setDifficulty(item.difficulty());
-                question.setTopics(item.topics() == null ? Collections.emptyList() : item.topics());
-                question.setConfidence(item.confidence());
-                question.setModelName(settings.extractModel());
-                question.setExtractedAt(Instant.now());
-                question.setDedupeHash(Hashing.questionDedupeHash(question.getCompany(), question.getQuestionText()));
-                questions.add(question);
-            }
-            return questions;
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new IllegalStateException("OpenAI extraction interrupted", e);
-        } catch (Exception e) {
-            if (e instanceof IllegalStateException illegalStateException
-                    && illegalStateException.getMessage() != null
-                    && illegalStateException.getMessage().startsWith("OpenAI")) {
-                throw illegalStateException;
-            }
-            throw new IllegalStateException("Unable to discover interview questions with OpenAI", e);
-        }
-    }
 
     private boolean isDevOrLocalProfile() {
         for (String profile : environment.getActiveProfiles()) {
@@ -500,13 +377,19 @@ public class OpenAiQuestionExtractor {
     }
 
     private JsonNode nullableNumberSchema() {
-        return objectMapper.createObjectNode()
-                .set("type", objectMapper.createArrayNode().add("number").add("null"));
+        ObjectNode schema = objectMapper.createObjectNode();
+        ArrayNode types = objectMapper.createArrayNode();
+        types.add("number").add("null");
+        schema.set("type", types);
+        return schema;
     }
 
     private JsonNode nullableStringSchema() {
-        return objectMapper.createObjectNode()
-                .set("type", objectMapper.createArrayNode().add("string").add("null"));
+        ObjectNode schema = objectMapper.createObjectNode();
+        ArrayNode types = objectMapper.createArrayNode();
+        types.add("string").add("null");
+        schema.set("type", types);
+        return schema;
     }
 
     private String buildPrompt(CrawlSource source) {
