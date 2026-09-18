@@ -1,10 +1,13 @@
 package ai.interviewhq.crawler.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class InterviewQuestion {
     private Integer id;
 
