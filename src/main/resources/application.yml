@@ -57,8 +57,8 @@ crawler:
   circuit-open-minutes: 30
   robots-cache-hours: 6
   extract-model: gpt-5-nano
-  extract-max-posts-per-job: 12
-  extract-max-posts-per-source: 12
+  extract-max-posts-per-job: 5
+  extract-max-posts-per-source: 5
   extract-max-questions-per-post: 0
   extract-max-tokens: 3000
 
