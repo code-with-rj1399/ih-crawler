@@ -36,7 +36,7 @@ public class CrawlRunner {
                        PoliteFetcher fetcher,
                        InterviewPostRepository postRepository,
                        InterviewQuestionRepository questionRepository,
-                       OllamaQuestionExtractor extractor,
+                       OpenAiQuestionExtractor extractor,
                        CrawlerSettings settings) {
         this.sourceRepository = sourceRepository;
         this.adapterRegistry = adapterRegistry;
