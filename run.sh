@@ -8,6 +8,17 @@ if [ "$BRANCH" != "dev-db" ]; then
   exit 1
 fi
 
+if [ ! -f .env ]; then
+  echo "Error: .env file not found."
+  echo "Create .env with OPENAI_API_KEY=..."
+  exit 1
+fi
+
+echo "Loading .env..."
+set -a
+source .env
+set +a
+
 echo "Pulling latest dev-db..."
 git pull origin dev-db
 

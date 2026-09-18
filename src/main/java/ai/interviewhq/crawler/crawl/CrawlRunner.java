@@ -79,10 +79,10 @@ public class CrawlRunner {
 
                     // Deliberately sequential: one crawled entry -> one Ollama call -> DynamoDB -> next entry.
                     try {
-                        log.info("Starting Ollama extraction: postId={}, model={}", post.getId(), settings.extractModel());
+                        log.info("Starting AI extraction: postId={}, model={}", post.getId(), settings.extractModel());
                         InterviewQuestion question = extractor.extract(entry, post.getId());
                         if (question == null) {
-                            log.info("Ollama returned no interview question: postId={}, url={}", post.getId(), entry.url());
+                            log.info("AI returned no interview question: postId={}, url={}", post.getId(), entry.url());
                             continue;
                         }
 
@@ -96,7 +96,7 @@ public class CrawlRunner {
                         postRepository.save(post);
                         log.info("Post marked extracted: postId={}", post.getId());
                     } catch (RuntimeException extractionError) {
-                        log.error("Ollama extraction failed: postId={}, url={}, error={}", post.getId(), entry.url(), extractionError.getMessage(), extractionError);
+                        log.error("AI extraction failed: postId={}, url={}, error={}", post.getId(), entry.url(), extractionError.getMessage(), extractionError);
                     }
                 }
             } catch (Exception e) {
