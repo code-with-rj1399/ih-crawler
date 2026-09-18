@@ -58,6 +58,6 @@ crawler:
   robots-cache-hours: 6
   extract-model: gpt-5-nano
   extract-max-posts-per-job: 12
-  extract-max-tokens: 1200
+  extract-max-tokens: 3000
 
   interval-ms: ${CRAWLER_INTERVAL_MS:3600000}
