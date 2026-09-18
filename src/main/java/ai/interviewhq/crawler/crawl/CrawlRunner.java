@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -58,7 +59,18 @@ public class CrawlRunner {
         );
 
         try {
-            List<InterviewQuestion> questions = extractor.extract(source);
+            List<OpenAiQuestionExtractor.DiscoveredPost> posts = extractor.discoverPostUrls(source);
+            List<InterviewQuestion> questions = new ArrayList<>();
+
+            log.info("Stage 1 discovery finished: source={}, posts={}", source.getSlug(), posts.size());
+
+            for (OpenAiQuestionExtractor.DiscoveredPost post : posts) {
+                try {
+                    questions.addAll(extractor.extractQuestionsFromPost(source, post));
+                } catch (Exception postError) {
+                    log.warn("Stage 2 extraction failed: source={}, url={}", source.getSlug(), post.url(), postError);
+                }
+            }
 
             int saved = 0;
             int skipped = 0;
@@ -112,8 +124,9 @@ public class CrawlRunner {
             }
 
             log.info(
-                    "OpenAI discovery finished: source={}, discovered={}, saved={}, skipped={}",
+                    "Two-stage OpenAI crawl finished: source={}, posts={}, questions={}, saved={}, skipped={}",
                     source.getSlug(),
+                    posts.size(),
                     questions.size(),
                     saved,
                     skipped
