@@ -26,6 +26,8 @@ public class CrawlerSettings {
     public static final String EXTRACT_MODEL = "extract.model";
     public static final String EXTRACT_MAX_POSTS = "extract.max_posts_per_job";
     public static final String EXTRACT_MAX_TOKENS = "extract.max_tokens";
+    public static final String EXTRACT_MAX_POSTS_PER_SOURCE = "extract.max_posts_per_source";
+    public static final String EXTRACT_MAX_QUESTIONS_PER_POST = "extract.max_questions_per_post";
 
     private static final Logger log = LoggerFactory.getLogger(CrawlerSettings.class);
 
@@ -108,6 +110,14 @@ public class CrawlerSettings {
 
     public int extractMaxPostsPerJob() {
         return Math.max(0, getInt(EXTRACT_MAX_POSTS, defaults.getExtractMaxPostsPerJob()));
+    }
+
+    public int extractMaxPostsPerSource() {
+        return Math.max(1, getInt(EXTRACT_MAX_POSTS_PER_SOURCE, defaults.getExtractMaxPostsPerSource()));
+    }
+
+    public int extractMaxQuestionsPerPost() {
+        return Math.max(0, getInt(EXTRACT_MAX_QUESTIONS_PER_POST, defaults.getExtractMaxQuestionsPerPost()));
     }
 
     public int extractMaxTokens() {
