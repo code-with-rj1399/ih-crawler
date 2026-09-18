@@ -1,61 +1,38 @@
 package ai.interviewhq.crawler.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 
 import java.time.Instant;
-
-@Entity
-@Table(name = "crawl_pages")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class CrawlPage {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "source_id")
     private Integer sourceId;
 
-    @Column(name = "job_id")
     private Integer jobId;
 
-    @Column(nullable = false, unique = true)
     private String url;
 
-    @Column(name = "canonical_url")
     private String canonicalUrl;
 
-    @Column(name = "http_status")
     private Integer httpStatus;
 
-    @Column(name = "content_type")
     private String contentType;
 
-    @Column(name = "content_hash")
     private String contentHash;
 
-    @Column(name = "body_excerpt")
     private String bodyExcerpt;
 
     private String etag;
 
-    @Column(name = "robots_allowed")
     private Boolean robotsAllowed;
 
-    @Column(name = "published_at")
     private Instant publishedAt;
 
-    @Column(name = "fetched_at", nullable = false)
     private Instant fetchedAt;
 
     private String error;
-
-    @PrePersist
     void onCreate() {
         if (fetchedAt == null) {
             fetchedAt = Instant.now();

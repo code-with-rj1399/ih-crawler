@@ -1,50 +1,27 @@
 package ai.interviewhq.crawler.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Table;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
-@Entity
-@Table(name = "crawl_job_logs")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class CrawlJobLog {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "job_id", nullable = false)
     private Integer jobId;
 
-    @Column(name = "source_id")
     private Integer sourceId;
 
-    @Column(nullable = false)
     private String level = "info";
 
-    @Column(name = "event_code", nullable = false)
     private String eventCode = "note";
 
-    @Column(nullable = false)
     private String message;
-
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(nullable = false, columnDefinition = "jsonb")
     private Map<String, Object> meta = new LinkedHashMap<>();
 
-    @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
-
-    @PrePersist
     void onCreate() {
         if (createdAt == null) {
             createdAt = Instant.now();

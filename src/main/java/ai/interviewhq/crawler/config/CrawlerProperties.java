@@ -17,6 +17,8 @@ public class CrawlerProperties {
     private int robotsCacheHours = 6;
     private String extractModel = "grok-4.5";
     private int extractMaxPostsPerJob = 12;
+    private int extractMaxPostsPerSource = 12;
+    private int extractMaxQuestionsPerPost = 0;
     private int extractMaxTokens = 1200;
     private String xaiBaseUrl = "https://api.x.ai/v1";
 
@@ -114,6 +116,22 @@ public class CrawlerProperties {
 
     public void setExtractMaxPostsPerJob(int extractMaxPostsPerJob) {
         this.extractMaxPostsPerJob = extractMaxPostsPerJob;
+    }
+
+    public int getExtractMaxPostsPerSource() {
+        return extractMaxPostsPerSource;
+    }
+
+    public void setExtractMaxPostsPerSource(int extractMaxPostsPerSource) {
+        this.extractMaxPostsPerSource = extractMaxPostsPerSource;
+    }
+
+    public int getExtractMaxQuestionsPerPost() {
+        return extractMaxQuestionsPerPost;
+    }
+
+    public void setExtractMaxQuestionsPerPost(int extractMaxQuestionsPerPost) {
+        this.extractMaxQuestionsPerPost = extractMaxQuestionsPerPost;
     }
 
     public int getExtractMaxTokens() {

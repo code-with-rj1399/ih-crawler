@@ -6,8 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -47,8 +45,7 @@ public class JobLogWriter {
         write(jobId, sourceId, "error", eventCode, message, meta);
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void write(Integer jobId, Integer sourceId, String level, String eventCode, String message, Map<String, Object> meta) {
+        public void write(Integer jobId, Integer sourceId, String level, String eventCode, String message, Map<String, Object> meta) {
         String previousJob = MDC.get("jobId");
         try {
             if (jobId != null) {

@@ -1,0 +1,29 @@
+services:
+  dynamodb-local:
+    image: amazon/dynamodb-local:latest
+    container_name: ih-dynamodb
+    command: "-jar DynamoDBLocal.jar -sharedDb -inMemory"
+    ports:
+      - "8000:8000"
+
+  crawler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ih-crawler
+    depends_on:
+      - dynamodb-local
+    ports:
+      - "8090:8090"
+    environment:
+      AWS_ACCESS_KEY_ID: dummy
+      AWS_SECRET_ACCESS_KEY: dummy
+      AWS_REGION: ap-south-1
+      SPRING_PROFILES_ACTIVE: local
+      DYNAMODB_ENDPOINT: http://dynamodb-local:8000
+      DYNAMODB_TABLE: interviewhq-crawler-dev
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_MODEL: gpt-5-nano
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped

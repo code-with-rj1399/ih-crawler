@@ -5,7 +5,6 @@ import ai.interviewhq.crawler.repo.CrawlerConfigRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.LinkedHashMap;
 import java.util.Locale;
@@ -27,6 +26,8 @@ public class CrawlerSettings {
     public static final String EXTRACT_MODEL = "extract.model";
     public static final String EXTRACT_MAX_POSTS = "extract.max_posts_per_job";
     public static final String EXTRACT_MAX_TOKENS = "extract.max_tokens";
+    public static final String EXTRACT_MAX_POSTS_PER_SOURCE = "extract.max_posts_per_source";
+    public static final String EXTRACT_MAX_QUESTIONS_PER_POST = "extract.max_questions_per_post";
 
     private static final Logger log = LoggerFactory.getLogger(CrawlerSettings.class);
 
@@ -111,6 +112,14 @@ public class CrawlerSettings {
         return Math.max(0, getInt(EXTRACT_MAX_POSTS, defaults.getExtractMaxPostsPerJob()));
     }
 
+    public int extractMaxPostsPerSource() {
+        return Math.max(1, getInt(EXTRACT_MAX_POSTS_PER_SOURCE, defaults.getExtractMaxPostsPerSource()));
+    }
+
+    public int extractMaxQuestionsPerPost() {
+        return Math.max(0, getInt(EXTRACT_MAX_QUESTIONS_PER_POST, defaults.getExtractMaxQuestionsPerPost()));
+    }
+
     public int extractMaxTokens() {
         return Math.max(64, getInt(EXTRACT_MAX_TOKENS, defaults.getExtractMaxTokens()));
     }
@@ -119,8 +128,7 @@ public class CrawlerSettings {
         return defaults;
     }
 
-    @Transactional(readOnly = true)
-    public Map<String, String> asMap() {
+        public Map<String, String> asMap() {
         Map<String, String> out = new LinkedHashMap<>();
         for (CrawlerConfig row : repository.findAll()) {
             out.put(row.getKey(), row.getValue());

@@ -1,86 +1,51 @@
 package ai.interviewhq.crawler.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
-import jakarta.persistence.Table;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
-@Entity
-@Table(name = "crawl_sources")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class CrawlSource {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(nullable = false, unique = true)
     private String slug;
 
-    @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
     private String url;
 
-    @Column(name = "source_kind", nullable = false)
     private String sourceKind;
 
-    @Column(nullable = false)
     private boolean enabled = true;
 
-    @Column(name = "rate_limit_rpm", nullable = false)
     private int rateLimitRpm = 8;
 
-    @Column(name = "crawl_delay_ms", nullable = false)
     private int crawlDelayMs = 1500;
 
-    @Column(name = "per_host_concurrency", nullable = false)
     private int perHostConcurrency = 1;
 
-    @Column(name = "robots_mode", nullable = false)
     private String robotsMode = "honor";
-
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "parser_config", nullable = false, columnDefinition = "jsonb")
     private Map<String, Object> parserConfig = new LinkedHashMap<>();
 
-    @Column(name = "last_crawled_at")
     private Instant lastCrawledAt;
 
-    @Column(name = "last_success_at")
     private Instant lastSuccessAt;
 
-    @Column(name = "last_http_status")
     private Integer lastHttpStatus;
 
-    @Column(name = "last_error")
     private String lastError;
 
-    @Column(name = "consecutive_failures", nullable = false)
     private int consecutiveFailures = 0;
 
-    @Column(name = "circuit_open_until")
     private Instant circuitOpenUntil;
 
     private String notes;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
-    @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
-
-    @PrePersist
     void onCreate() {
         Instant now = Instant.now();
         if (createdAt == null) {
@@ -94,8 +59,6 @@ public class CrawlSource {
             robotsMode = "honor";
         }
     }
-
-    @PreUpdate
     void onUpdate() {
         updatedAt = Instant.now();
     }

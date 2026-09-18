@@ -30,6 +30,11 @@ public class PoliteHttpClient implements PoliteFetcher {
     private static final Logger log = LoggerFactory.getLogger(PoliteHttpClient.class);
     private static final int MAX_REDIRECTS = 5;
 
+    // Randomized idle time in addition to the configured crawl/robots delay.
+    // This is for conservative, non-bursty crawling rather than fixed timestamp spacing.
+    private static final int RANDOM_COOLING_MIN_MS = 2_000;
+    private static final int RANDOM_COOLING_MAX_MS = 7_000;
+
     private final HttpClient httpClient;
     private final RobotsService robotsService;
     private final HostRateLimiter rateLimiter;
@@ -76,6 +81,7 @@ public class PoliteHttpClient implements PoliteFetcher {
         if (source.isCircuitOpen()) {
             throw new CircuitOpenException(source.getSlug(), source.getCircuitOpenUntil());
         }
+
         URI uri = URI.create(url);
         RobotsRules.Decision robots = robotsService.check(source, uri);
         if (!robots.allowed()) {
@@ -88,6 +94,7 @@ public class PoliteHttpClient implements PoliteFetcher {
         if (robots.crawlDelaySeconds() != null) {
             delayMs = Math.max(delayMs, robots.crawlDelaySeconds() * 1000);
         }
+
         int rpm = Math.max(1, source.getRateLimitRpm());
         int hostConc = Math.max(1, Math.min(source.getPerHostConcurrency(), settings.perHostConcurrency()));
         String host = uri.getHost();
@@ -98,6 +105,11 @@ public class PoliteHttpClient implements PoliteFetcher {
 
         FetchResult last = null;
         for (int attempt = 0; attempt <= maxRetries; attempt++) {
+            // Every network attempt gets an independently sampled idle interval.
+            long coolingMs = randomizedCoolingMs(delayMs);
+            log.info("cooling before fetch: host={}, method={}, delay={}ms", host, method, coolingMs);
+            Thread.sleep(coolingMs);
+
             try (HostRateLimiter.Permit ignored = rateLimiter.acquire(host, rpm, delayMs, hostConc)) {
                 last = sendFollowingRedirects(method, uri, body, contentType, etag, userAgent, timeoutMs, maxBytes, robots);
             } catch (InterruptedException e) {
@@ -111,27 +123,39 @@ public class PoliteHttpClient implements PoliteFetcher {
 
             if (last != null && last.isRetryableStatus() && attempt < maxRetries) {
                 long waitMs = retryAfterMs(last.retryAfter(), attempt);
-                log.info("retry {} {} status={} after {}ms (honoring Retry-After if present)", method, url, last.status(), waitMs);
+                log.info("retry {} {} status={} after {}ms (honoring Retry-After if present)",
+                        method, url, last.status(), waitMs);
                 Thread.sleep(waitMs);
                 continue;
             }
+
             if (last != null && last.status() == 0 && last.error() != null && attempt < maxRetries) {
                 Thread.sleep(backoffMs(attempt));
                 continue;
             }
             break;
         }
+
         if (last == null) {
             last = new FetchResult(url, url, 0, null, null, new byte[0], false, true,
                     robots.crawlDelaySeconds(), "empty fetch result", 0, null);
         }
+
         boolean success = last.isSuccess() || last.isNotModified();
         outcomes.record(source, last.status(), last.error(), success);
+
         if (last.isBlocked() || last.status() == 429) {
             throw new FetchBlockedException(last.status(), last.finalUrl(),
                     "origin returned " + last.status() + " for " + last.finalUrl());
         }
+
         return last;
+    }
+
+    private static long randomizedCoolingMs(int configuredDelayMs) {
+        int minimum = Math.max(configuredDelayMs, RANDOM_COOLING_MIN_MS);
+        int maximum = Math.max(minimum + 1, RANDOM_COOLING_MAX_MS);
+        return ThreadLocalRandom.current().nextLong(minimum, (long) maximum + 1);
     }
 
     private FetchResult sendFollowingRedirects(
@@ -149,27 +173,37 @@ public class PoliteHttpClient implements PoliteFetcher {
         URI current = start;
         String currentBody = body;
         String currentContentType = contentType;
+
         for (int hops = 0; hops <= MAX_REDIRECTS; hops++) {
             HttpRequest.Builder builder = HttpRequest.newBuilder(current)
                     .timeout(Duration.ofMillis(timeoutMs))
                     .header("User-Agent", userAgent)
                     .header("Accept", "application/rss+xml, application/atom+xml, application/json, text/html, */*;q=0.5")
                     .header("Accept-Language", "en");
+
             if (etag != null && !etag.isBlank() && "GET".equals(currentMethod)) {
                 builder.header("If-None-Match", etag);
             }
+
             if ("POST".equals(currentMethod)) {
                 builder.header("Content-Type", currentContentType == null ? "application/json" : currentContentType);
                 builder.POST(HttpRequest.BodyPublishers.ofString(currentBody == null ? "" : currentBody));
             } else {
                 builder.GET();
             }
-            HttpResponse<InputStream> response = httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofInputStream());
+
+            HttpResponse<InputStream> response = httpClient.send(
+                    builder.build(),
+                    HttpResponse.BodyHandlers.ofInputStream()
+            );
+
             int status = response.statusCode();
             Optional<String> location = response.headers().firstValue("Location");
+
             if (isRedirect(status) && location.isPresent() && hops < MAX_REDIRECTS) {
                 drainQuietly(response.body());
                 current = current.resolve(location.get());
+
                 if (status == 303 || ((status == 301 || status == 302) && "POST".equals(currentMethod))) {
                     currentMethod = "GET";
                     currentBody = null;
@@ -177,11 +211,13 @@ public class PoliteHttpClient implements PoliteFetcher {
                 }
                 continue;
             }
+
             byte[] bytes = readCapped(response.body(), maxBytes);
             String respContentType = response.headers().firstValue("Content-Type").orElse(null);
             String respEtag = response.headers().firstValue("ETag").orElse(null);
             String retryAfter = response.headers().firstValue("Retry-After").orElse(null);
             String error = status >= 400 ? ("HTTP " + status) : null;
+
             return new FetchResult(
                     start.toString(),
                     current.toString(),
@@ -197,6 +233,7 @@ public class PoliteHttpClient implements PoliteFetcher {
                     retryAfter
             );
         }
+
         return new FetchResult(start.toString(), start.toString(), 0, null, null, new byte[0], false, true,
                 robots.crawlDelaySeconds(), "too many redirects", MAX_REDIRECTS, null);
     }

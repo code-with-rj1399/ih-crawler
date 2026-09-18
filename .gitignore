@@ -8,3 +8,4 @@ target/
 *.log
 .vscode/
 .factorypath
+.env

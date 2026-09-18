@@ -5,33 +5,21 @@ server:
 spring:
   application:
     name: ih-crawler
+  dynamodb:
+    table: ${DYNAMODB_TABLE:interviewhq-crawler-dev}
+    region: ${AWS_REGION:ap-south-1}
+    endpoint: ${DYNAMODB_ENDPOINT:}
+  ai:
+    model:
+      chat: openai
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+      chat:
+        options:
+          model: ${OPENAI_MODEL:gpt-5-nano}
+
   lifecycle:
     timeout-per-shutdown-phase: 30s
-  datasource:
-    # Override with DATABASE_URL (postgres://, postgresql://, or jdbc:postgresql://)
-    # or SPRING_DATASOURCE_URL / SPRING_DATASOURCE_USERNAME / SPRING_DATASOURCE_PASSWORD.
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/interviewhq}
-    username: ${SPRING_DATASOURCE_USERNAME:postgres}
-    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
-    hikari:
-      pool-name: ih-crawler
-      maximum-pool-size: 10
-      minimum-idle: 2
-      connection-timeout: 15000
-  flyway:
-    enabled: true
-    locations: classpath:db/migration
-    baseline-on-migrate: true
-  jpa:
-    open-in-view: false
-    hibernate:
-      ddl-auto: validate
-    properties:
-      hibernate:
-        jdbc:
-          time_zone: UTC
-        timezone:
-          default_storage: NORMALIZE
   jackson:
     serialization:
       write-dates-as-timestamps: false
@@ -56,10 +44,10 @@ info:
     name: ih-crawler
     description: InterviewHQ polite crawler
 
-# Documented defaults. Live values are read from crawler_config (seeded by Flyway).
+# Crawler defaults. Runtime crawler configuration may override these values.
 crawler:
   user-agent: "InterviewHQBot/1.0 (ih-crawler; +https://interviewhq.ai/bot)"
-  lookback-hours: 24
+  lookback-hours: 48
   max-concurrency: 4
   per-host-concurrency: 1
   timeout-ms: 15000
@@ -68,6 +56,30 @@ crawler:
   circuit-failures: 5
   circuit-open-minutes: 30
   robots-cache-hours: 6
-  extract-model: grok-4.5
+  extract-model: gpt-5-nano
   extract-max-posts-per-job: 12
-  extract-max-tokens: 1200
+  extract-max-posts-per-source: 12
+  extract-max-questions-per-post: 0
+  extract-max-tokens: 3000
+
+  interval-ms: ${CRAWLER_INTERVAL_MS:3600000}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+
+crawler:
+  extract-max-posts-per-source: 1
+  extract-max-questions-per-post: 1
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+crawler:
+  extract-max-posts-per-source: 1
+  extract-max-questions-per-post: 1
