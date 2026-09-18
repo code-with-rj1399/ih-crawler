@@ -1,7 +1,7 @@
 package ai.interviewhq.crawler.extract;
 
 import ai.interviewhq.crawler.config.CrawlerSettings;
-import ai.interviewhq.crawler.crawl.ParsedEntry;
+import ai.interviewhq.crawler.domain.CrawlSource;
 import ai.interviewhq.crawler.domain.InterviewQuestion;
 import ai.interviewhq.crawler.util.Hashing;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -21,6 +21,7 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -46,8 +47,10 @@ public class OpenAiQuestionExtractor {
         this.apiKey = apiKey;
     }
 
-    public List<InterviewQuestion> extract(ParsedEntry entry, Integer postId) {
-        if (entry.url() == null || entry.url().isBlank()) return Collections.emptyList();
+    public List<InterviewQuestion> extract(CrawlSource source) {
+        if (source == null || source.getName() == null || source.getName().isBlank()) {
+            return Collections.emptyList();
+        }
         if (apiKey == null || apiKey.isBlank()) {
             throw new IllegalStateException("OPENAI_API_KEY is not configured");
         }
@@ -55,7 +58,7 @@ public class OpenAiQuestionExtractor {
         try {
             ObjectNode request = objectMapper.createObjectNode();
             request.put("model", settings.extractModel());
-            request.put("input", buildPrompt(entry));
+            request.put("input", buildPrompt(source));
             request.put("max_output_tokens", settings.extractMaxTokens());
 
             ObjectNode reasoning = objectMapper.createObjectNode();
@@ -67,23 +70,20 @@ public class OpenAiQuestionExtractor {
             webSearch.put("type", "web_search");
             tools.add(webSearch);
             request.set("tools", tools);
-
             request.set("text", structuredOutputSchema());
 
-            String requestBody = request.toString();
-
             HttpRequest httpRequest = HttpRequest.newBuilder(RESPONSES_URI)
-                    .timeout(Duration.ofSeconds(120))
+                    .timeout(Duration.ofSeconds(180))
                     .header("Authorization", "Bearer " + apiKey)
                     .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+                    .POST(HttpRequest.BodyPublishers.ofString(request.toString()))
                     .build();
 
             HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
 
             if (isDevOrLocalProfile()) {
-                log.info("OpenAI raw response: postId={}, model={}, status={}, body={}",
-                        postId, settings.extractModel(), response.statusCode(), response.body());
+                log.info("OpenAI discovery response: source={}, model={}, status={}, body={}",
+                        source.getSlug(), settings.extractModel(), response.statusCode(), response.body());
             }
 
             if (response.statusCode() < 200 || response.statusCode() >= 300) {
@@ -116,13 +116,12 @@ public class OpenAiQuestionExtractor {
                 if (item == null || item.questionText() == null || item.questionText().isBlank()) continue;
 
                 InterviewQuestion question = new InterviewQuestion();
-                question.setPostId(postId);
-                question.setSourcePlatform(item.sourcePlatform());
-                question.setOriginalPostUrl(entry.url());
+                question.setSourcePlatform(firstNonBlank(item.sourcePlatform(), source.getName()));
+                question.setOriginalPostUrl(item.originalPostUrl());
                 question.setProblemUrl(normalizeProblemUrl(item.problemUrl()));
                 question.setPostDate(item.postDate());
-                question.setCompany(firstNonBlank(item.company(), entry.rawCompany()));
-                question.setRole(firstNonBlank(item.role(), entry.rawRole()));
+                question.setCompany(item.company());
+                question.setRole(item.role());
                 question.setLevel(item.level());
                 question.setLocation(item.location());
                 question.setCandidateYoE(item.candidateYoE());
@@ -149,7 +148,7 @@ public class OpenAiQuestionExtractor {
                     && illegalStateException.getMessage().startsWith("OpenAI")) {
                 throw illegalStateException;
             }
-            throw new IllegalStateException("Unable to extract interview questions with OpenAI", e);
+            throw new IllegalStateException("Unable to discover interview questions with OpenAI", e);
         }
     }
 
@@ -225,61 +224,114 @@ public class OpenAiQuestionExtractor {
                 .set("type", objectMapper.createArrayNode().add("string").add("null"));
     }
 
-    private String buildPrompt(ParsedEntry entry) {
+    private String buildPrompt(CrawlSource source) {
+        Instant now = Instant.now();
+        Instant cutoff = now.minusSeconds(settings.lookbackHours() * 3600L);
+
         return """
-                You are the interview-question extraction engine for InterviewHQ.
+                You are InterviewHQ's interview-question discovery and extraction engine.
 
-                Analyze the single public URL provided below.
+                Your task is to discover NEW public interview experiences and interview questions
+                from the source specified below, using web search.
 
-                IMPORTANT TIME WINDOW:
-                Extract only interview questions that were posted, asked, or documented within the last 48 hours relative to the current date/time.
-                Use the publication timestamp or other explicit date/time information on the source page when available.
-                If the source does not provide enough information to establish that the content falls within the last 48 hours, do not include it.
+                SOURCE PLATFORM:
+                %s
 
-                IMPORTANT RULES:
-                1. Read and analyze the actual page content.
-                2. Do not rely only on title, URL, metadata, snippets, or search-result text.
-                3. Extract only questions explicitly present or clearly described on the page.
-                4. Do not invent or infer unsupported questions or metadata.
-                5. Preserve the original technical meaning and important details.
-                6. Extract every distinct qualifying question and deduplicate repeated questions.
-                7. If there are no qualifying questions, return an empty questions array.
-                8. Use null when metadata is not supported by the page.
-                9. postDate is the source publication date as YYYY-MM-DD when available.
-                10. sourcePlatform identifies the hosting platform.
-                11. candidateYoE means the candidate's stated years of experience, not job requirements.
-                12. outcome should reflect the stated interview outcome, such as Offer, Rejected, or No Offer.
-                13. candidateApproach should summarize the candidate's actual approach only when the source describes it; otherwise null.
-                14. Use a canonical official problem URL only when the specific problem is confidently identified.
-                15. Confidence must reflect how strongly the page supports the extracted question and metadata.
-                16. Do not include content older than 48 hours.
-                17. For listing/index pages, inspect individual entries and keep only entries published within the last 48 hours.
+                SOURCE URL / SEARCH SCOPE:
+                %s
+
+                CURRENT UTC TIME:
+                %s
+
+                LOOKBACK WINDOW:
+                %d hours
+
+                IMPORTANT:
+                This is a discovery task. Do NOT wait for the application to provide individual
+                posts. Use web search yourself to find recent public posts on the specified source.
+
+                DISCOVERY RULES:
+                1. Search the specified source directly and independently.
+                2. Search for interview experiences, coding questions, DSA questions, system design,
+                   low-level design, behavioral, technical and company-specific interview reports.
+                3. Perform multiple targeted searches where useful to obtain broad coverage.
+                4. Prefer original posts over reposts, aggregators and search-result summaries.
+                5. Open/read the actual public post whenever possible.
+                6. Do not rely solely on search-result snippets.
+                7. Extract every distinct qualifying interview question from every qualifying post.
+                8. A single post can produce multiple InterviewQuestion records.
+                9. Deduplicate repeated questions within the same post and across discovered posts.
+                10. Do not invent questions or metadata.
+
+                TIME WINDOW:
+                Only include posts published within the last %d hours.
+                The acceptable publication window is:
+                %s through %s UTC.
+                Prefer an explicit publication timestamp from the source.
+                If the publication time cannot be established with reasonable confidence,
+                do not include the post.
+                Do not include an old post merely because it appeared in a recent search result.
+
+                SOURCE-SPECIFIC SEARCH:
+                Search the source named above, not all sources. The application will run this
+                extraction separately for every configured source.
+
+                EXTRACT:
+                sourcePlatform
+                originalPostUrl
+                problemUrl
+                postDate
+                company
+                role
+                level
+                location
+                candidateYoE
+                outcome
+                roundType
+                questionType
+                difficulty
+                topics
+                questionText
+                candidateApproach
+                confidence
+
+                FIELD RULES:
+                - originalPostUrl must be the actual public post URL.
+                - postDate is the post publication date as YYYY-MM-DD.
+                - candidateYoE means the candidate's own stated years of experience.
+                - Never confuse job requirements with candidate YoE.
+                - outcome must be based on the candidate's stated result.
+                - candidateApproach must only summarize an approach actually described.
+                - problemUrl should be populated only when the specific official problem
+                  can be identified confidently.
+                - Use null for unsupported metadata.
+                - Confidence must reflect evidence quality.
+                - Preserve the actual technical meaning of the question.
+                - Ignore generic career advice, job advertisements without interview content,
+                  unrelated discussions and content outside the time window.
+                - Never fabricate content that is inaccessible.
 
                 QUESTION TYPES:
-                CODING, SYSTEM_DESIGN, LOW_LEVEL_DESIGN, BEHAVIORAL, TECHNICAL, DATABASE, DEVOPS, AI_ML, OTHER
+                CODING, SYSTEM_DESIGN, LOW_LEVEL_DESIGN, BEHAVIORAL, TECHNICAL,
+                DATABASE, DEVOPS, AI_ML, OTHER
 
                 ROUND TYPES:
-                OA, CODING, TECHNICAL, SYSTEM_DESIGN, LOW_LEVEL_DESIGN, MANAGERIAL, HR, BEHAVIORAL, PHONE_SCREEN, OTHER
-
-                Return exactly these fields for every question:
-                sourcePlatform, originalPostUrl, problemUrl, postDate, company, role, level, location,
-                candidateYoE, outcome, roundType, questionType, difficulty, topics, questionText,
-                candidateApproach, confidence.
-
-                QUESTION TEXT:
-                Preserve the actual interview question or problem. For coding questions, include enough detail to understand the problem without unnecessarily reproducing a long statement.
-
-                CANDIDATE APPROACH:
-                Summarize the candidate's described solution, reasoning, or answer. Do not invent one.
-
-                SOURCE URL:
-                originalPostUrl must always be the exact URL provided below.
+                OA, CODING, TECHNICAL, SYSTEM_DESIGN, LOW_LEVEL_DESIGN, MANAGERIAL,
+                HR, BEHAVIORAL, PHONE_SCREEN, OTHER
 
                 OUTPUT:
-                Return only the structured JSON object matching the provided schema.
+                Return only the structured JSON object matching the supplied schema.
+                If no qualifying posts/questions are found, return {"questions":[]}.
 
-                URL TO ANALYZE:
-                """ + entry.url();
+                """.formatted(
+                source.getName(),
+                source.getUrl(),
+                now,
+                settings.lookbackHours(),
+                settings.lookbackHours(),
+                cutoff.atOffset(ZoneOffset.UTC),
+                now.atOffset(ZoneOffset.UTC)
+        );
     }
 
     private String extractOutputText(String responseBody) throws Exception {
