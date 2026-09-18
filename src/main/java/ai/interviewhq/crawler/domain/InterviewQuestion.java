@@ -1,25 +1,12 @@
 package ai.interviewhq.crawler.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Table;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-
-@Entity
 @Table(name = "interview_questions")
 public class InterviewQuestion {
-
-    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
@@ -50,8 +37,6 @@ public class InterviewQuestion {
     private String posterName;
 
     private String difficulty;
-
-    @JdbcTypeCode(SqlTypes.JSON)
     @Column(nullable = false, columnDefinition = "jsonb")
     private List<String> topics = new ArrayList<>();
 
@@ -68,8 +53,6 @@ public class InterviewQuestion {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
-
-    @PrePersist
     void onCreate() {
         Instant now = Instant.now();
         if (createdAt == null) {
