@@ -235,7 +235,7 @@ public class OpenAiQuestionExtractor {
                 CURRENT TIME: %s
                 LOOKBACK: %d hours
 
-                Actively discover recent public interview-experience posts from this source. Do not simply inspect the source URL and conclude there are no results. Find individual posts, open/read them, and verify their publication dates.
+                Actively discover up to 5 recent public interview-experience posts from this source. Do not simply inspect the source URL and conclude there are no results. Find individual posts, open/read them, and verify their publication dates. Do not try to exhaustively search the entire source in one request.
 
                 For each qualifying post:
                 - Confirm it describes a real software-engineering interview.
