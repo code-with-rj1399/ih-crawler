@@ -43,9 +43,9 @@ public class DynamoDbRepositorySupport {
                     if (TableStatus.ACTIVE.equals(status)) return;
                 } catch (ResourceNotFoundException ignored) {
                 }
-                try { Thread.sleep(250); } catch (InterruptedException e) {
+                try { Thread.sleep(250); } catch (InterruptedException exception) {
                     Thread.currentThread().interrupt();
-                    throw new IllegalStateException("Interrupted while waiting for DynamoDB table", e);
+                    throw new IllegalStateException("Interrupted while waiting for DynamoDB table", exception);
                 }
             }
             throw new IllegalStateException("DynamoDB table did not become ACTIVE: " + tableName);
