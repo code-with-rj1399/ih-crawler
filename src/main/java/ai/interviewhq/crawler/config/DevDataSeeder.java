@@ -34,7 +34,7 @@ public class DevDataSeeder implements CommandLineRunner {
         source.setSourceKind("reddit_json");
         source.setEnabled(true);
         source.setRateLimitRpm(30);
-        source.setCrawlDelayMs(2000L);
+        source.setCrawlDelayMs(2000);
         source.setPerHostConcurrency(1);
         source.setRobotsMode("RESPECT");
         source.setCreatedAt(Instant.now());
