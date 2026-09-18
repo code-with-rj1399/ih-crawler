@@ -252,7 +252,19 @@ public class OpenAiQuestionExtractor {
         return value;
     }
 
-    private static String normalizeProblemUrl(String value) {\n        if (value == null || value.isBlank()) return null;\n        String url = value.trim();\n        if (!url.startsWith("https://leetcode.com/problems/")) return url;\n        int query = url.indexOf("?");\n        int fragment = url.indexOf("#");\n        int end = url.length();\n        if (query >= 0) end = Math.min(end, query);\n        if (fragment >= 0) end = Math.min(end, fragment);\n        return url.substring(0, end);\n    }\n\n    private static String firstNonBlank(String value, String fallback) {
+    private static String normalizeProblemUrl(String value) {
+        if (value == null || value.isBlank()) return null;
+        String url = value.trim();
+        if (!url.startsWith("https://leetcode.com/problems/")) return url;
+        int query = url.indexOf("?");
+        int fragment = url.indexOf("#");
+        int end = url.length();
+        if (query >= 0) end = Math.min(end, query);
+        if (fragment >= 0) end = Math.min(end, fragment);
+        return url.substring(0, end);
+    }
+
+    private static String firstNonBlank(String value, String fallback) {
         return value != null && !value.isBlank() ? value : fallback;
     }
     
