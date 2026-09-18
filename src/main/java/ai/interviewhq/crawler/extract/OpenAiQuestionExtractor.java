@@ -54,24 +54,32 @@ public class OpenAiQuestionExtractor {
             return Collections.emptyList();
         }
 
+        Instant now = Instant.now();
+        Instant cutoff = now.minus(settings.lookbackHours(), ChronoUnit.HOURS);
+
         String prompt = """
                 Find up to 5 recent posts about software job interviews from this site.
 
                 SOURCE URL: %s
                 PLATFORM: %s
+                PREFER POSTS FROM THE LAST %d HOURS (after %s UTC).
 
                 Return ONLY valid JSON:
-                {"posts":[{"url":"https://...","title":"...","postDate":null}]}
+                {"posts":[{"url":"https://...","title":"...","postDate":"YYYY-MM-DD or null"}]}
 
                 Rules:
-                - Prefer threads/posts that look like interview experiences or interview question discussions.
-                - url = direct link to one post/thread (not a category/search page).
-                - title = post title.
+                - Prefer individual post/thread URLs (not category or search pages).
                 - postDate = YYYY-MM-DD if clearly visible, otherwise null.
+                - Prefer newer posts; include undated posts if they look relevant.
+                - Prefer threads/posts that look like interview experiences or interview question discussions.
                 - Include a post even if you are not 100%% sure it is a full experience write-up.
                 - Skip obvious job ads and pure prep-guide listicles when easy to tell.
-                - If you find nothing: {"posts":[]}.
-                """.formatted(source.getUrl(), source.getName());
+                - If nothing useful: {"posts":[]}.
+                """.formatted(
+                source.getUrl(),
+                source.getName(),
+                settings.lookbackHours(),
+                cutoff.toString());
 
         try {
             JsonNode root = callOpenAi(prompt, discoverySchema(), source, true);
@@ -82,7 +90,6 @@ public class OpenAiQuestionExtractor {
             DiscoveredPosts discovered = objectMapper.readValue(cleanJson(output), DiscoveredPosts.class);
             if (discovered.posts() == null) return Collections.emptyList();
 
-            Instant cutoff = Instant.now().minus(settings.lookbackHours(), ChronoUnit.HOURS);
             LocalDate cutoffDate = cutoff.atZone(ZoneOffset.UTC).toLocalDate();
             List<DiscoveredPost> result = new ArrayList<>();
             Set<String> seen = new java.util.HashSet<>();
@@ -92,10 +99,13 @@ public class OpenAiQuestionExtractor {
                 String url = post.url().trim();
                 if (!seen.add(url)) continue;
 
-                // Stage 1 is discovery, not strict qualification. If the model found a
-                // publication date, apply the lookback filter here. If it could not
-                // determine the date, keep the post for Stage 2.
-                if (post.postDate() != null && post.postDate().isBefore(cutoffDate)) continue;
+                // Stage 1 discovery is intentionally soft, but Java is the hard
+                // freshness gate. We use the strict policy: undated posts are dropped.
+                if (post.postDate() == null || post.postDate().isBefore(cutoffDate)) {
+                    log.debug("Dropping stale/undated discovery: source={}, url={}, postDate={}, cutoff={}",
+                            source.getSlug(), url, post.postDate(), cutoffDate);
+                    continue;
+                }
 
                 result.add(new DiscoveredPost(url, post.title(), post.postDate()));
                 if (result.size() >= 5) break;
