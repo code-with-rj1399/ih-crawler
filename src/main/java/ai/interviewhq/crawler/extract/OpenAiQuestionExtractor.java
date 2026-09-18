@@ -9,6 +9,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -16,10 +18,9 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Service
 public class OpenAiQuestionExtractor {
@@ -42,9 +43,8 @@ public class OpenAiQuestionExtractor {
         this.apiKey = apiKey;
     }
 
-    public InterviewQuestion extract(ParsedEntry entry, Integer postId) {
-        String text = entry.bodyText();
-        if (text == null || text.isBlank()) return null;
+    public List<InterviewQuestion> extract(ParsedEntry entry, Integer postId) {
+        if (entry.url() == null || entry.url().isBlank()) return Collections.emptyList();
         if (apiKey == null || apiKey.isBlank()) {
             throw new IllegalStateException("OPENAI_API_KEY is not configured");
         }
@@ -52,61 +52,84 @@ public class OpenAiQuestionExtractor {
         try {
             String requestBody = objectMapper.createObjectNode()
                     .put("model", settings.extractModel())
-                    .put("input", buildPrompt(entry, text))
+                    .put("input", buildPrompt(entry))
                     .put("max_output_tokens", settings.extractMaxTokens())
+                    .set("reasoning", objectMapper.createObjectNode().put("effort", "low"))
+                    .set("tools", objectMapper.createArrayNode()
+                            .add(objectMapper.createObjectNode().put("type", "web_search")))
                     .set("text", structuredOutputSchema())
                     .toString();
 
             HttpRequest request = HttpRequest.newBuilder(RESPONSES_URI)
-                    .timeout(Duration.ofSeconds(90))
+                    .timeout(Duration.ofSeconds(120))
                     .header("Authorization", "Bearer " + apiKey)
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(requestBody))
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
             if (isDevOrLocalProfile()) {
                 log.info("OpenAI raw response: postId={}, model={}, status={}, body={}",
                         postId, settings.extractModel(), response.statusCode(), response.body());
             }
+
             if (response.statusCode() < 200 || response.statusCode() >= 300) {
                 throw new IllegalStateException("OpenAI API request failed: HTTP "
                         + response.statusCode() + " - " + response.body());
             }
 
-            String output = extractOutputText(response.body());
-            if (output == null || output.isBlank()) return null;
-
-            String json = cleanJson(output);
-            ExtractedQuestion extracted;
-            try {
-                extracted = objectMapper.readValue(json, ExtractedQuestion.class);
-            } catch (com.fasterxml.jackson.core.JsonProcessingException parseError) {
-                String preview = json.length() > 1000 ? json.substring(0, 1000) + "...<truncated>" : json;
-                throw new IllegalStateException("OpenAI returned invalid JSON: " + preview, parseError);
+            JsonNode root = objectMapper.readTree(response.body());
+            if ("incomplete".equals(root.path("status").asText())) {
+                String reason = root.path("incomplete_details").path("reason").asText("unknown");
+                throw new IllegalStateException("OpenAI response incomplete: reason=" + reason);
             }
-            if (extracted.questionText() == null || extracted.questionText().isBlank()) return null;
 
-            InterviewQuestion question = new InterviewQuestion();
-            question.setPostId(postId);
-            question.setCompany(firstNonBlank(extracted.company(), entry.rawCompany()));
-            question.setRole(firstNonBlank(extracted.role(), entry.rawRole()));
-            question.setLevel(extracted.level());
-            question.setRoundType(extracted.roundType());
-            question.setQuestionType(extracted.questionType());
-            question.setQuestionText(extracted.questionText().trim());
-            question.setDifficulty(extracted.difficulty());
-            question.setTopics(extracted.topics() == null ? Collections.emptyList() : extracted.topics());
-            question.setConfidence(extracted.confidence());
-            question.setModelName(settings.extractModel());
-            question.setExtractedAt(Instant.now());
-            question.setDedupeHash(Hashing.questionDedupeHash(question.getCompany(), question.getQuestionText()));
-            return question;
+            String output = extractOutputText(response.body());
+            if (output == null || output.isBlank()) return Collections.emptyList();
+
+            ExtractedQuestions extracted;
+            try {
+                extracted = objectMapper.readValue(cleanJson(output), ExtractedQuestions.class);
+            } catch (com.fasterxml.jackson.core.JsonProcessingException parseError) {
+                String preview = cleanJson(output);
+                if (preview.length() > 1500) preview = preview.substring(0, 1500) + "...<truncated>";
+                throw new IllegalStateException("OpenAI returned invalid structured JSON: " + preview, parseError);
+            }
+
+            List<InterviewQuestion> questions = new ArrayList<>();
+            if (extracted.questions() == null) return questions;
+
+            for (ExtractedQuestion item : extracted.questions()) {
+                if (item == null || item.questionText() == null || item.questionText().isBlank()) continue;
+
+                InterviewQuestion question = new InterviewQuestion();
+                question.setPostId(postId);
+                question.setCompany(firstNonBlank(item.company(), entry.rawCompany()));
+                question.setRole(firstNonBlank(item.role(), entry.rawRole()));
+                question.setLevel(item.level());
+                question.setRoundType(item.roundType());
+                question.setQuestionType(item.questionType());
+                question.setQuestionText(item.questionText().trim());
+                question.setDifficulty(item.difficulty());
+                question.setTopics(item.topics() == null ? Collections.emptyList() : item.topics());
+                question.setConfidence(item.confidence());
+                question.setModelName(settings.extractModel());
+                question.setExtractedAt(Instant.now());
+                question.setDedupeHash(Hashing.questionDedupeHash(question.getCompany(), question.getQuestionText()));
+                questions.add(question);
+            }
+            return questions;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new IllegalStateException("OpenAI extraction interrupted", e);
         } catch (Exception e) {
-            throw new IllegalStateException("Unable to extract interview question with OpenAI", e);
+            if (e instanceof IllegalStateException illegalStateException
+                    && illegalStateException.getMessage() != null
+                    && illegalStateException.getMessage().startsWith("OpenAI")) {
+                throw illegalStateException;
+            }
+            throw new IllegalStateException("Unable to extract interview questions with OpenAI", e);
         }
     }
 
@@ -123,7 +146,7 @@ public class OpenAiQuestionExtractor {
                 .put("name", "interview_question_extraction")
                 .put("strict", true);
 
-        var schema = objectMapper.createObjectNode()
+        var question = objectMapper.createObjectNode()
                 .put("type", "object")
                 .put("additionalProperties", false);
         var properties = objectMapper.createObjectNode();
@@ -139,14 +162,27 @@ public class OpenAiQuestionExtractor {
                 .set("items", objectMapper.createObjectNode().put("type", "string")));
         properties.set("confidence", objectMapper.createObjectNode()
                 .set("type", objectMapper.createArrayNode().add("number").add("null")));
-        schema.set("properties", properties);
-        schema.set("required", objectMapper.createArrayNode()
-                .add("company").add("role").add("level").add("roundType")
-                .add("questionType").add("questionText").add("difficulty")
-                .add("topics").add("confidence"));
+        question.set("properties", properties);
+        question.set("required", requiredFields());
+
+        var schema = objectMapper.createObjectNode()
+                .put("type", "object")
+                .put("additionalProperties", false);
+        schema.set("properties", objectMapper.createObjectNode()
+                .set("questions", objectMapper.createObjectNode()
+                        .put("type", "array")
+                        .set("items", question)));
+        schema.set("required", objectMapper.createArrayNode().add("questions"));
         format.set("schema", schema);
 
         return objectMapper.createObjectNode().set("format", format);
+    }
+
+    private JsonNode requiredFields() {
+        return objectMapper.createArrayNode()
+                .add("company").add("role").add("level").add("roundType")
+                .add("questionType").add("questionText").add("difficulty")
+                .add("topics").add("confidence");
     }
 
     private JsonNode nullableStringSchema() {
@@ -154,24 +190,17 @@ public class OpenAiQuestionExtractor {
                 .set("type", objectMapper.createArrayNode().add("string").add("null"));
     }
 
-    private String buildPrompt(ParsedEntry entry, String text) {
-        return "Extract ONE software engineering interview question from the content below.\n"
-                + "If the content does not contain an interview question, return {\"questionText\":null}.\n"
-                + "Do not invent information.\n\n"
-                + "Return JSON only: {\n"
-                + "  \"company\": \"string or null\",\n"
-                + "  \"role\": \"string or null\",\n"
-                + "  \"level\": \"string or null\",\n"
-                + "  \"roundType\": \"string or null\",\n"
-                + "  \"questionType\": \"string or null\",\n"
-                + "  \"questionText\": \"string or null\",\n"
-                + "  \"difficulty\": \"string or null\",\n"
-                + "  \"topics\": [\"string\"],\n"
-                + "  \"confidence\": 0.0\n}\n\n"
-                + "Title: " + nullToEmpty(entry.title()) + "\n"
-                + "Company hint: " + nullToEmpty(entry.rawCompany()) + "\n"
-                + "Role hint: " + nullToEmpty(entry.rawRole()) + "\n\n"
-                + "Content:\n" + text;
+    private String buildPrompt(ParsedEntry entry) {
+        return "Visit and analyze this public interview-experience URL: " + entry.url() + "\n\n"
+                + "Extract ALL software engineering interview questions explicitly present on that page. "
+                + "Do not rely on the title alone. Read the page content. "
+                + "Return one object per distinct interview question. "
+                + "Preserve the wording and technical meaning from the source. "
+                + "Do not invent or infer questions that are not explicitly present. "
+                + "If the page contains no actual interview questions, return an empty questions array.\n\n"
+                + "For each question extract company, role, level, roundType, questionType, questionText, "
+                + "difficulty, topics, and confidence. Use null when a field is not stated or cannot be determined. "
+                + "The source URL is public and may require web search to retrieve.";
     }
 
     private String extractOutputText(String responseBody) throws Exception {
@@ -207,8 +236,8 @@ public class OpenAiQuestionExtractor {
     private static String firstNonBlank(String value, String fallback) {
         return value != null && !value.isBlank() ? value : fallback;
     }
-
-    private static String nullToEmpty(String value) { return value == null ? "" : value; }
+    
+    private record ExtractedQuestions(List<ExtractedQuestion> questions) {}
 
     private record ExtractedQuestion(String company, String role, String level, String roundType,
                                      String questionType, String questionText, String difficulty,
