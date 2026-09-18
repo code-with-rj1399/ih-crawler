@@ -258,7 +258,7 @@ public class OpenAiQuestionExtractor {
     
     private record ExtractedQuestions(List<ExtractedQuestion> questions) {}
 
-    private record ExtractedQuestion(String company, String role, String level, String roundType,
+    private record ExtractedQuestion(String originalPostUrl, String problemUrl, String company, String role, String level, String roundType,
                                      String questionType, String questionText, String difficulty,
                                      List<String> topics, Float confidence) {}
 }
