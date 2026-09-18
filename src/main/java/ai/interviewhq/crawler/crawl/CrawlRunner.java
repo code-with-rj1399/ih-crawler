@@ -60,6 +60,7 @@ public class CrawlRunner {
         log.info("Enabled sources: {}, lookback: {}, extraction limit: {}", sourceCount, lookback, settings.extractMaxPostsPerJob());
 
         for (CrawlSource source : sourceRepository.findByEnabledTrueOrderByIdAsc()) {
+            int sourceProcessed = 0;
             log.info("Crawling source: slug={}, kind={}, url={}", source.getSlug(), source.getSourceKind(), source.getUrl());
             try {
                 List<ParsedEntry> entries =
@@ -72,15 +73,24 @@ public class CrawlRunner {
                         return;
                     }
 
+                    if (sourceProcessed >= settings.extractMaxPostsPerSource()) {
+                        log.info("Source extraction limit reached: source={}, limit={}", source.getSlug(), settings.extractMaxPostsPerSource());
+                        break;
+                    }
+
                     log.info("Processing entry {}: title={}, url={}", processed + 1, entry.title(), entry.url());
                     InterviewPost post = upsertPost(source, entry);
                     processed++;
+                    sourceProcessed++;
                     log.info("Saved post: id={}, extracted={}, bodyLength={}", post.getId(), post.isExtracted(), entry.bodyText() == null ? 0 : entry.bodyText().length());
 
                     // Deliberately sequential: one crawled entry -> one OpenAI call -> DynamoDB -> next entry.
                     try {
                         log.info("Starting AI extraction: postId={}, model={}", post.getId(), settings.extractModel());
                         List<InterviewQuestion> questions = extractor.extract(entry, post.getId());
+                        if (settings.extractMaxQuestionsPerPost() > 0 && questions.size() > settings.extractMaxQuestionsPerPost()) {
+                            questions = questions.subList(0, settings.extractMaxQuestionsPerPost());
+                        }
                         if (questions.isEmpty()) {
                             log.info("AI returned no interview questions: postId={}, url={}", post.getId(), entry.url());
                             post.setExtracted(true);
