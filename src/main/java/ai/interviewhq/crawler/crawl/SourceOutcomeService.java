@@ -7,7 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -27,8 +26,7 @@ public class SourceOutcomeService {
         this.settings = settings;
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void record(CrawlSource source, int status, String error, boolean success) {
+        public void record(CrawlSource source, int status, String error, boolean success) {
         boolean blockish = BLOCK_STATUSES.contains(status);
         CrawlSource attached = sourceRepository.findById(source.getId()).orElse(source);
         attached.setLastCrawledAt(Instant.now());
