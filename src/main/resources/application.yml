@@ -59,7 +59,4 @@ crawler:
   extract-max-posts-per-job: 12
   extract-max-tokens: 1200
 
-# Keep local-model extraction deliberately sequential. One page -> one Ollama call -> next page.
-# Default cadence is one crawl per hour.
-crawler:
   interval-ms: ${CRAWLER_INTERVAL_MS:3600000}
