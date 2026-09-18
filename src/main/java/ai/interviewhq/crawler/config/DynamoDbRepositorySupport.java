@@ -7,6 +7,8 @@ import software.amazon.awssdk.services.dynamodb.model.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 
 public class DynamoDbRepositorySupport {
 
@@ -34,6 +36,19 @@ public class DynamoDbRepositorySupport {
                                           AttributeDefinition.builder().attributeName("sk").attributeType(ScalarAttributeType.S).build())
                     .billingMode(BillingMode.PAY_PER_REQUEST)
                     .build());
+            for (int i = 0; i < 30; i++) {
+                try {
+                    var status = client.describeTable(DescribeTableRequest.builder().tableName(tableName).build())
+                            .table().tableStatus();
+                    if (TableStatus.ACTIVE.equals(status)) return;
+                } catch (ResourceNotFoundException ignored) {
+                }
+                try { Thread.sleep(250); } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new IllegalStateException("Interrupted while waiting for DynamoDB table", e);
+                }
+            }
+            throw new IllegalStateException("DynamoDB table did not become ACTIVE: " + tableName);
         }
     }
 
@@ -114,7 +129,15 @@ public class DynamoDbRepositorySupport {
     }
 
     public String hashKey(String value) {
-        return Integer.toHexString(Objects.requireNonNullElse(value, "").hashCode());
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256")
+                    .digest(Objects.requireNonNullElse(value, "").getBytes(StandardCharsets.UTF_8));
+            StringBuilder hex = new StringBuilder(digest.length * 2);
+            for (byte b : digest) hex.append(String.format("%02x", b));
+            return hex.toString();
+        } catch (Exception e) {
+            throw new IllegalStateException("Unable to hash DynamoDB key", e);
+        }
     }
 
     private <T> T fromItem(Class<T> type, Map<String, AttributeValue> item) {
