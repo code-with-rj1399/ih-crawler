@@ -123,7 +123,15 @@ public class DynamoDbRepositorySupport {
 
     private <T> T fromItem(Class<T> type, Map<String, AttributeValue> item) {
         try {
-            return objectMapper.readValue(objectMapper.writeValueAsBytes(fromAttributeValue(item.get("data"))), type);
+            Object data = fromAttributeValue(item.get("data"));
+            if (type.getSimpleName().equals("InterviewQuestion") && data instanceof Map<?, ?> map) {
+                Object topics = map.get("topics");
+                if (topics instanceof Map<?, ?> topicsMap) {
+                    List<Object> normalizedTopics = new ArrayList<>(topicsMap.values());
+                    ((Map<String, Object>) map).put("topics", normalizedTopics);
+                }
+            }
+            return objectMapper.readValue(objectMapper.writeValueAsBytes(data), type);
         } catch (Exception e) {
             throw new IllegalStateException("Failed to deserialize DynamoDB entity " + type.getSimpleName(), e);
         }
