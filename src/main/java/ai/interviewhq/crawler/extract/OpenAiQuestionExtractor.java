@@ -116,6 +116,8 @@ public class OpenAiQuestionExtractor {
 
                 InterviewQuestion question = new InterviewQuestion();
                 question.setPostId(postId);
+                question.setOriginalPostUrl(entry.url());
+                question.setProblemUrl(normalizeProblemUrl(item.problemUrl()));
                 question.setCompany(firstNonBlank(item.company(), entry.rawCompany()));
                 question.setRole(firstNonBlank(item.role(), entry.rawRole()));
                 question.setLevel(item.level());
@@ -161,6 +163,8 @@ public class OpenAiQuestionExtractor {
                 .put("type", "object")
                 .put("additionalProperties", false);
         var properties = objectMapper.createObjectNode();
+        properties.set("originalPostUrl", nullableStringSchema());
+        properties.set("problemUrl", nullableStringSchema());
         properties.set("company", nullableStringSchema());
         properties.set("role", nullableStringSchema());
         properties.set("level", nullableStringSchema());
@@ -191,7 +195,7 @@ public class OpenAiQuestionExtractor {
 
     private JsonNode requiredFields() {
         return objectMapper.createArrayNode()
-                .add("company").add("role").add("level").add("roundType")
+                .add("originalPostUrl").add("problemUrl").add("company").add("role").add("level").add("roundType")
                 .add("questionType").add("questionText").add("difficulty")
                 .add("topics").add("confidence");
     }
@@ -244,7 +248,7 @@ public class OpenAiQuestionExtractor {
         return value;
     }
 
-    private static String firstNonBlank(String value, String fallback) {
+    private static String normalizeProblemUrl(String value) {\n        if (value == null || value.isBlank()) return null;\n        String url = value.trim();\n        if (!url.startsWith("https://leetcode.com/problems/")) return url;\n        int query = url.indexOf("?");\n        int fragment = url.indexOf("#");\n        int end = url.length();\n        if (query >= 0) end = Math.min(end, query);\n        if (fragment >= 0) end = Math.min(end, fragment);\n        return url.substring(0, end);\n    }\n\n    private static String firstNonBlank(String value, String fallback) {
         return value != null && !value.isBlank() ? value : fallback;
     }
     
