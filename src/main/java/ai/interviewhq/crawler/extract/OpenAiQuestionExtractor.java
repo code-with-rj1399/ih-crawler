@@ -206,20 +206,94 @@ public class OpenAiQuestionExtractor {
     }
 
     private String buildPrompt(ParsedEntry entry) {
-        return "Visit and analyze this public interview-experience URL: " + entry.url() + "\n\n"
-                + "Extract ALL software engineering interview questions explicitly present on that page. "
-                + "Do not rely on the title alone. Read the page content. "
-                + "Return one object per distinct interview question. "
-                + "Preserve the wording and technical meaning from the source. "
-                + "Do not invent or infer questions that are not explicitly present. "
-                + "If the page contains no actual interview questions, return an empty questions array.\n\n"
-                + "For each question extract originalPostUrl, problemUrl, company, role, level, roundType, questionType, questionText, "
-                + "difficulty, topics, and confidence. originalPostUrl must be the exact source page URL. "
-                + "problemUrl must be the canonical official coding-problem URL when the question refers to a specific problem "
-                + "and you can identify it confidently; otherwise use null. "
-                + "Use null when any other field is not stated or cannot be determined. "
-                + "For LeetCode questions, prefer the official https://leetcode.com/problems/... URL when the exact problem can be identified. "
-                + "The source URL is public and may require web search to retrieve.";
+        return """
+                You are the interview-question extraction engine for InterviewHQ.
+
+                Analyze the single public URL provided below.
+
+                IMPORTANT TIME WINDOW:
+                Extract only interview questions that were posted, asked, or documented within the last 48 hours relative to the current date/time.
+                Use the publication timestamp or other explicit date/time information on the source page when available.
+                Do not assume that an old interview experience is recent merely because the page is currently accessible.
+                If the source does not provide enough information to establish that the content falls within the last 48 hours, do not include it.
+                The 48-hour rule applies to the source content/post, not to the date of the interview unless the page clearly indicates that the interview itself occurred within that window.
+
+                IMPORTANT RULES:
+
+                1. Read and analyze the actual page content.
+                2. Do not rely only on the page title, URL, metadata, snippets, or search-result text.
+                3. Extract only questions that are explicitly present or clearly described in the page.
+                4. Do not invent, reconstruct, or infer a question that is not supported by the page.
+                5. Preserve the original technical meaning and important details of each question.
+                6. If the page contains multiple distinct questions, extract every qualifying question.
+                7. If the same question appears multiple times on the page, return it only once.
+                8. If the page contains no qualifying interview or technical questions, return an empty questions array.
+                9. Do not treat general discussion, opinions, preparation advice, or statements about technologies as interview questions unless they describe an actual question asked or problem given.
+                10. A coding problem counts as an interview question when the page indicates that it was asked or given as part of an interview.
+                11. If a specific coding problem can be confidently identified, provide its canonical official problem URL. Otherwise, set problemUrl to null.
+                12. Do not guess company, role, level, round, difficulty, or topic. Use null or an empty array when the information is not supported by the page.
+                13. Confidence must reflect how strongly the page supports the extracted question and its metadata.
+                14. Do not include content older than 48 hours, even if it is otherwise relevant.
+                15. If the page is a listing/index page, inspect the available individual entries and consider only entries whose source publication time is within the last 48 hours.
+
+                QUESTION TYPES:
+                Classify each extracted question as one of:
+                - CODING
+                - SYSTEM_DESIGN
+                - LOW_LEVEL_DESIGN
+                - BEHAVIORAL
+                - TECHNICAL
+                - DATABASE
+                - DEVOPS
+                - AI_ML
+                - OTHER
+
+                ROUND TYPES:
+                Classify the interview round when supported by the page, for example:
+                - OA
+                - CODING
+                - TECHNICAL
+                - SYSTEM_DESIGN
+                - LOW_LEVEL_DESIGN
+                - MANAGERIAL
+                - HR
+                - BEHAVIORAL
+                - PHONE_SCREEN
+                - OTHER
+
+                For every extracted question, return:
+                - originalPostUrl
+                - problemUrl
+                - company
+                - role
+                - level
+                - roundType
+                - questionType
+                - questionText
+                - difficulty
+                - topics
+                - confidence
+
+                QUESTION TEXT:
+                The questionText should contain the actual interview question or problem being asked.
+                For coding questions, include enough information to understand the problem, but do not unnecessarily reproduce long problem statements.
+                For system-design questions, preserve the actual system/problem being requested.
+                For behavioral questions, preserve the actual question.
+
+                SOURCE URL:
+                originalPostUrl must always be the exact URL provided below.
+
+                PROBLEM URL:
+                Use the canonical official problem URL only when the specific problem can be identified confidently.
+                For example, if the page clearly refers to a specific LeetCode problem, use:
+                https://leetcode.com/problems/<problem-slug>/
+                Do not create a problem URL based only on a vague similarity.
+
+                OUTPUT:
+                Return only the structured JSON object matching the provided schema.
+
+                URL TO ANALYZE:
+                """ + entry.url();
     }
 
     private String extractOutputText(String responseBody) throws Exception {
