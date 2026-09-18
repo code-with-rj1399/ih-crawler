@@ -7,6 +7,7 @@ import ai.interviewhq.crawler.util.Hashing;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
@@ -17,21 +18,27 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class OpenAiQuestionExtractor {
+    private static final Logger log = LoggerFactory.getLogger(OpenAiQuestionExtractor.class);
     private static final URI RESPONSES_URI = URI.create("https://api.openai.com/v1/responses");
 
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
     private final CrawlerSettings settings;
     private final String apiKey;
+    private final Environment environment;
 
     public OpenAiQuestionExtractor(ObjectMapper objectMapper, CrawlerSettings settings,
+                                   Environment environment,
                                    @Value("${OPENAI_API_KEY:}") String apiKey) {
         this.httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(15)).build();
         this.objectMapper = objectMapper;
         this.settings = settings;
+        this.environment = environment;
         this.apiKey = apiKey;
     }
 
@@ -58,6 +65,10 @@ public class OpenAiQuestionExtractor {
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (isDevOrLocalProfile()) {
+                log.info("OpenAI raw response: postId={}, model={}, status={}, body={}",
+                        postId, settings.extractModel(), response.statusCode(), response.body());
+            }
             if (response.statusCode() < 200 || response.statusCode() >= 300) {
                 throw new IllegalStateException("OpenAI API request failed: HTTP "
                         + response.statusCode() + " - " + response.body());
@@ -97,6 +108,13 @@ public class OpenAiQuestionExtractor {
         } catch (Exception e) {
             throw new IllegalStateException("Unable to extract interview question with OpenAI", e);
         }
+    }
+
+    private boolean isDevOrLocalProfile() {
+        for (String profile : environment.getActiveProfiles()) {
+            if ("dev".equals(profile) || "local".equals(profile)) return true;
+        }
+        return false;
     }
 
     private JsonNode structuredOutputSchema() {
