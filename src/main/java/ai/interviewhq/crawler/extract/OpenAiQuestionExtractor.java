@@ -95,28 +95,38 @@ public class OpenAiQuestionExtractor {
 
             HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
 
-            if (isDevOrLocalProfile()) {
-                log.info("OpenAI discovery response: source={}, model={}, status={}, body={}",
-                        source.getSlug(), settings.extractModel(), response.statusCode(), response.body());
-            }
-
             if (response.statusCode() < 200 || response.statusCode() >= 300) {
+                String body = response.body();
+                if (body.length() > 3000) body = body.substring(0, 3000) + "...<truncated>";
                 throw new IllegalStateException("OpenAI API request failed: HTTP "
-                        + response.statusCode() + " - " + response.body());
+                        + response.statusCode() + " - " + body);
             }
 
             JsonNode root = objectMapper.readTree(response.body());
             logResponseDiagnostics(source, root);
 
-            if ("incomplete".equals(root.path("status").asText())) {
+            if (isDevOrLocalProfile()) {
+                log.info("OpenAI discovery response body: source={}, body={}",
+                        source.getSlug(), response.body());
+            }
+
+            String status = root.path("status").asText("unknown");
+            if ("incomplete".equals(status)) {
                 String reason = root.path("incomplete_details").path("reason").asText("unknown");
                 JsonNode usage = root.path("usage");
                 throw new IllegalStateException(
-                        "OpenAI response incomplete: reason=" + reason + ", usage=" + usage);
+                        "OpenAI response incomplete: reason=" + reason
+                                + ", outputTypes=" + outputTypes(root)
+                                + ", usage=" + usage);
             }
 
             String output = extractOutputText(root);
-            if (output == null || output.isBlank()) return Collections.emptyList();
+            if (output == null || output.isBlank()) {
+                throw new IllegalStateException(
+                        "OpenAI response contained no output_text: status=" + status
+                                + ", outputTypes=" + outputTypes(root)
+                                + ", usage=" + root.path("usage"));
+            }
 
             ExtractedQuestions extracted;
             try {
@@ -337,15 +347,24 @@ public class OpenAiQuestionExtractor {
     }
 
     private void logResponseDiagnostics(CrawlSource source, JsonNode root) {
+        log.info("OpenAI discovery diagnostics: source={}, responseId={}, status={}, outputTypes={}, usage={}, incompleteDetails={}",
+                source.getSlug(),
+                root.path("id").asText("unknown"),
+                root.path("status").asText("unknown"),
+                outputTypes(root),
+                root.path("usage"),
+                root.path("incomplete_details"));
+    }
+
+    private List<String> outputTypes(JsonNode root) {
         JsonNode output = root.path("output");
-        List<String> outputTypes = new ArrayList<>();
-        if (output.isArray()) {
-            for (JsonNode item : output) {
-                outputTypes.add(item.path("type").asText("unknown"));
-            }
+        if (!output.isArray()) return Collections.emptyList();
+
+        List<String> types = new ArrayList<>();
+        for (JsonNode item : output) {
+            types.add(item.path("type").asText("unknown"));
         }
-        log.info("OpenAI discovery diagnostics: source={}, status={}, outputTypes={}, usage={}",
-                source.getSlug(), root.path("status").asText("unknown"), outputTypes, root.path("usage"));
+        return types;
     }
 
     private static String sourceHost(String sourceUrl) {
