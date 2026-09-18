@@ -47,6 +47,7 @@ public class OpenAiQuestionExtractor {
                     .put("model", settings.extractModel())
                     .put("input", buildPrompt(entry, text))
                     .put("max_output_tokens", settings.extractMaxTokens())
+                    .set("text", structuredOutputSchema())
                     .toString();
 
             HttpRequest request = HttpRequest.newBuilder(RESPONSES_URI)
@@ -65,7 +66,14 @@ public class OpenAiQuestionExtractor {
             String output = extractOutputText(response.body());
             if (output == null || output.isBlank()) return null;
 
-            ExtractedQuestion extracted = objectMapper.readValue(cleanJson(output), ExtractedQuestion.class);
+            String json = cleanJson(output);
+            ExtractedQuestion extracted;
+            try {
+                extracted = objectMapper.readValue(json, ExtractedQuestion.class);
+            } catch (com.fasterxml.jackson.core.JsonProcessingException parseError) {
+                String preview = json.length() > 1000 ? json.substring(0, 1000) + "...<truncated>" : json;
+                throw new IllegalStateException("OpenAI returned invalid JSON: " + preview, parseError);
+            }
             if (extracted.questionText() == null || extracted.questionText().isBlank()) return null;
 
             InterviewQuestion question = new InterviewQuestion();
@@ -89,6 +97,43 @@ public class OpenAiQuestionExtractor {
         } catch (Exception e) {
             throw new IllegalStateException("Unable to extract interview question with OpenAI", e);
         }
+    }
+
+    private JsonNode structuredOutputSchema() {
+        var format = objectMapper.createObjectNode()
+                .put("type", "json_schema")
+                .put("name", "interview_question_extraction")
+                .put("strict", true);
+
+        var schema = objectMapper.createObjectNode()
+                .put("type", "object")
+                .put("additionalProperties", false);
+        var properties = objectMapper.createObjectNode();
+        properties.set("company", nullableStringSchema());
+        properties.set("role", nullableStringSchema());
+        properties.set("level", nullableStringSchema());
+        properties.set("roundType", nullableStringSchema());
+        properties.set("questionType", nullableStringSchema());
+        properties.set("questionText", nullableStringSchema());
+        properties.set("difficulty", nullableStringSchema());
+        properties.set("topics", objectMapper.createObjectNode()
+                .put("type", "array")
+                .set("items", objectMapper.createObjectNode().put("type", "string")));
+        properties.set("confidence", objectMapper.createObjectNode()
+                .set("type", objectMapper.createArrayNode().add("number").add("null")));
+        schema.set("properties", properties);
+        schema.set("required", objectMapper.createArrayNode()
+                .add("company").add("role").add("level").add("roundType")
+                .add("questionType").add("questionText").add("difficulty")
+                .add("topics").add("confidence"));
+        format.set("schema", schema);
+
+        return objectMapper.createObjectNode().set("format", format);
+    }
+
+    private JsonNode nullableStringSchema() {
+        return objectMapper.createObjectNode()
+                .set("type", objectMapper.createArrayNode().add("string").add("null"));
     }
 
     private String buildPrompt(ParsedEntry entry, String text) {
