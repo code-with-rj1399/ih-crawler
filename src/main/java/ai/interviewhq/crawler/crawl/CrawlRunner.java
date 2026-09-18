@@ -6,7 +6,7 @@ import ai.interviewhq.crawler.crawl.http.PoliteFetcher;
 import ai.interviewhq.crawler.domain.CrawlSource;
 import ai.interviewhq.crawler.domain.InterviewPost;
 import ai.interviewhq.crawler.domain.InterviewQuestion;
-import ai.interviewhq.crawler.extract.OllamaQuestionExtractor;
+import ai.interviewhq.crawler.extract.OpenAiQuestionExtractor;
 import ai.interviewhq.crawler.repo.CrawlSourceRepository;
 import ai.interviewhq.crawler.repo.InterviewPostRepository;
 import ai.interviewhq.crawler.repo.InterviewQuestionRepository;
@@ -28,7 +28,7 @@ public class CrawlRunner {
     private final PoliteFetcher fetcher;
     private final InterviewPostRepository postRepository;
     private final InterviewQuestionRepository questionRepository;
-    private final OllamaQuestionExtractor extractor;
+    private final OpenAiQuestionExtractor extractor;
     private final CrawlerSettings settings;
 
     public CrawlRunner(CrawlSourceRepository sourceRepository,
@@ -77,7 +77,7 @@ public class CrawlRunner {
                     processed++;
                     log.info("Saved post: id={}, extracted={}, bodyLength={}", post.getId(), post.isExtracted(), entry.bodyText() == null ? 0 : entry.bodyText().length());
 
-                    // Deliberately sequential: one crawled entry -> one Ollama call -> DynamoDB -> next entry.
+                    // Deliberately sequential: one crawled entry -> one OpenAI call -> DynamoDB -> next entry.
                     try {
                         log.info("Starting AI extraction: postId={}, model={}", post.getId(), settings.extractModel());
                         InterviewQuestion question = extractor.extract(entry, post.getId());
@@ -86,7 +86,7 @@ public class CrawlRunner {
                             continue;
                         }
 
-                        log.info("Ollama extracted question: postId={}, questionId={}, type={}, company={}, role={}, confidence={}", post.getId(), question.getId(), question.getQuestionType(), question.getCompany(), question.getRole(), question.getConfidence());
+                        log.info("OpenAI extracted question: postId={}, questionId={}, type={}, company={}, role={}, confidence={}", post.getId(), question.getId(), question.getQuestionType(), question.getCompany(), question.getRole(), question.getConfidence());
                         boolean existing = questionRepository.findByDedupeHash(question.getDedupeHash()).isPresent();
                         log.info("Question dedupe: hash={}, existing={}", question.getDedupeHash(), existing);
                         questionRepository.findByDedupeHash(question.getDedupeHash())

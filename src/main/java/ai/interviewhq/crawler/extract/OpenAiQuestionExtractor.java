@@ -13,13 +13,17 @@ import java.util.Collections;
 import java.util.List;
 
 @Service
-public class OllamaQuestionExtractor {
+public class OpenAiQuestionExtractor {
     private final ChatClient chatClient;
     private final ObjectMapper objectMapper;
     private final CrawlerSettings settings;
 
-    public OllamaQuestionExtractor(ChatClient.Builder chatClientBuilder, ObjectMapper objectMapper, CrawlerSettings settings) {
-        this.chatClient = chatClientBuilder.build();
+    public OpenAiQuestionExtractor(ChatClient.Builder chatClientBuilder, ObjectMapper objectMapper, CrawlerSettings settings) {
+        this.chatClient = chatClientBuilder
+                .defaultOptions(org.springframework.ai.openai.OpenAiChatOptions.builder()
+                        .model(settings.extractModel())
+                        .build())
+                .build();
         this.objectMapper = objectMapper;
         this.settings = settings;
     }
@@ -69,7 +73,7 @@ public class OllamaQuestionExtractor {
             question.setDedupeHash(Hashing.questionDedupeHash(question.getCompany(), question.getQuestionText()));
             return question;
         } catch (Exception e) {
-            throw new IllegalStateException("Unable to parse Ollama extraction response", e);
+            throw new IllegalStateException("Unable to parse OpenAI extraction response", e);
         }
     }
 
