@@ -4,20 +4,14 @@ package ai.interviewhq.crawler.domain;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-@Table(name = "companies")
 public class Company {
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(nullable = false, unique = true)
     private String name;
 
-    @Column(nullable = false, unique = true)
     private String slug;
-    @Column(nullable = false, columnDefinition = "jsonb")
     private List<String> aliases = new ArrayList<>();
 
-    @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
     void onCreate() {
         if (createdAt == null) {
