@@ -13,6 +13,10 @@ public class InterviewQuestion {
 
     private Integer postId;
 
+    private String originalPostUrl;
+
+    private String problemUrl;
+
     private String company;
 
     private String role;
@@ -70,6 +74,22 @@ public class InterviewQuestion {
 
     public void setPostId(Integer postId) {
         this.postId = postId;
+    }
+
+    public String getOriginalPostUrl() {
+        return originalPostUrl;
+    }
+
+    public void setOriginalPostUrl(String originalPostUrl) {
+        this.originalPostUrl = originalPostUrl;
+    }
+
+    public String getProblemUrl() {
+        return problemUrl;
+    }
+
+    public void setProblemUrl(String problemUrl) {
+        this.problemUrl = problemUrl;
     }
 
     public String getCompany() {
