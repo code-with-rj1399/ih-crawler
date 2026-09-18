@@ -19,6 +19,7 @@ services:
       AWS_ACCESS_KEY_ID: dummy
       AWS_SECRET_ACCESS_KEY: dummy
       AWS_REGION: ap-south-1
+      SPRING_PROFILES_ACTIVE: local
       DYNAMODB_ENDPOINT: http://dynamodb-local:8000
       DYNAMODB_TABLE: interviewhq-crawler-dev
       OLLAMA_BASE_URL: http://host.docker.internal:11434
