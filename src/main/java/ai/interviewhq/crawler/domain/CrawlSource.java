@@ -1,9 +1,12 @@
 package ai.interviewhq.crawler.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class CrawlSource {
     private Integer id;
 
