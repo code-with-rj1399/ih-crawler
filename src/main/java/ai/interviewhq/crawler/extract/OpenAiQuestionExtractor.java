@@ -71,14 +71,14 @@ public class OpenAiQuestionExtractor {
 
             String requestBody = request.toString();
 
-            HttpRequest request = HttpRequest.newBuilder(RESPONSES_URI)
+            HttpRequest httpRequest = HttpRequest.newBuilder(RESPONSES_URI)
                     .timeout(Duration.ofSeconds(120))
                     .header("Authorization", "Bearer " + apiKey)
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(requestBody))
                     .build();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
 
             if (isDevOrLocalProfile()) {
                 log.info("OpenAI raw response: postId={}, model={}, status={}, body={}",
