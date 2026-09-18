@@ -2,17 +2,13 @@ package ai.interviewhq.crawler.domain;
 
 
 import java.time.Instant;
-@Table(name = "crawler_config")
 public class CrawlerConfig {
-    @Column(name = "key")
     private String key;
 
-    @Column(nullable = false)
     private String value;
 
     private String description;
 
-    @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
     public CrawlerConfig() {
