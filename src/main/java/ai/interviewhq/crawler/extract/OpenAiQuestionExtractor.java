@@ -308,26 +308,55 @@ public class OpenAiQuestionExtractor {
         );
     }
 
-    private String extractOutputText(String responseBody) throws Exception {
-        JsonNode root = objectMapper.readTree(responseBody);
+    private String extractOutputText(JsonNode root) {
         JsonNode outputText = root.get("output_text");
-        if (outputText != null && outputText.isTextual()) return outputText.asText();
+        if (outputText != null && outputText.isTextual() && !outputText.asText().isBlank()) {
+            return outputText.asText();
+        }
 
         JsonNode output = root.get("output");
         if (output == null || !output.isArray()) return null;
+
         StringBuilder text = new StringBuilder();
         for (JsonNode item : output) {
+            if (!"message".equals(item.path("type").asText())) continue;
+
             JsonNode content = item.get("content");
             if (content == null || !content.isArray()) continue;
+
             for (JsonNode contentItem : content) {
+                if (!"output_text".equals(contentItem.path("type").asText())) continue;
                 JsonNode value = contentItem.get("text");
-                if (value != null && value.isTextual()) {
+                if (value != null && value.isTextual() && !value.asText().isBlank()) {
                     if (text.length() > 0) text.append('\n');
                     text.append(value.asText());
                 }
             }
         }
         return text.isEmpty() ? null : text.toString();
+    }
+
+    private void logResponseDiagnostics(CrawlSource source, JsonNode root) {
+        JsonNode output = root.path("output");
+        List<String> outputTypes = new ArrayList<>();
+        if (output.isArray()) {
+            for (JsonNode item : output) {
+                outputTypes.add(item.path("type").asText("unknown"));
+            }
+        }
+        log.info("OpenAI discovery diagnostics: source={}, status={}, outputTypes={}, usage={}",
+                source.getSlug(), root.path("status").asText("unknown"), outputTypes, root.path("usage"));
+    }
+
+    private static String sourceHost(String sourceUrl) {
+        if (sourceUrl == null || sourceUrl.isBlank()) return null;
+        try {
+            String host = URI.create(sourceUrl).getHost();
+            if (host == null || host.isBlank()) return null;
+            return host.startsWith("www.") ? host.substring(4) : host;
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     private static String cleanJson(String response) {
