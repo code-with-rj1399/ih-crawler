@@ -1,0 +1,38 @@
+services:
+  dynamodb-local:
+    image: amazon/dynamodb-local:latest
+    container_name: ih-dynamodb
+    command: "-jar DynamoDBLocal.jar -sharedDb -inMemory"
+    ports:
+      - "8000:8000"
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ih-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+
+  crawler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ih-crawler
+    depends_on:
+      - dynamodb-local
+      - ollama
+    ports:
+      - "8090:8090"
+    environment:
+      AWS_ACCESS_KEY_ID: dummy
+      AWS_SECRET_ACCESS_KEY: dummy
+      AWS_REGION: ap-south-1
+      DYNAMODB_ENDPOINT: http://dynamodb-local:8000
+      DYNAMODB_TABLE: interviewhq-crawler-dev
+      OLLAMA_BASE_URL: http://ollama:11434
+      OLLAMA_MODEL: qwen3:4b
+    restart: unless-stopped
+
+volumes:
+  ollama_data:
