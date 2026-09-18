@@ -80,21 +80,27 @@ public class CrawlRunner {
                     // Deliberately sequential: one crawled entry -> one OpenAI call -> DynamoDB -> next entry.
                     try {
                         log.info("Starting AI extraction: postId={}, model={}", post.getId(), settings.extractModel());
-                        InterviewQuestion question = extractor.extract(entry, post.getId());
-                        if (question == null) {
-                            log.info("AI returned no interview question: postId={}, url={}", post.getId(), entry.url());
+                        List<InterviewQuestion> questions = extractor.extract(entry, post.getId());
+                        if (questions.isEmpty()) {
+                            log.info("AI returned no interview questions: postId={}, url={}", post.getId(), entry.url());
+                            post.setExtracted(true);
+                            postRepository.save(post);
                             continue;
                         }
 
-                        log.info("OpenAI extracted question: postId={}, questionId={}, type={}, company={}, role={}, confidence={}", post.getId(), question.getId(), question.getQuestionType(), question.getCompany(), question.getRole(), question.getConfidence());
-                        boolean existing = questionRepository.findByDedupeHash(question.getDedupeHash()).isPresent();
-                        log.info("Question dedupe: hash={}, existing={}", question.getDedupeHash(), existing);
-                        questionRepository.findByDedupeHash(question.getDedupeHash())
-                                .orElseGet(() -> questionRepository.save(question));
+                        for (InterviewQuestion question : questions) {
+                            log.info("OpenAI extracted question: postId={}, type={}, company={}, role={}, confidence={}",
+                                    post.getId(), question.getQuestionType(), question.getCompany(),
+                                    question.getRole(), question.getConfidence());
+                            boolean existing = questionRepository.findByDedupeHash(question.getDedupeHash()).isPresent();
+                            log.info("Question dedupe: hash={}, existing={}", question.getDedupeHash(), existing);
+                            questionRepository.findByDedupeHash(question.getDedupeHash())
+                                    .orElseGet(() -> questionRepository.save(question));
+                        }
 
                         post.setExtracted(true);
                         postRepository.save(post);
-                        log.info("Post marked extracted: postId={}", post.getId());
+                        log.info("Post marked extracted: postId={}, questions={}", post.getId(), questions.size());
                     } catch (RuntimeException extractionError) {
                         log.error("AI extraction failed: postId={}, url={}, error={}", post.getId(), entry.url(), extractionError.getMessage(), extractionError);
                     }
