@@ -7,6 +7,7 @@ import ai.interviewhq.crawler.repo.CrawlSourceRepository;
 import ai.interviewhq.crawler.repo.InterviewQuestionRepository;
 import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.view.RedirectView;
 
 import java.util.List;
 
@@ -23,6 +24,11 @@ public class DevController {
         this.crawlRunner = crawlRunner;
         this.sourceRepository = sourceRepository;
         this.questionRepository = questionRepository;
+    }
+
+    @GetMapping("/dev")
+    public RedirectView page() {
+        return new RedirectView("/dev/index.html");
     }
 
     @GetMapping("/sources")
