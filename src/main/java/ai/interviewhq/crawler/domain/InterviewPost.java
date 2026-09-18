@@ -1,8 +1,11 @@
 package ai.interviewhq.crawler.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
 import java.time.Instant;
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class InterviewPost {
     private Integer id;
 
