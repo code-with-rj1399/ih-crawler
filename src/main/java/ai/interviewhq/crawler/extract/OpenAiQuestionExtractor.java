@@ -67,9 +67,24 @@ public class OpenAiQuestionExtractor {
             ArrayNode tools = objectMapper.createArrayNode();
             ObjectNode webSearch = objectMapper.createObjectNode();
             webSearch.put("type", "web_search");
+            webSearch.put("search_context_size", "low");
+
+            String sourceHost = sourceHost(source.getUrl());
+            if (sourceHost != null) {
+                ObjectNode filters = objectMapper.createObjectNode();
+                ArrayNode allowedDomains = objectMapper.createArrayNode();
+                allowedDomains.add(sourceHost);
+                filters.set("allowed_domains", allowedDomains);
+                webSearch.set("filters", filters);
+            }
+
             tools.add(webSearch);
             request.set("tools", tools);
-            request.set("text", structuredOutputSchema());
+
+            ObjectNode text = objectMapper.createObjectNode();
+            text.set("format", structuredOutputSchema().path("format"));
+            text.put("verbosity", "low");
+            request.set("text", text);
 
             HttpRequest httpRequest = HttpRequest.newBuilder(RESPONSES_URI)
                     .timeout(Duration.ofSeconds(180))
@@ -91,12 +106,16 @@ public class OpenAiQuestionExtractor {
             }
 
             JsonNode root = objectMapper.readTree(response.body());
+            logResponseDiagnostics(source, root);
+
             if ("incomplete".equals(root.path("status").asText())) {
                 String reason = root.path("incomplete_details").path("reason").asText("unknown");
-                throw new IllegalStateException("OpenAI response incomplete: reason=" + reason);
+                JsonNode usage = root.path("usage");
+                throw new IllegalStateException(
+                        "OpenAI response incomplete: reason=" + reason + ", usage=" + usage);
             }
 
-            String output = extractOutputText(response.body());
+            String output = extractOutputText(root);
             if (output == null || output.isBlank()) return Collections.emptyList();
 
             ExtractedQuestions extracted;
@@ -225,8 +244,6 @@ public class OpenAiQuestionExtractor {
 
     private String buildPrompt(CrawlSource source) {
         Instant now = Instant.now();
-        Instant cutoff = now.minusSeconds(settings.lookbackHours() * 3600L);
-
         return """
                 You are InterviewHQ's interview-experience discovery engine.
 
