@@ -4,64 +4,44 @@ package ai.interviewhq.crawler.domain;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
-@Table(name = "crawl_sources")
 public class CrawlSource {
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(nullable = false, unique = true)
     private String slug;
 
-    @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
     private String url;
 
-    @Column(name = "source_kind", nullable = false)
     private String sourceKind;
 
-    @Column(nullable = false)
     private boolean enabled = true;
 
-    @Column(name = "rate_limit_rpm", nullable = false)
     private int rateLimitRpm = 8;
 
-    @Column(name = "crawl_delay_ms", nullable = false)
     private int crawlDelayMs = 1500;
 
-    @Column(name = "per_host_concurrency", nullable = false)
     private int perHostConcurrency = 1;
 
-    @Column(name = "robots_mode", nullable = false)
     private String robotsMode = "honor";
-    @Column(name = "parser_config", nullable = false, columnDefinition = "jsonb")
     private Map<String, Object> parserConfig = new LinkedHashMap<>();
 
-    @Column(name = "last_crawled_at")
     private Instant lastCrawledAt;
 
-    @Column(name = "last_success_at")
     private Instant lastSuccessAt;
 
-    @Column(name = "last_http_status")
     private Integer lastHttpStatus;
 
-    @Column(name = "last_error")
     private String lastError;
 
-    @Column(name = "consecutive_failures", nullable = false)
     private int consecutiveFailures = 0;
 
-    @Column(name = "circuit_open_until")
     private Instant circuitOpenUntil;
 
     private String notes;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
-    @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
     void onCreate() {
         Instant now = Instant.now();
