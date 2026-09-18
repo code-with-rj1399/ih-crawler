@@ -6,6 +6,8 @@ import ai.interviewhq.crawler.domain.InterviewQuestion;
 import ai.interviewhq.crawler.util.Hashing;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -50,15 +52,24 @@ public class OpenAiQuestionExtractor {
         }
 
         try {
-            String requestBody = objectMapper.createObjectNode()
-                    .put("model", settings.extractModel())
-                    .put("input", buildPrompt(entry))
-                    .put("max_output_tokens", settings.extractMaxTokens())
-                    .set("reasoning", objectMapper.createObjectNode().put("effort", "low"))
-                    .set("tools", objectMapper.createArrayNode()
-                            .add(objectMapper.createObjectNode().put("type", "web_search")))
-                    .set("text", structuredOutputSchema())
-                    .toString();
+            ObjectNode request = objectMapper.createObjectNode();
+            request.put("model", settings.extractModel());
+            request.put("input", buildPrompt(entry));
+            request.put("max_output_tokens", settings.extractMaxTokens());
+
+            ObjectNode reasoning = objectMapper.createObjectNode();
+            reasoning.put("effort", "low");
+            request.set("reasoning", reasoning);
+
+            ArrayNode tools = objectMapper.createArrayNode();
+            ObjectNode webSearch = objectMapper.createObjectNode();
+            webSearch.put("type", "web_search");
+            tools.add(webSearch);
+            request.set("tools", tools);
+
+            request.set("text", structuredOutputSchema());
+
+            String requestBody = request.toString();
 
             HttpRequest request = HttpRequest.newBuilder(RESPONSES_URI)
                     .timeout(Duration.ofSeconds(120))
