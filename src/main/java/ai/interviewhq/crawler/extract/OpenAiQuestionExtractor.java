@@ -58,7 +58,7 @@ public class OpenAiQuestionExtractor {
         Instant cutoff = now.minus(settings.lookbackHours(), ChronoUnit.HOURS);
 
         String prompt = """
-                Find up to %d recent posts about software job interviews from this site.
+                Find up to 5 recent posts about software job interviews from this site.
 
                 SOURCE URL: %s
                 PLATFORM: %s
@@ -76,7 +76,6 @@ public class OpenAiQuestionExtractor {
                 - Skip obvious job ads and pure prep-guide listicles when easy to tell.
                 - If nothing useful: {"posts":[]}.
                 """.formatted(
-                settings.extractMaxPostsPerSource(),
                 source.getUrl(),
                 source.getName(),
                 settings.lookbackHours(),
@@ -109,7 +108,7 @@ public class OpenAiQuestionExtractor {
                 }
 
                 result.add(new DiscoveredPost(url, post.title(), post.postDate()));
-                if (result.size() >= settings.extractMaxPostsPerSource()) break;
+                if (result.size() >= 5) break;
             }
             return result;
         } catch (Exception e) {
