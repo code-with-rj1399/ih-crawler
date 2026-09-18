@@ -1,6 +1,7 @@
 package ai.interviewhq.crawler.config;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.*;
@@ -108,11 +109,9 @@ public class DynamoDbRepositorySupport {
     }
 
     public void delete(String pk, String sk) {
-        client.deleteItem(DeleteItemRequest.builder()
-                .tableName(tableName)
-                .key(Map.of("pk", AttributeValue.builder().s(pk).build(),
-                            "sk", AttributeValue.builder().s(sk).build()))
-                .build());
+        client.deleteItem(DeleteItemRequest.builder().tableName(tableName).key(Map.of(
+                "pk", AttributeValue.builder().s(pk).build(),
+                "sk", AttributeValue.builder().s(sk).build())).build());
     }
 
     public int nextId(String sequenceName) {
@@ -142,16 +141,23 @@ public class DynamoDbRepositorySupport {
 
     private <T> T fromItem(Class<T> type, Map<String, AttributeValue> item) {
         try {
-            return objectMapper.readValue(
-                    objectMapper.writeValueAsBytes(fromAttributeValue(item.get("data"))), type);
+            return objectMapper.readValue(objectMapper.writeValueAsBytes(fromAttributeValue(item.get("data"))), type);
         } catch (Exception e) {
             throw new IllegalStateException("Failed to deserialize DynamoDB entity " + type.getSimpleName(), e);
         }
     }
 
-    @SuppressWarnings("unchecked")
     private AttributeValue toAttributeValue(Object value) {
         if (value == null) return AttributeValue.builder().nul(true).build();
+
+        if (value instanceof JsonNode node) {
+            try {
+                return toAttributeValue(objectMapper.treeToValue(node, Object.class));
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Failed to convert JsonNode to DynamoDB value", e);
+            }
+        }
+
         if (value instanceof String s) return AttributeValue.builder().s(s).build();
         if (value instanceof Integer || value instanceof Long || value instanceof Short ||
                 value instanceof Byte || value instanceof Float || value instanceof Double) {
@@ -166,6 +172,8 @@ public class DynamoDbRepositorySupport {
         if (value instanceof Collection<?> collection) {
             return AttributeValue.builder().l(collection.stream().map(this::toAttributeValue).toList()).build();
         }
+        if (value.getClass().isEnum()) return AttributeValue.builder().s(value.toString()).build();
+
         return toAttributeValue(objectMapper.convertValue(value, MAP_TYPE));
     }
 
