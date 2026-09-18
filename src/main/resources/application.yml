@@ -35,7 +35,7 @@ info:
     name: ih-crawler
     description: InterviewHQ polite crawler
 
-# Documented defaults. Live values are read from crawler_config (seeded by Flyway).
+# Crawler defaults. Runtime crawler configuration may override these values.
 crawler:
   user-agent: "InterviewHQBot/1.0 (ih-crawler; +https://interviewhq.ai/bot)"
   lookback-hours: 24
