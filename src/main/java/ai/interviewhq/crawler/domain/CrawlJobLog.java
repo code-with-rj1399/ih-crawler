@@ -4,29 +4,20 @@ package ai.interviewhq.crawler.domain;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
-@Table(name = "crawl_job_logs")
 public class CrawlJobLog {
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "job_id", nullable = false)
     private Integer jobId;
 
-    @Column(name = "source_id")
     private Integer sourceId;
 
-    @Column(nullable = false)
     private String level = "info";
 
-    @Column(name = "event_code", nullable = false)
     private String eventCode = "note";
 
-    @Column(nullable = false)
     private String message;
-    @Column(nullable = false, columnDefinition = "jsonb")
     private Map<String, Object> meta = new LinkedHashMap<>();
 
-    @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
     void onCreate() {
         if (createdAt == null) {
