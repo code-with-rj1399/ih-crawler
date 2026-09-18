@@ -229,108 +229,104 @@ public class OpenAiQuestionExtractor {
         Instant cutoff = now.minusSeconds(settings.lookbackHours() * 3600L);
 
         return """
-                You are InterviewHQ's interview-question discovery and extraction engine.
+                You are the InterviewHQ extraction engine. Extract genuine software engineering
+                interview questions from '%s' (Platform: '%s') published within the last %d hours
+                relative to '%s'.
 
-                Your task is to discover NEW public interview experiences and interview questions
-                from the source specified below, using web search.
+                DISCOVERY & ELIGIBILITY
+                - Strict Time Window: Eligibility is based on the content's publication date,
+                  NOT the interview date. Exclude old posts bumped by recent comments, indexing,
+                  or discovery algorithms.
+                - Content Scope: Discover relevant public posts on the specified source only.
+                  Exclude generic advice, job ads, preparation lists, and unrelated technical
+                  discussions.
+                - Source Verification: Base extraction on the actual content, not just titles
+                  or snippets. Prefer the original source over aggregators.
+                - Publication Date: Verify the publication date from the original source whenever
+                  possible. If the publication date cannot be established with reasonable
+                  confidence, exclude the content.
 
-                SOURCE PLATFORM:
+                EXTRACTION CONSTRAINTS
+                - Zero Hallucination: Never invent, infer, or generate unsupported questions,
+                  metadata, job details, or outcomes. If a field is unsupported, use null.
+                  Accuracy > Quantity.
+                - Record Granularity: Extract every distinct question as a separate record.
+                  Do not infer a question merely because a technology/topic is mentioned.
+                - Deduplication: Deduplicate identical questions unless they originate from
+                  materially different interview experiences. Questions from the same post share
+                  the same originalPostUrl.
+                - Question Preservation:
+                  * Coding: Summarize long prompts while keeping essential requirements,
+                    constraints, and tasks.
+                  * Behavioral/System/Technical: Preserve the specific question or system asked;
+                    do not replace it with a generic category.
+                - Candidate Approach: Must be a faithful summary of the candidate's explicitly
+                  stated reasoning/solution. Never generate a hypothetical solution. If absent,
+                  use null.
+
+                JSON SCHEMA & FIELD RULES
+                Extract these fields (use null if unsupported):
+                - sourcePlatform: The platform containing the original post.
+                - originalPostUrl: Direct URL to the specific post containing the interview
+                  information, NOT a homepage, tag, subreddit, search page, or aggregator.
+                - problemUrl: Canonical official problem link, if confidently identified.
+                - postDate: Publication date of the original post (YYYY-MM-DD).
+                - company: Normalize obvious naming variations only when the company identity
+                  is unambiguous.
+                - role: Explicitly stated interview role.
+                - level: Explicitly stated interview/job level.
+                - location: Explicitly stated interview/job location.
+                - candidateYoE: Candidate's stated professional experience. NEVER use the job
+                  description's required experience.
+                - outcome: Explicitly stated outcome, e.g. Offer, Rejected, No Offer, In Progress.
+                - roundType: The specific interview round in which the question was asked.
+                - questionType: Must be CODING, SYSTEM_DESIGN, LOW_LEVEL_DESIGN, BEHAVIORAL,
+                  TECHNICAL, DATABASE, DEVOPS, AI_ML, or OTHER.
+                - difficulty: Easy, Medium, or Hard only if explicitly stated or directly
+                  supported.
+                - topics: Array of explicit technical concepts relevant to the actual question.
+                - questionText: The actual interview question or summarized problem.
+                - candidateApproach: Faithful summary of the candidate's approach, or null.
+                - confidence: Float from 0.0 to 1.0 representing the strength of source evidence.
+
+                OUTPUT
+                Return STRICTLY a JSON object matching the supplied schema. Do not output markdown,
+                explanations, citations, or conversational text outside the JSON.
+
+                {
+                  "questions": [...]
+                }
+
+                Return an empty array if no qualifying questions are found:
+                {
+                  "questions": []
+                }
+
+                SOURCE:
                 %s
 
-                SOURCE URL / SEARCH SCOPE:
+                PLATFORM:
                 %s
 
-                CURRENT UTC TIME:
+                CURRENT TIME:
                 %s
 
-                LOOKBACK WINDOW:
-                %d hours
+                LOOKBACK HOURS:
+                %d
 
-                IMPORTANT:
-                This is a discovery task. Do NOT wait for the application to provide individual
-                posts. Use web search yourself to find recent public posts on the specified source.
-
-                DISCOVERY RULES:
-                1. Search the specified source directly and independently.
-                2. Search for interview experiences, coding questions, DSA questions, system design,
-                   low-level design, behavioral, technical and company-specific interview reports.
-                3. Perform multiple targeted searches where useful to obtain broad coverage.
-                4. Prefer original posts over reposts, aggregators and search-result summaries.
-                5. Open/read the actual public post whenever possible.
-                6. Do not rely solely on search-result snippets.
-                7. Extract every distinct qualifying interview question from every qualifying post.
-                8. A single post can produce multiple InterviewQuestion records.
-                9. Deduplicate repeated questions within the same post and across discovered posts.
-                10. Do not invent questions or metadata.
-
-                TIME WINDOW:
-                Only include posts published within the last %d hours.
-                The acceptable publication window is:
-                %s through %s UTC.
-                Prefer an explicit publication timestamp from the source.
-                If the publication time cannot be established with reasonable confidence,
-                do not include the post.
-                Do not include an old post merely because it appeared in a recent search result.
-
-                SOURCE-SPECIFIC SEARCH:
-                Search the source named above, not all sources. The application will run this
-                extraction separately for every configured source.
-
-                EXTRACT:
-                sourcePlatform
-                originalPostUrl
-                problemUrl
-                postDate
-                company
-                role
-                level
-                location
-                candidateYoE
-                outcome
-                roundType
-                questionType
-                difficulty
-                topics
-                questionText
-                candidateApproach
-                confidence
-
-                FIELD RULES:
-                - originalPostUrl must be the actual public post URL.
-                - postDate is the post publication date as YYYY-MM-DD.
-                - candidateYoE means the candidate's own stated years of experience.
-                - Never confuse job requirements with candidate YoE.
-                - outcome must be based on the candidate's stated result.
-                - candidateApproach must only summarize an approach actually described.
-                - problemUrl should be populated only when the specific official problem
-                  can be identified confidently.
-                - Use null for unsupported metadata.
-                - Confidence must reflect evidence quality.
-                - Preserve the actual technical meaning of the question.
-                - Ignore generic career advice, job advertisements without interview content,
-                  unrelated discussions and content outside the time window.
-                - Never fabricate content that is inaccessible.
-
-                QUESTION TYPES:
-                CODING, SYSTEM_DESIGN, LOW_LEVEL_DESIGN, BEHAVIORAL, TECHNICAL,
-                DATABASE, DEVOPS, AI_ML, OTHER
-
-                ROUND TYPES:
-                OA, CODING, TECHNICAL, SYSTEM_DESIGN, LOW_LEVEL_DESIGN, MANAGERIAL,
-                HR, BEHAVIORAL, PHONE_SCREEN, OTHER
-
-                OUTPUT:
-                Return only the structured JSON object matching the supplied schema.
-                If no qualifying posts/questions are found, return {"questions":[]}.
-
+                ELIGIBILITY WINDOW START:
+                %s
                 """.formatted(
-                source.getName(),
                 source.getUrl(),
+                source.getName(),
+                settings.lookbackHours(),
                 now,
                 settings.lookbackHours(),
+                source.getUrl(),
+                source.getName(),
+                now,
                 settings.lookbackHours(),
-                cutoff.atOffset(ZoneOffset.UTC),
-                now.atOffset(ZoneOffset.UTC)
+                cutoff
         );
     }
 
