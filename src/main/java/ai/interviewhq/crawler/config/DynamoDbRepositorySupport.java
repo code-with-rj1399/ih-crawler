@@ -3,6 +3,7 @@ package ai.interviewhq.crawler.config;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.*;
 
@@ -13,12 +14,13 @@ import java.security.MessageDigest;
 
 public class DynamoDbRepositorySupport {
 
-    private static final TypeReference<Map<String, Object>> MAP_TYPE =
-            new TypeReference<>() {};
+    private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<>() {};
 
     private final DynamoDbClient client;
     private final String tableName;
-    private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
+    private final ObjectMapper objectMapper = new ObjectMapper()
+            .findAndRegisterModules()
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
     public DynamoDbRepositorySupport(DynamoDbClient client, String tableName) {
         this.client = client;
@@ -29,21 +31,17 @@ public class DynamoDbRepositorySupport {
         try {
             client.describeTable(DescribeTableRequest.builder().tableName(tableName).build());
         } catch (ResourceNotFoundException e) {
-            client.createTable(CreateTableRequest.builder()
-                    .tableName(tableName)
+            client.createTable(CreateTableRequest.builder().tableName(tableName)
                     .keySchema(KeySchemaElement.builder().attributeName("pk").keyType(KeyType.HASH).build(),
-                               KeySchemaElement.builder().attributeName("sk").keyType(KeyType.RANGE).build())
+                            KeySchemaElement.builder().attributeName("sk").keyType(KeyType.RANGE).build())
                     .attributeDefinitions(AttributeDefinition.builder().attributeName("pk").attributeType(ScalarAttributeType.S).build(),
-                                          AttributeDefinition.builder().attributeName("sk").attributeType(ScalarAttributeType.S).build())
-                    .billingMode(BillingMode.PAY_PER_REQUEST)
-                    .build());
+                            AttributeDefinition.builder().attributeName("sk").attributeType(ScalarAttributeType.S).build())
+                    .billingMode(BillingMode.PAY_PER_REQUEST).build());
             for (int i = 0; i < 30; i++) {
                 try {
-                    var status = client.describeTable(DescribeTableRequest.builder().tableName(tableName).build())
-                            .table().tableStatus();
-                    if (TableStatus.ACTIVE.equals(status)) return;
-                } catch (ResourceNotFoundException ignored) {
-                }
+                    if (TableStatus.ACTIVE.equals(client.describeTable(
+                            DescribeTableRequest.builder().tableName(tableName).build()).table().tableStatus())) return;
+                } catch (ResourceNotFoundException ignored) {}
                 try { Thread.sleep(250); } catch (InterruptedException exception) {
                     Thread.currentThread().interrupt();
                     throw new IllegalStateException("Interrupted while waiting for DynamoDB table", exception);
@@ -56,25 +54,19 @@ public class DynamoDbRepositorySupport {
     public <T> T save(T entity, String pk, String sk) {
         Map<String, Object> data = objectMapper.convertValue(entity, MAP_TYPE);
         data.values().removeIf(Objects::isNull);
-
         Map<String, AttributeValue> item = new HashMap<>();
         item.put("pk", AttributeValue.builder().s(pk).build());
         item.put("sk", AttributeValue.builder().s(sk).build());
         item.put("entityType", AttributeValue.builder().s(entity.getClass().getSimpleName()).build());
         item.put("data", toAttributeValue(data));
-
         client.putItem(PutItemRequest.builder().tableName(tableName).item(item).build());
         return entity;
     }
 
     public <T> Optional<T> find(Class<T> type, String pk, String sk) {
-        var response = client.getItem(GetItemRequest.builder()
-                .tableName(tableName)
-                .key(Map.of("pk", AttributeValue.builder().s(pk).build(),
-                            "sk", AttributeValue.builder().s(sk).build()))
-                .consistentRead(true)
-                .build());
-
+        var response = client.getItem(GetItemRequest.builder().tableName(tableName)
+                .key(Map.of("pk", AttributeValue.builder().s(pk).build(), "sk", AttributeValue.builder().s(sk).build()))
+                .consistentRead(true).build());
         if (!response.hasItem()) return Optional.empty();
         return Optional.of(fromItem(type, response.item()));
     }
@@ -86,26 +78,19 @@ public class DynamoDbRepositorySupport {
             var request = ScanRequest.builder().tableName(tableName).consistentRead(true);
             if (start != null) request.exclusiveStartKey(start);
             var response = client.scan(request.build());
-            for (var item : response.items()) {
-                if (item.containsKey("data")) result.add(fromItem(type, item));
-            }
+            for (var item : response.items()) if (item.containsKey("data")) result.add(fromItem(type, item));
             start = response.lastEvaluatedKey();
         } while (start != null && !start.isEmpty());
         return result;
     }
 
     public <T> List<T> query(Class<T> type, String pk) {
-        var response = client.query(QueryRequest.builder()
-                .tableName(tableName)
+        var response = client.query(QueryRequest.builder().tableName(tableName)
                 .keyConditionExpression("pk = :pk")
                 .expressionAttributeValues(Map.of(":pk", AttributeValue.builder().s(pk).build()))
-                .consistentRead(true)
-                .build());
-
-        return response.items().stream()
-                .filter(i -> i.containsKey("data"))
-                .map(i -> fromItem(type, i))
-                .collect(Collectors.toList());
+                .consistentRead(true).build());
+        return response.items().stream().filter(i -> i.containsKey("data"))
+                .map(i -> fromItem(type, i)).collect(Collectors.toList());
     }
 
     public void delete(String pk, String sk) {
@@ -115,22 +100,19 @@ public class DynamoDbRepositorySupport {
     }
 
     public int nextId(String sequenceName) {
-        var result = client.updateItem(UpdateItemRequest.builder()
-                .tableName(tableName)
+        var result = client.updateItem(UpdateItemRequest.builder().tableName(tableName)
                 .key(Map.of("pk", AttributeValue.builder().s("COUNTER#" + sequenceName).build(),
-                            "sk", AttributeValue.builder().s("ENTITY").build()))
-                .updateExpression("ADD #value :one")
-                .expressionAttributeNames(Map.of("#value", "value"))
+                        "sk", AttributeValue.builder().s("ENTITY").build()))
+                .updateExpression("ADD #value :one").expressionAttributeNames(Map.of("#value", "value"))
                 .expressionAttributeValues(Map.of(":one", AttributeValue.builder().n("1").build()))
-                .returnValues(ReturnValue.UPDATED_NEW)
-                .build());
+                .returnValues(ReturnValue.UPDATED_NEW).build());
         return Integer.parseInt(result.attributes().get("value").n());
     }
 
     public String hashKey(String value) {
         try {
-            byte[] digest = MessageDigest.getInstance("SHA-256")
-                    .digest(Objects.requireNonNullElse(value, "").getBytes(StandardCharsets.UTF_8));
+            byte[] digest = MessageDigest.getInstance("SHA-256").digest(
+                    Objects.requireNonNullElse(value, "").getBytes(StandardCharsets.UTF_8));
             StringBuilder hex = new StringBuilder(digest.length * 2);
             for (byte b : digest) hex.append(String.format("%02x", b));
             return hex.toString();
@@ -149,31 +131,21 @@ public class DynamoDbRepositorySupport {
 
     private AttributeValue toAttributeValue(Object value) {
         if (value == null) return AttributeValue.builder().nul(true).build();
-
         if (value instanceof JsonNode node) {
-            try {
-                return toAttributeValue(objectMapper.treeToValue(node, Object.class));
-            } catch (Exception e) {
-                throw new IllegalArgumentException("Failed to convert JsonNode to DynamoDB value", e);
-            }
+            try { return toAttributeValue(objectMapper.treeToValue(node, Object.class)); }
+            catch (Exception e) { throw new IllegalArgumentException("Failed to convert JsonNode to DynamoDB value", e); }
         }
-
         if (value instanceof String s) return AttributeValue.builder().s(s).build();
-        if (value instanceof Integer || value instanceof Long || value instanceof Short ||
-                value instanceof Byte || value instanceof Float || value instanceof Double) {
-            return AttributeValue.builder().n(String.valueOf(value)).build();
-        }
+        if (value instanceof Number n) return AttributeValue.builder().n(n.toString()).build();
         if (value instanceof Boolean b) return AttributeValue.builder().bool(b).build();
         if (value instanceof Map<?, ?> map) {
             Map<String, AttributeValue> result = new HashMap<>();
             map.forEach((k, v) -> result.put(String.valueOf(k), toAttributeValue(v)));
             return AttributeValue.builder().m(result).build();
         }
-        if (value instanceof Collection<?> collection) {
+        if (value instanceof Collection<?> collection)
             return AttributeValue.builder().l(collection.stream().map(this::toAttributeValue).toList()).build();
-        }
         if (value.getClass().isEnum()) return AttributeValue.builder().s(value.toString()).build();
-
         return toAttributeValue(objectMapper.convertValue(value, MAP_TYPE));
     }
 
@@ -182,12 +154,8 @@ public class DynamoDbRepositorySupport {
         if (value.s() != null) return value.s();
         if (value.n() != null) {
             String n = value.n();
-            try {
-                if (n.contains(".")) return Double.parseDouble(n);
-                return Long.parseLong(n);
-            } catch (NumberFormatException ignored) {
-                return n;
-            }
+            try { return n.contains(".") ? Double.parseDouble(n) : Long.parseLong(n); }
+            catch (NumberFormatException ignored) { return n; }
         }
         if (value.bool() != null) return value.bool();
         if (value.nul() != null && value.nul()) return null;
