@@ -5,12 +5,9 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-@Table(name = "interview_questions")
 public class InterviewQuestion {
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "post_id")
     private Integer postId;
 
     private String company;
@@ -19,39 +16,29 @@ public class InterviewQuestion {
 
     private String level;
 
-    @Column(name = "round_type")
     private String roundType;
 
-    @Column(name = "question_type")
     private String questionType;
 
-    @Column(name = "question_text", nullable = false)
     private String questionText;
 
-    @Column(name = "asked_at")
     private LocalDate askedAt;
 
     private String location;
 
-    @Column(name = "poster_name")
     private String posterName;
 
     private String difficulty;
-    @Column(nullable = false, columnDefinition = "jsonb")
     private List<String> topics = new ArrayList<>();
 
     private Float confidence;
 
-    @Column(name = "model_name")
     private String modelName;
 
-    @Column(name = "dedupe_hash", unique = true)
     private String dedupeHash;
 
-    @Column(name = "extracted_at", nullable = false)
     private Instant extractedAt;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
     void onCreate() {
         Instant now = Instant.now();
