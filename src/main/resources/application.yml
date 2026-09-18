@@ -47,7 +47,7 @@ info:
 # Crawler defaults. Runtime crawler configuration may override these values.
 crawler:
   user-agent: "InterviewHQBot/1.0 (ih-crawler; +https://interviewhq.ai/bot)"
-  lookback-hours: 24
+  lookback-hours: 48
   max-concurrency: 4
   per-host-concurrency: 1
   timeout-ms: 15000
