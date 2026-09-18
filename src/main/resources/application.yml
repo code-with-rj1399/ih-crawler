@@ -58,7 +58,7 @@ crawler:
   robots-cache-hours: 6
   extract-model: gpt-5-nano
   extract-max-posts-per-job: 5
-  extract-max-posts-per-source: 5
+  extract-max-posts-per-source: 15
   extract-max-questions-per-post: 0
   extract-max-tokens: 3000
 
@@ -71,7 +71,7 @@ spring:
       on-profile: local
 
 crawler:
-  extract-max-posts-per-source: 1
+  extract-max-posts-per-source: 2
   extract-max-questions-per-post: 1
 
 ---
