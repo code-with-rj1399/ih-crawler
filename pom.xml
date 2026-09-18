@@ -18,7 +18,7 @@
     <description>InterviewHQ polite crawler and Grok extraction service</description>
 
     <properties>
-        <spring-ai.version>1.0.9</spring-ai.version>
+        <spring-ai.version>1.1.8</spring-ai.version>
         <java.version>17</java.version>
         <maven.compiler.release>17</maven.compiler.release>
         <jsoup.version>1.18.3</jsoup.version>
