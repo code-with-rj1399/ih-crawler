@@ -30,8 +30,8 @@ public class DevDataSeeder implements CommandLineRunner {
         CrawlSource source = new CrawlSource();
         source.setSlug("reddit-interviews");
         source.setName("Reddit Interview Questions");
-        source.setUrl("https://www.reddit.com/r/cscareerquestions/search.json?q=interview%20question&restrict_sr=1&sort=new&t=day");
-        source.setSourceKind("reddit_json");
+        source.setUrl("https://www.reddit.com/r/cscareerquestions/search.rss?q=interview%20question&restrict_sr=1&sort=new&t=day");
+        source.setSourceKind("rss");
         source.setEnabled(true);
         source.setRateLimitRpm(30);
         source.setCrawlDelayMs(2000);
