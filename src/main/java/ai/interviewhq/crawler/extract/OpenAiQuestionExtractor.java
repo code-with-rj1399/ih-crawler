@@ -228,103 +228,66 @@ public class OpenAiQuestionExtractor {
         Instant cutoff = now.minusSeconds(settings.lookbackHours() * 3600L);
 
         return """
-                You are the InterviewHQ extraction engine. Extract genuine software engineering
-                interview questions from '%s' (Platform: '%s') published within the last %d hours
-                relative to '%s'.
+                You are InterviewHQ's interview-experience discovery engine.
 
-                DISCOVERY & ELIGIBILITY
-                - Strict Time Window: Eligibility is based on the content's publication date,
-                  NOT the interview date. Exclude old posts bumped by recent comments, indexing,
-                  or discovery algorithms.
-                - Content Scope: Discover relevant public posts on the specified source only.
-                  Exclude generic advice, job ads, preparation lists, and unrelated technical
-                  discussions.
-                - Source Verification: Base extraction on the actual content, not just titles
-                  or snippets. Prefer the original source over aggregators.
-                - Publication Date: Verify the publication date from the original source whenever
-                  possible. If the publication date cannot be established with reasonable
-                  confidence, exclude the content.
+                SOURCE: %s
+                PLATFORM: %s
+                CURRENT TIME: %s
+                LOOKBACK: %d hours
 
-                EXTRACTION CONSTRAINTS
-                - Zero Hallucination: Never invent, infer, or generate unsupported questions,
-                  metadata, job details, or outcomes. If a field is unsupported, use null.
-                  Accuracy > Quantity.
-                - Record Granularity: Extract every distinct question as a separate record.
-                  Do not infer a question merely because a technology/topic is mentioned.
-                - Deduplication: Deduplicate identical questions unless they originate from
-                  materially different interview experiences. Questions from the same post share
-                  the same originalPostUrl.
-                - Question Preservation:
-                  * Coding: Summarize long prompts while keeping essential requirements,
-                    constraints, and tasks.
-                  * Behavioral/System/Technical: Preserve the specific question or system asked;
-                    do not replace it with a generic category.
-                - Candidate Approach: Must be a faithful summary of the candidate's explicitly
-                  stated reasoning/solution. Never generate a hypothetical solution. If absent,
-                  use null.
+                Actively discover recent public interview-experience posts from this source. Do not simply inspect the source URL and conclude there are no results. Find individual posts, open/read them, and verify their publication dates.
 
-                JSON SCHEMA & FIELD RULES
-                Extract these fields (use null if unsupported):
-                - sourcePlatform: The platform containing the original post.
-                - originalPostUrl: Direct URL to the specific post containing the interview
-                  information, NOT a homepage, tag, subreddit, search page, or aggregator.
-                - problemUrl: Canonical official problem link, if confidently identified.
-                - postDate: Publication date of the original post (YYYY-MM-DD).
-                - company: Normalize obvious naming variations only when the company identity
-                  is unambiguous.
-                - role: Explicitly stated interview role.
-                - level: Explicitly stated interview/job level.
-                - location: Explicitly stated interview/job location.
-                - candidateYoE: Candidate's stated professional experience. NEVER use the job
-                  description's required experience.
-                - outcome: Explicitly stated outcome, e.g. Offer, Rejected, No Offer, In Progress.
-                - roundType: The specific interview round in which the question was asked.
-                - questionType: Must be CODING, SYSTEM_DESIGN, LOW_LEVEL_DESIGN, BEHAVIORAL,
-                  TECHNICAL, DATABASE, DEVOPS, AI_ML, or OTHER.
-                - difficulty: Easy, Medium, or Hard only if explicitly stated or directly
-                  supported.
-                - topics: Array of explicit technical concepts relevant to the actual question.
-                - questionText: The actual interview question or summarized problem.
-                - candidateApproach: Faithful summary of the candidate's approach, or null.
-                - confidence: Float from 0.0 to 1.0 representing the strength of source evidence.
+                For each qualifying post:
+                - Confirm it describes a real software-engineering interview.
+                - Extract every distinct interview question explicitly mentioned.
+                - Create one record per question.
 
-                OUTPUT
-                Return STRICTLY a JSON object matching the supplied schema. Do not output markdown,
-                explanations, citations, or conversational text outside the JSON.
+                Exclude generic advice, preparation guides, job ads, tutorials, hypothetical questions, and unrelated discussions.
+
+                Rules:
+                - Use the direct original post URL.
+                - Publication date determines eligibility, not interview/comment date.
+                - Never invent questions or metadata.
+                - Use null when information is unsupported.
+                - candidateApproach must only reflect the candidate's explicitly stated approach.
+                - candidateYoE must come from the candidate.
+                - problemUrl only when confidently identified.
+                - difficulty: Easy, Medium, or Hard only when supported.
+                - questionType: CODING, SYSTEM_DESIGN, LOW_LEVEL_DESIGN, BEHAVIORAL, TECHNICAL, DATABASE, DEVOPS, AI_ML, or OTHER.
+                - confidence: 0.0-1.0.
+
+                Return ONLY:
 
                 {
-                  "questions": [...]
+                  "questions": [
+                    {
+                      "sourcePlatform": "...",
+                      "originalPostUrl": "...",
+                      "problemUrl": null,
+                      "postDate": "YYYY-MM-DD",
+                      "company": null,
+                      "role": null,
+                      "level": null,
+                      "location": null,
+                      "candidateYoE": null,
+                      "outcome": null,
+                      "roundType": null,
+                      "questionType": "CODING",
+                      "difficulty": null,
+                      "topics": [],
+                      "questionText": "...",
+                      "candidateApproach": null,
+                      "confidence": 0.0
+                    }
+                  ]
                 }
 
-                Return an empty array if no qualifying questions are found:
-                {
-                  "questions": []
-                }
-
-                SOURCE:
-                %s
-
-                PLATFORM:
-                %s
-
-                CURRENT TIME:
-                %s
-
-                LOOKBACK HOURS:
-                %d
-
-                ELIGIBILITY WINDOW START:
-                %s
+                If nothing qualifies, return {"questions":[]}.
                 """.formatted(
                 source.getUrl(),
                 source.getName(),
-                settings.lookbackHours(),
                 now,
-                source.getUrl(),
-                source.getName(),
-                now,
-                settings.lookbackHours(),
-                cutoff
+                settings.lookbackHours()
         );
     }
 
