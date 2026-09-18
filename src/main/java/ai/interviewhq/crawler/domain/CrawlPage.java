@@ -1,20 +1,9 @@
 package ai.interviewhq.crawler.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Table;
 
 import java.time.Instant;
-
-@Entity
 @Table(name = "crawl_pages")
 public class CrawlPage {
-
-    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
@@ -54,8 +43,6 @@ public class CrawlPage {
     private Instant fetchedAt;
 
     private String error;
-
-    @PrePersist
     void onCreate() {
         if (fetchedAt == null) {
             fetchedAt = Instant.now();
