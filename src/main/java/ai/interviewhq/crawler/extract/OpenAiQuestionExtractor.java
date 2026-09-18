@@ -60,28 +60,28 @@ public class OpenAiQuestionExtractor {
         }
 
         String prompt = """
-                Find up to 5 recent public software interview experience posts from this source.
+                Find up to 5 recent posts about software job interviews from this site.
+
                 SOURCE URL: %s
                 PLATFORM: %s
-                CURRENT TIME: %s
-                LOOKBACK: %d hours
 
-                Return ONLY:
-                {"posts":[{"url":"...","title":"...","postDate":"YYYY-MM-DD"}]}
+                Return ONLY valid JSON:
+                {"posts":[{"url":"https://...","title":"...","postDate":null}]}
 
                 Rules:
-                - Real candidate interview experiences only.
-                - The post itself must describe an actual software-engineering interview.
-                - Publication date must be within the lookback window.
-                - Use the direct original post URL.
-                - Exclude interview tips, preparation guides, tutorials, job ads, generic articles, mock questions and hypothetical discussions.
-                - If none qualify: {"posts":[]}.
-                """.formatted(
-                source.getUrl(), source.getName(), Instant.now(), settings.lookbackHours());
+                - Prefer threads/posts that look like interview experiences or interview question discussions.
+                - url = direct link to one post/thread (not a category/search page).
+                - title = post title.
+                - postDate = YYYY-MM-DD if clearly visible, otherwise null.
+                - Include a post even if you are not 100%% sure it is a full experience write-up.
+                - Skip obvious job ads and pure prep-guide listicles when easy to tell.
+                - If you find nothing: {"posts":[]}.
+                """.formatted(source.getUrl(), source.getName());
 
         try {
             JsonNode root = callOpenAi(prompt, discoverySchema(), source, true);
             String output = extractOutputText(root);
+            log.info("OpenAI Stage 1 raw output: source={}, output={}", source.getSlug(), output);
             if (output == null || output.isBlank()) return Collections.emptyList();
 
             DiscoveredPosts discovered = objectMapper.readValue(cleanJson(output), DiscoveredPosts.class);
@@ -93,10 +93,16 @@ public class OpenAiQuestionExtractor {
             Set<String> seen = new java.util.HashSet<>();
 
             for (DiscoveredPost post : discovered.posts()) {
-                if (post == null || post.url() == null || post.url().isBlank() || post.postDate() == null) continue;
-                if (post.postDate().isBefore(cutoffDate)) continue;
-                if (!seen.add(post.url().trim())) continue;
-                result.add(new DiscoveredPost(post.url().trim(), post.title(), post.postDate()));
+                if (post == null || post.url() == null || post.url().isBlank()) continue;
+                String url = post.url().trim();
+                if (!seen.add(url)) continue;
+
+                // Stage 1 is discovery, not strict qualification. If the model found a
+                // publication date, apply the lookback filter here. If it could not
+                // determine the date, keep the post for Stage 2.
+                if (post.postDate() != null && post.postDate().isBefore(cutoffDate)) continue;
+
+                result.add(new DiscoveredPost(url, post.title(), post.postDate()));
                 if (result.size() >= 5) break;
             }
             return result;
