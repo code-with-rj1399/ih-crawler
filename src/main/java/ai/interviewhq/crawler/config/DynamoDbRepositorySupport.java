@@ -1,0 +1,172 @@
+package ai.interviewhq.crawler.config;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.*;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+public class DynamoDbRepositorySupport {
+
+    private static final TypeReference<Map<String, Object>> MAP_TYPE =
+            new TypeReference<>() {};
+
+    private final DynamoDbClient client;
+    private final String tableName;
+    private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
+
+    public DynamoDbRepositorySupport(DynamoDbClient client, String tableName) {
+        this.client = client;
+        this.tableName = tableName;
+    }
+
+    public void ensureTable() {
+        try {
+            client.describeTable(DescribeTableRequest.builder().tableName(tableName).build());
+        } catch (ResourceNotFoundException e) {
+            client.createTable(CreateTableRequest.builder()
+                    .tableName(tableName)
+                    .keySchema(KeySchemaElement.builder().attributeName("pk").keyType(KeyType.HASH).build(),
+                               KeySchemaElement.builder().attributeName("sk").keyType(KeyType.RANGE).build())
+                    .attributeDefinitions(AttributeDefinition.builder().attributeName("pk").attributeType(ScalarAttributeType.S).build(),
+                                          AttributeDefinition.builder().attributeName("sk").attributeType(ScalarAttributeType.S).build())
+                    .billingMode(BillingMode.PAY_PER_REQUEST)
+                    .build());
+        }
+    }
+
+    public <T> T save(T entity, String pk, String sk) {
+        Map<String, Object> data = objectMapper.convertValue(entity, MAP_TYPE);
+        data.values().removeIf(Objects::isNull);
+
+        Map<String, AttributeValue> item = new HashMap<>();
+        item.put("pk", AttributeValue.builder().s(pk).build());
+        item.put("sk", AttributeValue.builder().s(sk).build());
+        item.put("entityType", AttributeValue.builder().s(entity.getClass().getSimpleName()).build());
+        item.put("data", toAttributeValue(data));
+
+        client.putItem(PutItemRequest.builder().tableName(tableName).item(item).build());
+        return entity;
+    }
+
+    public <T> Optional<T> find(Class<T> type, String pk, String sk) {
+        var response = client.getItem(GetItemRequest.builder()
+                .tableName(tableName)
+                .key(Map.of("pk", AttributeValue.builder().s(pk).build(),
+                            "sk", AttributeValue.builder().s(sk).build()))
+                .consistentRead(true)
+                .build());
+
+        if (!response.hasItem()) return Optional.empty();
+        return Optional.of(fromItem(type, response.item()));
+    }
+
+    public <T> List<T> scan(Class<T> type) {
+        List<T> result = new ArrayList<>();
+        Map<String, AttributeValue> start = null;
+        do {
+            var request = ScanRequest.builder().tableName(tableName).consistentRead(true);
+            if (start != null) request.exclusiveStartKey(start);
+            var response = client.scan(request.build());
+            for (var item : response.items()) {
+                if (item.containsKey("data")) result.add(fromItem(type, item));
+            }
+            start = response.lastEvaluatedKey();
+        } while (start != null && !start.isEmpty());
+        return result;
+    }
+
+    public <T> List<T> query(Class<T> type, String pk) {
+        var response = client.query(QueryRequest.builder()
+                .tableName(tableName)
+                .keyConditionExpression("pk = :pk")
+                .expressionAttributeValues(Map.of(":pk", AttributeValue.builder().s(pk).build()))
+                .consistentRead(true)
+                .build());
+
+        return response.items().stream()
+                .filter(i -> i.containsKey("data"))
+                .map(i -> fromItem(type, i))
+                .collect(Collectors.toList());
+    }
+
+    public void delete(String pk, String sk) {
+        client.deleteItem(DeleteItemRequest.builder()
+                .tableName(tableName)
+                .key(Map.of("pk", AttributeValue.builder().s(pk).build(),
+                            "sk", AttributeValue.builder().s(sk).build()))
+                .build());
+    }
+
+    public int nextId(String sequenceName) {
+        var result = client.updateItem(UpdateItemRequest.builder()
+                .tableName(tableName)
+                .key(Map.of("pk", AttributeValue.builder().s("COUNTER#" + sequenceName).build(),
+                            "sk", AttributeValue.builder().s("ENTITY").build()))
+                .updateExpression("ADD #value :one")
+                .expressionAttributeNames(Map.of("#value", "value"))
+                .expressionAttributeValues(Map.of(":one", AttributeValue.builder().n("1").build()))
+                .returnValues(ReturnValue.UPDATED_NEW)
+                .build());
+        return Integer.parseInt(result.attributes().get("value").n());
+    }
+
+    public String hashKey(String value) {
+        return Integer.toHexString(Objects.requireNonNullElse(value, "").hashCode());
+    }
+
+    private <T> T fromItem(Class<T> type, Map<String, AttributeValue> item) {
+        try {
+            return objectMapper.readValue(
+                    objectMapper.writeValueAsBytes(fromAttributeValue(item.get("data"))), type);
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to deserialize DynamoDB entity " + type.getSimpleName(), e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private AttributeValue toAttributeValue(Object value) {
+        if (value == null) return AttributeValue.builder().nul(true).build();
+        if (value instanceof String s) return AttributeValue.builder().s(s).build();
+        if (value instanceof Integer || value instanceof Long || value instanceof Short ||
+                value instanceof Byte || value instanceof Float || value instanceof Double) {
+            return AttributeValue.builder().n(String.valueOf(value)).build();
+        }
+        if (value instanceof Boolean b) return AttributeValue.builder().bool(b).build();
+        if (value instanceof Map<?, ?> map) {
+            Map<String, AttributeValue> result = new HashMap<>();
+            map.forEach((k, v) -> result.put(String.valueOf(k), toAttributeValue(v)));
+            return AttributeValue.builder().m(result).build();
+        }
+        if (value instanceof Collection<?> collection) {
+            return AttributeValue.builder().l(collection.stream().map(this::toAttributeValue).toList()).build();
+        }
+        return toAttributeValue(objectMapper.convertValue(value, MAP_TYPE));
+    }
+
+    private Object fromAttributeValue(AttributeValue value) {
+        if (value == null) return null;
+        if (value.s() != null) return value.s();
+        if (value.n() != null) {
+            String n = value.n();
+            try {
+                if (n.contains(".")) return Double.parseDouble(n);
+                return Long.parseLong(n);
+            } catch (NumberFormatException ignored) {
+                return n;
+            }
+        }
+        if (value.bool() != null) return value.bool();
+        if (value.nul() != null && value.nul()) return null;
+        if (value.m() != null) {
+            Map<String, Object> result = new HashMap<>();
+            value.m().forEach((k, v) -> result.put(k, fromAttributeValue(v)));
+            return result;
+        }
+        if (value.l() != null) return value.l().stream().map(this::fromAttributeValue).toList();
+        if (value.ss() != null) return new ArrayList<>(value.ss());
+        return null;
+    }
+}
