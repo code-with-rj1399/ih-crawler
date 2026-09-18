@@ -1,10 +1,7 @@
 package ai.interviewhq.crawler.crawl;
 
 import ai.interviewhq.crawler.config.CrawlerSettings;
-import ai.interviewhq.crawler.crawl.adapters.SourceAdapterRegistry;
-import ai.interviewhq.crawler.crawl.http.PoliteFetcher;
 import ai.interviewhq.crawler.domain.CrawlSource;
-import ai.interviewhq.crawler.domain.InterviewPost;
 import ai.interviewhq.crawler.domain.InterviewQuestion;
 import ai.interviewhq.crawler.extract.OpenAiQuestionExtractor;
 import ai.interviewhq.crawler.repo.CrawlSourceRepository;
@@ -24,17 +21,11 @@ public class CrawlRunner {
     private static final Logger log = LoggerFactory.getLogger(CrawlRunner.class);
 
     private final CrawlSourceRepository sourceRepository;
-    private final SourceAdapterRegistry adapterRegistry;
-    private final PoliteFetcher fetcher;
-    private final InterviewPostRepository postRepository;
     private final InterviewQuestionRepository questionRepository;
     private final OpenAiQuestionExtractor extractor;
     private final CrawlerSettings settings;
 
     public CrawlRunner(CrawlSourceRepository sourceRepository,
-                       SourceAdapterRegistry adapterRegistry,
-                       PoliteFetcher fetcher,
-                       InterviewPostRepository postRepository,
                        InterviewQuestionRepository questionRepository,
                        OpenAiQuestionExtractor extractor,
                        CrawlerSettings settings) {
@@ -53,103 +44,42 @@ public class CrawlRunner {
     }
 
     public synchronized void runOnce() {
-        log.info("=== Crawl run started ===");
+        log.info("=== OpenAI discovery run started ===");
         Instant lookback = Instant.now().minusSeconds(settings.lookbackHours() * 3600L);
-        int processed = 0;
         int sourceCount = sourceRepository.findByEnabledTrueOrderByIdAsc().size();
-        log.info("Enabled sources: {}, lookback: {}, extraction limit: {}", sourceCount, lookback, settings.extractMaxPostsPerJob());
+        log.info("Enabled sources: {}, lookback: {}", sourceCount, lookback);
 
         for (CrawlSource source : sourceRepository.findByEnabledTrueOrderByIdAsc()) {
-            int sourceProcessed = 0;
-            log.info("Crawling source: slug={}, kind={}, url={}", source.getSlug(), source.getSourceKind(), source.getUrl());
+            log.info("Starting OpenAI discovery: source={}, platform={}, scope={}",
+                    source.getSlug(), source.getName(), source.getUrl());
             try {
-                List<ParsedEntry> entries =
-                        adapterRegistry.require(source.getSourceKind()).crawl(source, lookback, fetcher);
-                log.info("Source {} returned {} entries", source.getSlug(), entries.size());
+                List<InterviewQuestion> questions = extractor.extract(source);
 
-                for (ParsedEntry entry : entries) {
-                    if (processed >= settings.extractMaxPostsPerJob()) {
-                        log.info("Extraction limit reached; stopping this crawl run");
-                        return;
+                if (settings.extractMaxQuestionsPerPost() > 0 && questions.size() > settings.extractMaxQuestionsPerPost()) {
+                    questions = questions.subList(0, settings.extractMaxQuestionsPerPost());
+                }
+
+                int saved = 0;
+                for (InterviewQuestion question : questions) {
+                    if (question.getOriginalPostUrl() == null || question.getOriginalPostUrl().isBlank()) {
+                        log.warn("Skipping question without originalPostUrl: source={}, question={}",
+                                source.getSlug(), question.getQuestionText());
+                        continue;
                     }
 
-                    if (sourceProcessed >= settings.extractMaxPostsPerSource()) {
-                        log.info("Source extraction limit reached: source={}, limit={}", source.getSlug(), settings.extractMaxPostsPerSource());
-                        break;
-                    }
-
-                    log.info("Processing entry {}: title={}, url={}", processed + 1, entry.title(), entry.url());
-                    InterviewPost post = upsertPost(source, entry);
-                    processed++;
-                    sourceProcessed++;
-                    log.info("Saved post: id={}, extracted={}, bodyLength={}", post.getId(), post.isExtracted(), entry.bodyText() == null ? 0 : entry.bodyText().length());
-
-                    // Deliberately sequential: one crawled entry -> one OpenAI call -> DynamoDB -> next entry.
-                    try {
-                        log.info("Starting AI extraction: postId={}, model={}", post.getId(), settings.extractModel());
-                        List<InterviewQuestion> questions = extractor.extract(entry, post.getId());
-                        if (settings.extractMaxQuestionsPerPost() > 0 && questions.size() > settings.extractMaxQuestionsPerPost()) {
-                            questions = questions.subList(0, settings.extractMaxQuestionsPerPost());
-                        }
-                        if (questions.isEmpty()) {
-                            log.info("AI returned no interview questions: postId={}, url={}", post.getId(), entry.url());
-                            post.setExtracted(true);
-                            postRepository.save(post);
-                            continue;
-                        }
-
-                        for (InterviewQuestion question : questions) {
-                            log.info("OpenAI extracted question: postId={}, type={}, company={}, role={}, confidence={}",
-                                    post.getId(), question.getQuestionType(), question.getCompany(),
-                                    question.getRole(), question.getConfidence());
-                            boolean existing = questionRepository.findByDedupeHash(question.getDedupeHash()).isPresent();
-                            log.info("Question dedupe: hash={}, existing={}", question.getDedupeHash(), existing);
-                            questionRepository.findByDedupeHash(question.getDedupeHash())
-                                    .orElseGet(() -> questionRepository.save(question));
-                        }
-
-                        post.setExtracted(true);
-                        postRepository.save(post);
-                        log.info("Post marked extracted: postId={}, questions={}", post.getId(), questions.size());
-                    } catch (RuntimeException extractionError) {
-                        log.error("AI extraction failed: postId={}, url={}, error={}", post.getId(), entry.url(), extractionError.getMessage(), extractionError);
+                    if (questionRepository.findByDedupeHash(question.getDedupeHash()).isEmpty()) {
+                        questionRepository.save(question);
+                        saved++;
                     }
                 }
+
+                log.info("OpenAI discovery finished: source={}, discovered={}, saved={}",
+                        source.getSlug(), questions.size(), saved);
             } catch (Exception e) {
-                log.error("Source crawl failed: slug={}, error={}", source.getSlug(), e.getMessage(), e);
+                log.error("OpenAI discovery failed: source={}, error={}", source.getSlug(), e.getMessage(), e);
             }
         }
-        log.info("=== Crawl run finished: processed {} entries ===", processed);
+        log.info("=== OpenAI discovery run finished ===");
     }
 
-    private InterviewPost upsertPost(CrawlSource source, ParsedEntry entry) {
-        String url = entry.canonicalUrl() != null ? entry.canonicalUrl() : entry.url();
 
-        return postRepository.findBySourceIdAndUrl(source.getId(), url)
-                .map(existing -> {
-                    existing.setTitle(entry.title());
-                    existing.setAuthor(entry.author());
-                    existing.setPostedAt(entry.publishedAt());
-                    existing.setRawCompany(entry.rawCompany());
-                    existing.setRawRole(entry.rawRole());
-                    existing.setBodyText(entry.bodyText());
-                    existing.setContentHash(entry.contentHash());
-                    return postRepository.save(existing);
-                })
-                .orElseGet(() -> {
-                    InterviewPost post = new InterviewPost();
-                    post.setSourceId(source.getId());
-                    post.setExternalId(entry.externalId());
-                    post.setUrl(url);
-                    post.setTitle(entry.title());
-                    post.setAuthor(entry.author());
-                    post.setPostedAt(entry.publishedAt());
-                    post.setRawCompany(entry.rawCompany());
-                    post.setRawRole(entry.rawRole());
-                    post.setBodyText(entry.bodyText());
-                    post.setContentHash(entry.contentHash());
-                    post.setExtracted(false);
-                    return postRepository.save(post);
-                });
-    }
-}
