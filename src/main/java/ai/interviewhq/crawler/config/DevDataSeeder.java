@@ -16,22 +16,22 @@ public class DevDataSeeder implements CommandLineRunner {
 
     public DevDataSeeder(
             CrawlSourceRepository repository,
-            @Value("${crawler.seed.reddit.enabled:true}") boolean enabled) {
+            @Value("${crawler.seed.leetcode.enabled:true}") boolean enabled) {
         this.repository = repository;
         this.enabled = enabled;
     }
 
     @Override
     public void run(String... args) {
-        if (!enabled || repository.findBySlug("reddit-interviews").isPresent()) {
+        if (!enabled || repository.findBySlug("leetcode-interviews").isPresent()) {
             return;
         }
 
         CrawlSource source = new CrawlSource();
-        source.setSlug("reddit-interviews");
-        source.setName("Reddit Interview Questions");
-        source.setUrl("https://www.reddit.com/r/cscareerquestions/search.rss?q=interview%20question&restrict_sr=1&sort=new&t=day");
-        source.setSourceKind("rss");
+        source.setSlug("leetcode-interviews");
+        source.setName("LeetCode Interview Experience");
+        source.setUrl("https://leetcode.com/discuss/interview-experience/");
+        source.setSourceKind("leetcode_discuss");
         source.setEnabled(true);
         source.setRateLimitRpm(30);
         source.setCrawlDelayMs(2000);
