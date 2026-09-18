@@ -2,7 +2,6 @@ package ai.interviewhq.crawler.domain;
 
 
 import java.time.Instant;
-@Table(name = "crawl_jobs")
 public class CrawlJob {
 
     public static final String QUEUED = "queued";
@@ -10,58 +9,40 @@ public class CrawlJob {
     public static final String SUCCEEDED = "succeeded";
     public static final String FAILED = "failed";
     public static final String PARTIAL = "partial";
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(nullable = false)
     private String status = QUEUED;
 
-    @Column(nullable = false)
     private String trigger = "manual";
 
-    @Column(name = "lookback_hours", nullable = false)
     private int lookbackHours = 24;
 
-    @Column(name = "started_at")
     private Instant startedAt;
 
-    @Column(name = "finished_at")
     private Instant finishedAt;
 
-    @Column(name = "sources_planned", nullable = false)
     private int sourcesPlanned;
 
-    @Column(name = "sources_ok", nullable = false)
     private int sourcesOk;
 
-    @Column(name = "sources_failed", nullable = false)
     private int sourcesFailed;
 
-    @Column(name = "pages_fetched", nullable = false)
     private int pagesFetched;
 
-    @Column(name = "pages_skipped", nullable = false)
     private int pagesSkipped;
 
-    @Column(name = "posts_discovered", nullable = false)
     private int postsDiscovered;
 
-    @Column(name = "posts_extracted", nullable = false)
     private int postsExtracted;
 
-    @Column(name = "questions_upserted", nullable = false)
     private int questionsUpserted;
 
-    @Column(name = "http_429_count", nullable = false)
     private int http429Count;
 
-    @Column(name = "blocked_count", nullable = false)
     private int blockedCount;
 
-    @Column(name = "error_summary")
     private String errorSummary;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
     void onCreate() {
         if (createdAt == null) {
