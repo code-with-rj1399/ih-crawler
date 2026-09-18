@@ -16,33 +16,12 @@ public class DevDataSeeder implements CommandLineRunner {
 
     public DevDataSeeder(
             CrawlSourceRepository repository,
-            @Value("${crawler.seed.leetcode.enabled:true}") boolean enabled) {
+            @Value("${crawler.seed.enabled:true}") boolean enabled) {
         this.repository = repository;
         this.enabled = enabled;
     }
 
     @Override
-    public void run(String... args) {
-        if (!enabled || repository.findBySlug("leetcode-interviews").isPresent()) {
-            return;
-        }
-
-        CrawlSource source = new CrawlSource();
-        source.setSlug("leetcode-interviews");
-        source.setName("LeetCode Interview Experience");
-        source.setUrl("https://leetcode.com/discuss/interview-experience/");
-        source.setSourceKind("leetcode_discuss");
-        source.setEnabled(true);
-        source.setRateLimitRpm(30);
-        source.setCrawlDelayMs(2000);
-        source.setPerHostConcurrency(1);
-        source.setRobotsMode("RESPECT");
-        source.setCreatedAt(Instant.now());
-        source.setUpdatedAt(Instant.now());
-
-        repository.save(source);
-    }
-}    @Override
     public void run(String... args) {
         if (!enabled) {
             return;
