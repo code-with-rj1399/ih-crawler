@@ -5,7 +5,6 @@ import ai.interviewhq.crawler.domain.CrawlSource;
 import ai.interviewhq.crawler.domain.InterviewQuestion;
 import ai.interviewhq.crawler.extract.OpenAiQuestionExtractor;
 import ai.interviewhq.crawler.repo.CrawlSourceRepository;
-import ai.interviewhq.crawler.repo.InterviewPostRepository;
 import ai.interviewhq.crawler.repo.InterviewQuestionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,9 +29,6 @@ public class CrawlRunner {
                        OpenAiQuestionExtractor extractor,
                        CrawlerSettings settings) {
         this.sourceRepository = sourceRepository;
-        this.adapterRegistry = adapterRegistry;
-        this.fetcher = fetcher;
-        this.postRepository = postRepository;
         this.questionRepository = questionRepository;
         this.extractor = extractor;
         this.settings = settings;
@@ -54,10 +50,6 @@ public class CrawlRunner {
                     source.getSlug(), source.getName(), source.getUrl());
             try {
                 List<InterviewQuestion> questions = extractor.extract(source);
-
-                if (settings.extractMaxQuestionsPerPost() > 0 && questions.size() > settings.extractMaxQuestionsPerPost()) {
-                    questions = questions.subList(0, settings.extractMaxQuestionsPerPost());
-                }
 
                 int saved = 0;
                 for (InterviewQuestion question : questions) {
