@@ -9,6 +9,14 @@ spring:
     table: ${DYNAMODB_TABLE:interviewhq-crawler-dev}
     region: ${AWS_REGION:ap-south-1}
     endpoint: ${DYNAMODB_ENDPOINT:}
+  ai:
+    ollama:
+      base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+      chat:
+        options:
+          model: ${OLLAMA_MODEL:qwen3:4b}
+          temperature: 0.0
+
   lifecycle:
     timeout-per-shutdown-phase: 30s
   jackson:
@@ -47,6 +55,11 @@ crawler:
   circuit-failures: 5
   circuit-open-minutes: 30
   robots-cache-hours: 6
-  extract-model: grok-4.5
+  extract-model: qwen3:4b
   extract-max-posts-per-job: 12
   extract-max-tokens: 1200
+
+# Keep local-model extraction deliberately sequential. One page -> one Ollama call -> next page.
+# Default cadence is one crawl per hour.
+crawler:
+  interval-ms: ${CRAWLER_INTERVAL_MS:3600000}
