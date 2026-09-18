@@ -213,8 +213,12 @@ public class OpenAiQuestionExtractor {
                 + "Preserve the wording and technical meaning from the source. "
                 + "Do not invent or infer questions that are not explicitly present. "
                 + "If the page contains no actual interview questions, return an empty questions array.\n\n"
-                + "For each question extract company, role, level, roundType, questionType, questionText, "
-                + "difficulty, topics, and confidence. Use null when a field is not stated or cannot be determined. "
+                + "For each question extract originalPostUrl, problemUrl, company, role, level, roundType, questionType, questionText, "
+                + "difficulty, topics, and confidence. originalPostUrl must be the exact source page URL. "
+                + "problemUrl must be the canonical official coding-problem URL when the question refers to a specific problem "
+                + "and you can identify it confidently; otherwise use null. "
+                + "Use null when any other field is not stated or cannot be determined. "
+                + "For LeetCode questions, prefer the official https://leetcode.com/problems/... URL when the exact problem can be identified. "
                 + "The source URL is public and may require web search to retrieve.";
     }
 
