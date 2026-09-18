@@ -1,24 +1,11 @@
 package ai.interviewhq.crawler.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Table;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
-@Entity
 @Table(name = "crawl_job_logs")
 public class CrawlJobLog {
-
-    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
@@ -36,15 +23,11 @@ public class CrawlJobLog {
 
     @Column(nullable = false)
     private String message;
-
-    @JdbcTypeCode(SqlTypes.JSON)
     @Column(nullable = false, columnDefinition = "jsonb")
     private Map<String, Object> meta = new LinkedHashMap<>();
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
-
-    @PrePersist
     void onCreate() {
         if (createdAt == null) {
             createdAt = Instant.now();
