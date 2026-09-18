@@ -20,6 +20,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -116,14 +117,20 @@ public class OpenAiQuestionExtractor {
 
                 InterviewQuestion question = new InterviewQuestion();
                 question.setPostId(postId);
+                question.setSourcePlatform(item.sourcePlatform());
                 question.setOriginalPostUrl(entry.url());
                 question.setProblemUrl(normalizeProblemUrl(item.problemUrl()));
+                question.setPostDate(item.postDate());
                 question.setCompany(firstNonBlank(item.company(), entry.rawCompany()));
                 question.setRole(firstNonBlank(item.role(), entry.rawRole()));
                 question.setLevel(item.level());
+                question.setLocation(item.location());
+                question.setCandidateYoE(item.candidateYoE());
+                question.setOutcome(item.outcome());
                 question.setRoundType(item.roundType());
                 question.setQuestionType(item.questionType());
                 question.setQuestionText(item.questionText().trim());
+                question.setCandidateApproach(item.candidateApproach());
                 question.setDifficulty(item.difficulty());
                 question.setTopics(item.topics() == null ? Collections.emptyList() : item.topics());
                 question.setConfidence(item.confidence());
@@ -163,14 +170,21 @@ public class OpenAiQuestionExtractor {
                 .put("type", "object")
                 .put("additionalProperties", false);
         var properties = objectMapper.createObjectNode();
+        properties.set("sourcePlatform", nullableStringSchema());
         properties.set("originalPostUrl", nullableStringSchema());
         properties.set("problemUrl", nullableStringSchema());
+        properties.set("postDate", nullableStringSchema());
         properties.set("company", nullableStringSchema());
         properties.set("role", nullableStringSchema());
         properties.set("level", nullableStringSchema());
+        properties.set("location", nullableStringSchema());
+        properties.set("candidateYoE", nullableNumberSchema());
+        properties.set("outcome", nullableStringSchema());
+        
         properties.set("roundType", nullableStringSchema());
         properties.set("questionType", nullableStringSchema());
         properties.set("questionText", nullableStringSchema());
+        properties.set("candidateApproach", nullableStringSchema());
         properties.set("difficulty", nullableStringSchema());
         properties.set("topics", objectMapper.createObjectNode()
                 .put("type", "array")
@@ -195,9 +209,15 @@ public class OpenAiQuestionExtractor {
 
     private JsonNode requiredFields() {
         return objectMapper.createArrayNode()
-                .add("originalPostUrl").add("problemUrl").add("company").add("role").add("level").add("roundType")
-                .add("questionType").add("questionText").add("difficulty")
-                .add("topics").add("confidence");
+                .add("sourcePlatform").add("originalPostUrl").add("problemUrl").add("postDate")
+                .add("company").add("role").add("level").add("location").add("candidateYoE").add("outcome")
+                .add("roundType").add("questionType").add("questionText").add("candidateApproach")
+                .add("difficulty").add("topics").add("confidence");
+    }
+
+    private JsonNode nullableNumberSchema() {
+        return objectMapper.createObjectNode()
+                .set("type", objectMapper.createArrayNode().add("number").add("null"));
     }
 
     private JsonNode nullableStringSchema() {
@@ -214,80 +234,46 @@ public class OpenAiQuestionExtractor {
                 IMPORTANT TIME WINDOW:
                 Extract only interview questions that were posted, asked, or documented within the last 48 hours relative to the current date/time.
                 Use the publication timestamp or other explicit date/time information on the source page when available.
-                Do not assume that an old interview experience is recent merely because the page is currently accessible.
                 If the source does not provide enough information to establish that the content falls within the last 48 hours, do not include it.
-                The 48-hour rule applies to the source content/post, not to the date of the interview unless the page clearly indicates that the interview itself occurred within that window.
 
                 IMPORTANT RULES:
-
                 1. Read and analyze the actual page content.
-                2. Do not rely only on the page title, URL, metadata, snippets, or search-result text.
-                3. Extract only questions that are explicitly present or clearly described in the page.
-                4. Do not invent, reconstruct, or infer a question that is not supported by the page.
-                5. Preserve the original technical meaning and important details of each question.
-                6. If the page contains multiple distinct questions, extract every qualifying question.
-                7. If the same question appears multiple times on the page, return it only once.
-                8. If the page contains no qualifying interview or technical questions, return an empty questions array.
-                9. Do not treat general discussion, opinions, preparation advice, or statements about technologies as interview questions unless they describe an actual question asked or problem given.
-                10. A coding problem counts as an interview question when the page indicates that it was asked or given as part of an interview.
-                11. If a specific coding problem can be confidently identified, provide its canonical official problem URL. Otherwise, set problemUrl to null.
-                12. Do not guess company, role, level, round, difficulty, or topic. Use null or an empty array when the information is not supported by the page.
-                13. Confidence must reflect how strongly the page supports the extracted question and its metadata.
-                14. Do not include content older than 48 hours, even if it is otherwise relevant.
-                15. If the page is a listing/index page, inspect the available individual entries and consider only entries whose source publication time is within the last 48 hours.
+                2. Do not rely only on title, URL, metadata, snippets, or search-result text.
+                3. Extract only questions explicitly present or clearly described on the page.
+                4. Do not invent or infer unsupported questions or metadata.
+                5. Preserve the original technical meaning and important details.
+                6. Extract every distinct qualifying question and deduplicate repeated questions.
+                7. If there are no qualifying questions, return an empty questions array.
+                8. Use null when metadata is not supported by the page.
+                9. postDate is the source publication date as YYYY-MM-DD when available.
+                10. sourcePlatform identifies the hosting platform.
+                11. candidateYoE means the candidate's stated years of experience, not job requirements.
+                12. outcome should reflect the stated interview outcome, such as Offer, Rejected, or No Offer.
+                13. candidateApproach should summarize the candidate's actual approach only when the source describes it; otherwise null.
+                14. Use a canonical official problem URL only when the specific problem is confidently identified.
+                15. Confidence must reflect how strongly the page supports the extracted question and metadata.
+                16. Do not include content older than 48 hours.
+                17. For listing/index pages, inspect individual entries and keep only entries published within the last 48 hours.
 
                 QUESTION TYPES:
-                Classify each extracted question as one of:
-                - CODING
-                - SYSTEM_DESIGN
-                - LOW_LEVEL_DESIGN
-                - BEHAVIORAL
-                - TECHNICAL
-                - DATABASE
-                - DEVOPS
-                - AI_ML
-                - OTHER
+                CODING, SYSTEM_DESIGN, LOW_LEVEL_DESIGN, BEHAVIORAL, TECHNICAL, DATABASE, DEVOPS, AI_ML, OTHER
 
                 ROUND TYPES:
-                Classify the interview round when supported by the page, for example:
-                - OA
-                - CODING
-                - TECHNICAL
-                - SYSTEM_DESIGN
-                - LOW_LEVEL_DESIGN
-                - MANAGERIAL
-                - HR
-                - BEHAVIORAL
-                - PHONE_SCREEN
-                - OTHER
+                OA, CODING, TECHNICAL, SYSTEM_DESIGN, LOW_LEVEL_DESIGN, MANAGERIAL, HR, BEHAVIORAL, PHONE_SCREEN, OTHER
 
-                For every extracted question, return:
-                - originalPostUrl
-                - problemUrl
-                - company
-                - role
-                - level
-                - roundType
-                - questionType
-                - questionText
-                - difficulty
-                - topics
-                - confidence
+                Return exactly these fields for every question:
+                sourcePlatform, originalPostUrl, problemUrl, postDate, company, role, level, location,
+                candidateYoE, outcome, roundType, questionType, difficulty, topics, questionText,
+                candidateApproach, confidence.
 
                 QUESTION TEXT:
-                The questionText should contain the actual interview question or problem being asked.
-                For coding questions, include enough information to understand the problem, but do not unnecessarily reproduce long problem statements.
-                For system-design questions, preserve the actual system/problem being requested.
-                For behavioral questions, preserve the actual question.
+                Preserve the actual interview question or problem. For coding questions, include enough detail to understand the problem without unnecessarily reproducing a long statement.
+
+                CANDIDATE APPROACH:
+                Summarize the candidate's described solution, reasoning, or answer. Do not invent one.
 
                 SOURCE URL:
                 originalPostUrl must always be the exact URL provided below.
-
-                PROBLEM URL:
-                Use the canonical official problem URL only when the specific problem can be identified confidently.
-                For example, if the page clearly refers to a specific LeetCode problem, use:
-                https://leetcode.com/problems/<problem-slug>/
-                Do not create a problem URL based only on a vague similarity.
 
                 OUTPUT:
                 Return only the structured JSON object matching the provided schema.
@@ -344,7 +330,8 @@ public class OpenAiQuestionExtractor {
     
     private record ExtractedQuestions(List<ExtractedQuestion> questions) {}
 
-    private record ExtractedQuestion(String originalPostUrl, String problemUrl, String company, String role, String level, String roundType,
-                                     String questionType, String questionText, String difficulty,
-                                     List<String> topics, Float confidence) {}
+    private record ExtractedQuestion(String sourcePlatform, String originalPostUrl, String problemUrl, LocalDate postDate,
+                                     String company, String role, String level, String location, Float candidateYoE,
+                                     String outcome, String roundType, String questionType, String questionText,
+                                     String candidateApproach, String difficulty, List<String> topics, Float confidence) {}
 }
