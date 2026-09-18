@@ -30,8 +30,8 @@ function renderSources(rows){
  '<tr><td>'+esc(x.name||x.slug)+'</td><td>'+esc(x.sourceKind)+'</td><td><a href="'+esc(x.url)+'" target="_blank">'+esc(x.url)+'</a></td><td>'+(x.enabled?'✓':'—')+'</td></tr>').join('')+'</table>':'No seeds';
 }
 function renderQuestions(rows){
- document.getElementById('questions').innerHTML=rows.length?'<table><tr><th>Question</th><th>Company</th><th>Role</th><th>Type</th><th>Difficulty</th><th>Topics</th></tr>'+rows.map(x=>
- '<tr><td class="q">'+esc(x.questionText||'—')+'</td><td>'+esc(x.company||'—')+'</td><td>'+esc(x.role||'—')+'</td><td>'+esc(x.questionType||'—')+'</td><td>'+esc(x.difficulty||'—')+'</td><td>'+(x.topics||[]).map(t=>'<span class="pill">'+esc(t)+'</span>').join('')+'</td></tr>').join('')+'</table>':'No questions yet';
+ document.getElementById('questions').innerHTML=rows.length?'<table><tr><th>Question</th><th>Company</th><th>Role</th><th>Type</th><th>Difficulty</th><th>Topics</th><th>Original Post</th><th>Problem</th></tr>'+rows.map(x=>
+ '<tr><td class="q">'+esc(x.questionText||'—')+'</td><td>'+esc(x.company||'—')+'</td><td>'+esc(x.role||'—')+'</td><td>'+esc(x.questionType||'—')+'</td><td>'+esc(x.difficulty||'—')+'</td><td>'+(x.topics||[]).map(t=>'<span class="pill">'+esc(t)+'</span>').join('')+'</td><td>'+(x.originalPostUrl?'<a href="'+esc(x.originalPostUrl)+'" target="_blank" rel="noopener">Post ↗</a>':'—')+'</td><td>'+(x.problemUrl?'<a href="'+esc(x.problemUrl)+'" target="_blank" rel="noopener">Problem ↗</a>':'—')+'</td></tr>').join('')+'</table>':'No questions yet';
 }
 async function runCrawl(){
  const b=document.getElementById('crawl'),s=document.getElementById('status');b.disabled=true;s.textContent='Crawling...';
