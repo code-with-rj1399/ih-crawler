@@ -10,12 +10,13 @@ spring:
     region: ${AWS_REGION:ap-south-1}
     endpoint: ${DYNAMODB_ENDPOINT:}
   ai:
-    ollama:
-      base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+    model:
+      chat: openai
+    openai:
+      api-key: ${OPENAI_API_KEY:}
       chat:
         options:
-          model: ${OLLAMA_MODEL:qwen3:4b}
-          temperature: 0.0
+          model: ${OPENAI_MODEL:gpt-5-nano}
 
   lifecycle:
     timeout-per-shutdown-phase: 30s
@@ -55,7 +56,7 @@ crawler:
   circuit-failures: 5
   circuit-open-minutes: 30
   robots-cache-hours: 6
-  extract-model: qwen3:4b
+  extract-model: gpt-5-nano
   extract-max-posts-per-job: 12
   extract-max-tokens: 1200
 
