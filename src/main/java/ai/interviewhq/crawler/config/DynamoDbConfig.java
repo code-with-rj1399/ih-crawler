@@ -14,8 +14,8 @@ public class DynamoDbConfig {
 
     @Bean(destroyMethod = "close")
     DynamoDbClient dynamoDbClient(
-            @Value("${AWS_REGION:ap-south-1}") String region,
-            @Value("${DYNAMODB_ENDPOINT:}") String endpoint) {
+            @Value("${spring.dynamodb.region:${AWS_REGION:ap-south-1}}") String region,
+            @Value("${spring.dynamodb.endpoint:${DYNAMODB_ENDPOINT:}}") String endpoint) {
 
         var builder = DynamoDbClient.builder().region(Region.of(region));
         if (endpoint != null && !endpoint.isBlank()) {
@@ -27,7 +27,7 @@ public class DynamoDbConfig {
     @Bean
     DynamoDbRepositorySupport dynamoDbRepositorySupport(
             DynamoDbClient client,
-            @Value("${DYNAMODB_TABLE:interviewhq-crawler-dev}") String tableName) {
+            @Value("${spring.dynamodb.table:${DYNAMODB_TABLE:interviewhq-crawler-dev}}") String tableName) {
 
         var support = new DynamoDbRepositorySupport(client, tableName);
         support.ensureTable();
