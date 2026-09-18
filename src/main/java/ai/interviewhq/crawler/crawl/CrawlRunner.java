@@ -53,13 +53,18 @@ public class CrawlRunner {
     }
 
     public synchronized void runOnce() {
+        log.info("=== Crawl run started ===");
         Instant lookback = Instant.now().minusSeconds(settings.lookbackHours() * 3600L);
         int processed = 0;
+        int sourceCount = sourceRepository.findByEnabledTrueOrderByIdAsc().size();
+        log.info("Enabled sources: {}, lookback: {}, extraction limit: {}", sourceCount, lookback, settings.extractMaxPostsPerJob());
 
         for (CrawlSource source : sourceRepository.findByEnabledTrueOrderByIdAsc()) {
+            log.info("Crawling source: slug={}, kind={}, url={}", source.getSlug(), source.getSourceKind(), source.getUrl());
             try {
                 List<ParsedEntry> entries =
                         adapterRegistry.require(source.getSourceKind()).crawl(source, lookback, fetcher);
+                log.info("Source {} returned {} entries", source.getSlug(), entries.size());
 
                 for (ParsedEntry entry : entries) {
                     if (processed >= settings.extractMaxPostsPerJob()) {
@@ -67,30 +72,38 @@ public class CrawlRunner {
                         return;
                     }
 
+                    log.info("Processing entry {}: title={}, url={}", processed + 1, entry.title(), entry.url());
                     InterviewPost post = upsertPost(source, entry);
                     processed++;
+                    log.info("Saved post: id={}, extracted={}, bodyLength={}", post.getId(), post.isExtracted(), entry.bodyText() == null ? 0 : entry.bodyText().length());
 
                     // Deliberately sequential: one crawled entry -> one Ollama call -> DynamoDB -> next entry.
                     try {
+                        log.info("Starting Ollama extraction: postId={}, model={}", post.getId(), settings.extractModel());
                         InterviewQuestion question = extractor.extract(entry, post.getId());
                         if (question == null) {
-                            log.debug("No interview question extracted from {}", entry.url());
+                            log.info("Ollama returned no interview question: postId={}, url={}", post.getId(), entry.url());
                             continue;
                         }
 
+                        log.info("Ollama extracted question: postId={}, questionId={}, type={}, company={}, role={}, confidence={}", post.getId(), question.getId(), question.getQuestionType(), question.getCompany(), question.getRole(), question.getConfidence());
+                        boolean existing = questionRepository.findByDedupeHash(question.getDedupeHash()).isPresent();
+                        log.info("Question dedupe: hash={}, existing={}", question.getDedupeHash(), existing);
                         questionRepository.findByDedupeHash(question.getDedupeHash())
                                 .orElseGet(() -> questionRepository.save(question));
 
                         post.setExtracted(true);
                         postRepository.save(post);
+                        log.info("Post marked extracted: postId={}", post.getId());
                     } catch (RuntimeException extractionError) {
-                        log.warn("Ollama extraction failed for {}: {}", entry.url(), extractionError.getMessage());
+                        log.error("Ollama extraction failed: postId={}, url={}, error={}", post.getId(), entry.url(), extractionError.getMessage(), extractionError);
                     }
                 }
             } catch (Exception e) {
-                log.warn("Source crawl failed for {}: {}", source.getSlug(), e.getMessage());
+                log.error("Source crawl failed: slug={}, error={}", source.getSlug(), e.getMessage(), e);
             }
         }
+        log.info("=== Crawl run finished: processed {} entries ===", processed);
     }
 
     private InterviewPost upsertPost(CrawlSource source, ParsedEntry entry) {
