@@ -3,8 +3,8 @@ set -e
 
 BRANCH="$(git branch --show-current)"
 
-if [ "$BRANCH" != "dev-db" ]; then
-  echo "Error: run.sh must be executed on dev-db. Current branch: $BRANCH"
+if [ -z "$BRANCH" ]; then
+  echo "Error: unable to determine current git branch."
   exit 1
 fi
 
@@ -14,13 +14,14 @@ if [ ! -f .env ]; then
   exit 1
 fi
 
+echo "Running branch: $BRANCH"
 echo "Loading .env..."
 set -a
 source .env
 set +a
 
-echo "Pulling latest dev-db..."
-git pull origin dev-db
+echo "Pulling latest $BRANCH..."
+git pull origin "$BRANCH"
 
 echo "Stopping containers..."
 docker compose down
