@@ -74,6 +74,30 @@ public class ChromiumSiteCrawler {
             log.info("Chromium listing parsed: source={} url={} interviewLinks={} totalUnique={}",
                     source.getSlug(), listing.url(), links.size(), articleUrls.size());
 
+            log.info("""
+                    ==================== CHROMIUM LISTING PAGE CONTENT ====================
+                    source={}
+                    url={}
+                    title={}
+                    status={}
+                    challenge={}
+                    htmlLength={}
+                    textLength={}
+                    PAGE TEXT:
+                    ---
+                    {}
+                    ---
+                    ================== END CHROMIUM LISTING PAGE CONTENT ==================
+                    """,
+                    source.getSlug(),
+                    listing.url(),
+                    listing.title(),
+                    listing.status(),
+                    listing.challenge(),
+                    listing.html() == null ? 0 : listing.html().length(),
+                    listing.text() == null ? 0 : listing.text().length(),
+                    listing.text() == null ? "" : listing.text());
+
             for (String next : discoverer.paginationUrls(listing.url(), listing.html())) {
                 if (!listingSeen.contains(next)) {
                     listings.add(next);
@@ -95,6 +119,32 @@ public class ChromiumSiteCrawler {
                             source.getSlug(), articleUrl, page.status(), page.challenge());
                     continue;
                 }
+                log.info("""
+                        ==================== CHROMIUM ARTICLE PAGE CONTENT ====================
+                        source={}
+                        requestedUrl={}
+                        finalUrl={}
+                        title={}
+                        status={}
+                        challenge={}
+                        htmlLength={}
+                        textLength={}
+                        PAGE TEXT:
+                        ---
+                        {}
+                        ---
+                        ================== END CHROMIUM ARTICLE PAGE CONTENT ==================
+                        """,
+                        source.getSlug(),
+                        articleUrl,
+                        page.url(),
+                        page.title(),
+                        page.status(),
+                        page.challenge(),
+                        page.html() == null ? 0 : page.html().length(),
+                        page.text() == null ? 0 : page.text().length(),
+                        page.text() == null ? "" : page.text());
+
                 ParsedEntry entry = toEntry(page, lookback);
                 if (entry != null) {
                     entries.add(entry);
