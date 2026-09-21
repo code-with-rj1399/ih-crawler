@@ -49,6 +49,111 @@ public class OpenAiQuestionExtractor {
         this.apiKey = apiKey;
     }
 
+    /**
+     * Extracts questions from content that has already been fetched by the crawler.
+     * This path intentionally does not enable web search: the crawler owns discovery.
+     */
+    public List<InterviewQuestion> extractQuestionsFromContent(CrawlSource source, String postUrl,
+                                                                 String title, String author,
+                                                                 Instant publishedAt, String bodyText) {
+        if (source == null || postUrl == null || postUrl.isBlank() || bodyText == null || bodyText.isBlank()) {
+            return Collections.emptyList();
+        }
+
+        try {
+            String prompt = """
+                    You are InterviewHQ's structured extraction engine.
+
+                    The crawler has already fetched the page. DO NOT browse the web, search for the URL,
+                    or use external information. Extract only what is explicitly supported by the supplied content.
+
+                    SOURCE PLATFORM: %s
+                    POST URL: %s
+                    TITLE: %s
+                    AUTHOR: %s
+                    PUBLISHED AT: %s
+
+                    PAGE CONTENT:
+                    ---
+                    %s
+                    ---
+
+                    Extract every distinct software-engineering interview question explicitly described as
+                    having been asked in a real interview.
+
+                    Rules:
+                    - Never invent a question or metadata.
+                    - Exclude generic preparation advice, tutorials, hypothetical questions, and unrelated content.
+                    - One object per distinct question.
+                    - Use null when metadata is not supported by the content.
+                    - questionType: CODING, SYSTEM_DESIGN, LOW_LEVEL_DESIGN, BEHAVIORAL, TECHNICAL, DATABASE, DEVOPS, AI_ML, or OTHER.
+                    - difficulty: Easy, Medium, or Hard only when supported.
+                    - candidateApproach must only contain the candidate's explicitly stated approach.
+                    - candidateYoE must come from the candidate's content.
+                    - problemUrl only when confidently identified in the supplied content.
+                    - postDate should use the supplied publication timestamp converted to UTC date when available.
+                    - confidence must be between 0.0 and 1.0.
+
+                    Return ONLY the required JSON object.
+                    """.formatted(
+                    source.getName(),
+                    postUrl,
+                    title,
+                    author,
+                    publishedAt,
+                    bodyText
+            );
+
+            JsonNode root = callOpenAi(prompt, questionExtractionSchema(), source, false);
+            String output = extractOutputText(root);
+            if (output == null || output.isBlank()) {
+                return Collections.emptyList();
+            }
+
+            ExtractedQuestions extracted = objectMapper.readValue(cleanJson(output), ExtractedQuestions.class);
+            if (extracted.questions() == null) {
+                return Collections.emptyList();
+            }
+
+            List<InterviewQuestion> questions = new ArrayList<>();
+            for (ExtractedQuestion item : extracted.questions()) {
+                if (item == null || item.questionText() == null || item.questionText().isBlank()) {
+                    continue;
+                }
+
+                InterviewQuestion question = new InterviewQuestion();
+                question.setSourcePlatform(firstNonBlank(item.sourcePlatform(), source.getName()));
+                question.setOriginalPostUrl(postUrl);
+                question.setProblemUrl(normalizeProblemUrl(item.problemUrl()));
+                question.setPostDate(item.postDate() != null
+                        ? item.postDate()
+                        : publishedAt == null ? null : publishedAt.atZone(ZoneOffset.UTC).toLocalDate());
+                question.setCompany(item.company());
+                question.setRole(item.role());
+                question.setLevel(item.level());
+                question.setLocation(item.location());
+                question.setCandidateYoE(item.candidateYoE());
+                question.setOutcome(item.outcome());
+                question.setRoundType(item.roundType());
+                question.setQuestionType(item.questionType());
+                question.setQuestionText(item.questionText().trim());
+                question.setCandidateApproach(item.candidateApproach());
+                question.setDifficulty(item.difficulty());
+                question.setTopics(item.topics() == null ? Collections.emptyList() : item.topics());
+                question.setConfidence(item.confidence());
+                question.setModelName(settings.extractModel());
+                question.setExtractedAt(Instant.now());
+                question.setDedupeHash(Hashing.questionDedupeHash(
+                        question.getCompany(), question.getQuestionText()));
+                questions.add(question);
+            }
+
+            return questions;
+        } catch (Exception e) {
+            throw new IllegalStateException("Unable to extract interview questions from " + postUrl, e);
+        }
+    }
+
     public List<DiscoveredPost> discoverPostUrls(CrawlSource source) {
         if (source == null || source.getName() == null || source.getName().isBlank()) {
             return Collections.emptyList();
