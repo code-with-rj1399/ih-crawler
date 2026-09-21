@@ -141,6 +141,20 @@ public class OpenAiQuestionExtractor {
                     Use B only to accurately describe A.
                     Never include C in questionText.
 
+                    QUESTION TEXT FORMAT:
+                    - questionText must be ONE concise line and ONE sentence whenever possible.
+                    - Target <= 140 characters so it is easy to scan in a table.
+                    - Keep only the essential technical problem and constraints.
+                    - Do not include interview narrative, candidate approach, or solution explanation.
+
+                    QUESTION DESCRIPTION:
+                    - questionDescription is a short explanation shown only in the View Details UI.
+                    - Write 3 to 4 short sentences, roughly 40-80 words total.
+                    - Explain what the candidate was asked to solve or design and the important constraints/context stated in the post.
+                    - Use ONLY information explicitly supported by the supplied post.
+                    - Do not provide a solution, answer, inferred requirements, or external problem knowledge.
+                    - Do not repeat interview narrative or candidate approach unless needed to explain the question itself.
+
                     QUESTION NORMALIZATION RULES:
                     - List the smallest meaningful description that identifies the actual technical question or problem.
                     - Preserve the original meaning and technical context.
@@ -230,6 +244,8 @@ public class OpenAiQuestionExtractor {
                     - Use null when metadata is not supported by the content.
                     - questionType: CODING, SYSTEM_DESIGN, LOW_LEVEL_DESIGN, BEHAVIORAL, TECHNICAL, DATABASE, DEVOPS, AI_ML, or OTHER.
                     - difficulty: Easy, Medium, or Hard only when supported.
+                    - questionText must be a one-line concise question/problem summary.
+                    - questionDescription must be a short 3-4 sentence description supported only by the supplied content.
                     - candidateApproach must only contain the candidate's explicitly stated approach.
                     - candidateYoE must come from the candidate's content.
                     - problemUrl only when confidently identified in the supplied content.
@@ -292,6 +308,7 @@ public class OpenAiQuestionExtractor {
                 question.setRoundType(item.roundType());
                 question.setQuestionType(item.questionType());
                 question.setQuestionText(item.questionText().trim());
+                question.setQuestionDescription(item.questionDescription());
                 question.setCandidateApproach(item.candidateApproach());
                 question.setDifficulty(item.difficulty());
                 question.setTopics(item.topics() == null ? Collections.emptyList() : item.topics());
@@ -376,6 +393,7 @@ public class OpenAiQuestionExtractor {
         properties.set("roundType", nullableStringSchema());
         properties.set("questionType", nullableStringSchema());
         properties.set("questionText", nullableStringSchema());
+        properties.set("questionDescription", nullableStringSchema());
         properties.set("candidateApproach", nullableStringSchema());
         properties.set("difficulty", nullableStringSchema());
         ObjectNode topicsSchema = objectMapper.createObjectNode().put("type", "array");
@@ -386,7 +404,7 @@ public class OpenAiQuestionExtractor {
         question.set("required", objectMapper.createArrayNode()
                 .add("sourcePlatform").add("problemUrl").add("postDate").add("company").add("role").add("level")
                 .add("location").add("candidateYoE").add("outcome").add("roundType")
-                .add("questionType").add("questionText").add("candidateApproach")
+                .add("questionType").add("questionText").add("questionDescription").add("candidateApproach")
                 .add("difficulty").add("topics").add("confidence"));
 
         var schema = objectMapper.createObjectNode().put("type", "object").put("additionalProperties", false);
@@ -513,5 +531,6 @@ public class OpenAiQuestionExtractor {
     private record ExtractedQuestion(String sourcePlatform, String originalPostUrl, String problemUrl, LocalDate postDate,
                                      String company, String role, String level, String location, Float candidateYoE,
                                      String outcome, String roundType, String questionType, String questionText,
-                                     String candidateApproach, String difficulty, List<String> topics, Float confidence) {}
+                                     String questionDescription, String candidateApproach, String difficulty,
+                                     List<String> topics, Float confidence) {}
 }
