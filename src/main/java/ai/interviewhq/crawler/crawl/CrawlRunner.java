@@ -145,12 +145,16 @@ public class CrawlRunner {
         if (entry == null) {
             return false;
         }
-        // Dated posts must be inside the lookback window. Undated HTML pages are
-        // allowed because many interview blogs omit timestamps; the per-source
-        // extraction cap keeps model spend bounded.
+        // Publication date is a hard gate. We never send an undated page to the LLM.
         if (entry.publishedAt() == null) {
-            return true;
+            log.info("24h gate rejected undated candidate: url={}", entry.url());
+            return false;
         }
-        return !entry.publishedAt().isBefore(cutoff);
+        boolean eligible = !entry.publishedAt().isBefore(cutoff);
+        if (!eligible) {
+            log.info("24h gate rejected old candidate: url={} publishedAt={} cutoff={}",
+                    entry.url(), entry.publishedAt(), cutoff);
+        }
+        return eligible;
     }
 }
