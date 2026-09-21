@@ -51,7 +51,6 @@ public class ChromiumBrowserClient {
 
         try {
             page.navigate(url, new Page.NavigateOptions()
-                    .setWaitUntil(com.microsoft.playwright.options.WaitUntilState.DOMCONTENTLOADED)
                     .setTimeout(navigationTimeoutMs));
 
             // Give client-side rendered content a short window to settle without
