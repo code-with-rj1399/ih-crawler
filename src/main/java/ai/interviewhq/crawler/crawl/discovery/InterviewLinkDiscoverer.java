@@ -53,6 +53,9 @@ public final class InterviewLinkDiscoverer {
                 continue;
             }
             href = stripFragment(href);
+            if (href.equals(stripFragment(pageUrl))) {
+                continue;
+            }
             if (!href.startsWith("http://") && !href.startsWith("https://")) {
                 continue;
             }
@@ -151,8 +154,9 @@ public final class InterviewLinkDiscoverer {
                 || url.contains("/questions/") || url.contains("/experience")) {
             score += 3;
         }
-        if (url.contains("/tag/") || url.contains("/category/") || url.contains("/topics/")) {
-            score -= 2;
+        if (url.contains("/tag/") || url.contains("/category/") || url.contains("/topics/")
+                || url.matches(".*/discuss/(interview-experience|interview-questions)/?$")) {
+            score -= 8;
         }
         if (slugLooksLikeArticle(url)) {
             score += 2;
