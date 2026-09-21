@@ -83,7 +83,7 @@ spring:
       on-profile: local
 
 crawler:
-  extract-max-posts-per-source: 1
+  extract-max-posts-per-source: 50
   extract-max-questions-per-post: 1
 
 ---
@@ -93,5 +93,5 @@ spring:
       on-profile: dev
 
 crawler:
-  extract-max-posts-per-source: 1
+  extract-max-posts-per-source: 50
   extract-max-questions-per-post: 1
