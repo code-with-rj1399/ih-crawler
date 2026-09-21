@@ -107,6 +107,13 @@ public class OpenAiQuestionExtractor {
                     If the post is primarily an educational/question-list article rather than a personal interview
                     experience, return an empty questions list.
 
+                    COMPANY REQUIREMENT:
+                    A valid interview experience must identify the company involved in the interview.
+                    The company must be explicitly supported by the supplied post content or reliable post metadata.
+                    Never guess or infer a company from the technology, author, job title, or context.
+                    If no company can be identified, return an empty questions list.
+                    For every extracted question, company must be non-null and non-blank.
+
                     If the title or content indicates a generic collection such as "Top 50 Interview Questions",
                     "100 Java Interview Questions", "Frequently Asked Questions", "Interview Questions with Answers",
                     or similar educational content, treat it as a preparation article unless the post clearly contains
@@ -261,6 +268,11 @@ public class OpenAiQuestionExtractor {
             List<InterviewQuestion> questions = new ArrayList<>();
             for (ExtractedQuestion item : extracted.questions()) {
                 if (item == null || item.questionText() == null || item.questionText().isBlank()) {
+                    continue;
+                }
+                if (item.company() == null || item.company().isBlank()) {
+                    log.info("Rejecting extracted question without company: source={}, postUrl={}",
+                            source.getSlug(), postUrl);
                     continue;
                 }
 
