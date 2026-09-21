@@ -15,9 +15,13 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 @Service
 public class CrawlRunner {
@@ -58,10 +62,48 @@ public class CrawlRunner {
         log.info("=== crawler run started: Chromium discovery, AI extraction-only (no search tools) ===");
 
         List<CrawlSource> sources = sourceRepository.findByEnabledTrueOrderByIdAsc();
-        log.info("Enabled sources: {}", sources.size());
+        int maxConcurrentTasks = settings.maxConcurrentTasks();
+        int poolSize = Math.min(maxConcurrentTasks, Math.max(1, sources.size()));
 
-        for (CrawlSource source : sources) {
-            crawlSource(source);
+        log.info("Enabled sources: {}, maxConcurrentTasks={}, workerThreads={}",
+                sources.size(), maxConcurrentTasks, poolSize);
+
+        ExecutorService executor = Executors.newFixedThreadPool(
+                poolSize,
+                runnable -> {
+                    Thread thread = new Thread(runnable);
+                    thread.setName("crawler-task-" + thread.getId());
+                    thread.setDaemon(true);
+                    return thread;
+                });
+
+        try {
+            List<Future<?>> futures = new ArrayList<>();
+
+            for (CrawlSource source : sources) {
+                Runnable task = () -> {
+                    log.info("Crawl task started: source={}, thread={}",
+                            source.getSlug(), Thread.currentThread().getName());
+                    try {
+                        crawlSource(source);
+                    } finally {
+                        log.info("Crawl task finished: source={}, thread={}",
+                                source.getSlug(), Thread.currentThread().getName());
+                    }
+                };
+
+                futures.add(executor.submit(task));
+            }
+
+            for (Future<?> future : futures) {
+                try {
+                    future.get();
+                } catch (Exception e) {
+                    log.error("Crawl task failed", e);
+                }
+            }
+        } finally {
+            executor.shutdown();
         }
 
         log.info("=== crawler run finished ===");

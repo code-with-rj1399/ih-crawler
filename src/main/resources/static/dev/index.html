@@ -8,7 +8,7 @@
 body{font-family:system-ui,sans-serif;max-width:1100px;margin:32px auto;padding:0 20px;background:#f7f7f8;color:#222}
 h1{margin-bottom:4px}.muted{color:#777}.bar{display:flex;gap:12px;align-items:center;margin:22px 0}
 button{padding:9px 16px;border:0;border-radius:7px;background:#111;color:#fff;cursor:pointer}
-button:disabled{opacity:.5}section{background:#fff;border:1px solid #ddd;border-radius:10px;padding:18px;margin:18px 0}
+button:disabled{opacity:.5}.details-btn{padding:6px 10px;font-size:12px}.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);align-items:center;justify-content:center;padding:20px;z-index:10}.modal.open{display:flex}.modal-card{background:#fff;border-radius:12px;max-width:720px;width:100%;max-height:80vh;overflow:auto;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.2)}.modal-card h3{margin-top:0}.modal-close{float:right;background:#eee;color:#222;padding:5px 9px}.details-label{font-size:12px;color:#777;text-transform:uppercase;margin-top:16px}.details-description{line-height:1.55}section{background:#fff;border:1px solid #ddd;border-radius:10px;padding:18px;margin:18px 0}
 table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:9px;border-bottom:1px solid #eee;vertical-align:top}
 th{font-size:13px;color:#666}.q{font-weight:600}.pill{font-size:12px;background:#eee;padding:3px 7px;border-radius:10px;margin:2px}
 a{color:#2563eb}
@@ -18,7 +18,7 @@ a{color:#2563eb}
 <h1>InterviewHQ Crawler</h1><div class="muted">Local / dev dashboard</div>
 <div class="bar"><button id="crawl" onclick="runCrawl()">▶ Run Crawl</button><a href="/dev/api/download" download><button type="button">⬇ Download DynamoDB JSON</button></a><span id="status"></span></div>
 <section><h2>Seeds</h2><div id="sources">Loading...</div></section>
-<section><h2>Questions</h2><div id="questions">Loading...</div></section>
+<section><h2>Questions</h2><div class="muted">Only interview experiences with an identified company are shown. Click View Details for the question description.</div><div id="questions">Loading...</div></section><div id="detailsModal" class="modal" onclick="if(event.target===this)closeDetails()"><div class="modal-card"><button class="modal-close" onclick="closeDetails()">✕</button><h3 id="detailsQuestion"></h3><div class="details-label">Description</div><div id="detailsDescription" class="details-description"></div></div></div>
 <script>
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 async function load(){
@@ -29,9 +29,12 @@ function renderSources(rows){
  document.getElementById('sources').innerHTML=rows.length?'<table><tr><th>Name</th><th>Kind</th><th>URL</th><th>Enabled</th></tr>'+rows.map(x=>
  '<tr><td>'+esc(x.name||x.slug)+'</td><td>'+esc(x.sourceKind)+'</td><td><a href="'+esc(x.url)+'" target="_blank">'+esc(x.url)+'</a></td><td>'+(x.enabled?'✓':'—')+'</td></tr>').join('')+'</table>':'No seeds';
 }
+let questionRows=[];
+function showDetails(i){const x=questionRows[i]||{};document.getElementById("detailsQuestion").textContent=x.questionText||"Question";document.getElementById("detailsDescription").textContent=x.questionDescription||"No description available.";document.getElementById("detailsModal").classList.add("open");}
+function closeDetails(){document.getElementById("detailsModal").classList.remove("open");}
 function renderQuestions(rows){
- document.getElementById('questions').innerHTML=rows.length?'<table><tr><th>Question</th><th>Company</th><th>Role</th><th>Type</th><th>Difficulty</th><th>Topics</th><th>Original Post</th><th>Problem</th></tr>'+rows.map(x=>
- '<tr><td class="q">'+esc(x.questionText||'—')+'</td><td>'+esc(x.company||'—')+'</td><td>'+esc(x.role||'—')+'</td><td>'+esc(x.questionType||'—')+'</td><td>'+esc(x.difficulty||'—')+'</td><td>'+(x.topics||[]).map(t=>'<span class="pill">'+esc(t)+'</span>').join('')+'</td><td>'+(x.originalPostUrl?'<a href="'+esc(x.originalPostUrl)+'" target="_blank" rel="noopener">Post ↗</a>':'—')+'</td><td>'+(x.problemUrl?'<a href="'+esc(x.problemUrl)+'" target="_blank" rel="noopener">Problem ↗</a>':'—')+'</td></tr>').join('')+'</table>':'No questions yet';
+ questionRows=rows;
+ document.getElementById("questions").innerHTML=rows.length?'<table><tr><th>Company</th><th>Question</th><th>Role</th><th>Type</th><th>Difficulty</th><th>Topics</th><th>Details</th><th>Original Post</th><th>Problem</th></tr>'+rows.map((x,i)=>'<tr><td><strong>'+esc(x.company||"—")+'</strong></td><td class="q">'+esc(x.questionText||"—")+'</td><td>'+esc(x.role||"—")+'</td><td>'+esc(x.questionType||"—")+'</td><td>'+esc(x.difficulty||"—")+'</td><td>'+(x.topics||[]).map(t=>'<span class="pill">'+esc(t)+'</span>').join("")+'</td><td><button class="details-btn" onclick="showDetails('+i+')">View Details</button></td><td>'+(x.originalPostUrl?'<a href="'+esc(x.originalPostUrl)+'" target="_blank" rel="noopener">Post ↗</a>':"—")+'</td><td>'+(x.problemUrl?'<a href="'+esc(x.problemUrl)+'" target="_blank" rel="noopener">Problem ↗</a>':"—")+'</td></tr>').join("")+"</table>":"No questions yet";
 }
 async function runCrawl(){
  const b=document.getElementById('crawl'),s=document.getElementById('status');b.disabled=true;s.textContent='Crawling...';

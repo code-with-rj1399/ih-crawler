@@ -7,6 +7,7 @@ import ai.interviewhq.crawler.crawl.discovery.PageContentExtractor;
 import ai.interviewhq.crawler.crawl.http.FetchMode;
 import ai.interviewhq.crawler.crawl.http.HybridPageFetcher;
 import ai.interviewhq.crawler.crawl.http.PageSnapshot;
+import ai.interviewhq.crawler.crawl.leetcode.LeetcodeGraphqlClient;
 import ai.interviewhq.crawler.domain.CrawlSource;
 import ai.interviewhq.crawler.util.Hashing;
 import org.slf4j.Logger;
@@ -24,6 +25,10 @@ import java.util.Set;
 /**
  * For one site: discover interview article URLs from listing pages, then fetch
  * each article. HTTP is tried first; Chromium is the fallback for JS shells.
+ *
+ * LeetCode is intentionally handled through its GraphQL API rather than HTML
+ * discovery because Discuss is a JS application and the public GraphQL
+ * operation provides structured post metadata and pagination.
  */
 @Component
 public class ChromiumSiteCrawler {
@@ -32,12 +37,17 @@ public class ChromiumSiteCrawler {
 
     private final HybridPageFetcher hybrid;
     private final ChromiumBrowserClient browser;
+    private final LeetcodeGraphqlClient leetcodeGraphql;
     private final InterviewLinkDiscoverer discoverer = new InterviewLinkDiscoverer();
     private final PageContentExtractor contentExtractor = new PageContentExtractor();
 
-    public ChromiumSiteCrawler(HybridPageFetcher hybrid, ChromiumBrowserClient browser) {
+    public ChromiumSiteCrawler(
+            HybridPageFetcher hybrid,
+            ChromiumBrowserClient browser,
+            LeetcodeGraphqlClient leetcodeGraphql) {
         this.hybrid = hybrid;
         this.browser = browser;
+        this.leetcodeGraphql = leetcodeGraphql;
     }
 
     public List<ParsedEntry> crawl(CrawlSource source, Instant lookback, int maxUrls, int maxListingPages) {
@@ -46,6 +56,16 @@ public class ChromiumSiteCrawler {
         }
 
         int urlCap = Math.max(1, maxUrls);
+
+        // LeetCode-only path: do not render the Discuss listing and do not
+        // discover links from the SPA DOM. Use the documented/current GraphQL
+        // operation used by the LeetCode interview ingestion implementation.
+        if ("leetcode-interviews".equals(source.getSlug())) {
+            log.info("Using LeetCode GraphQL discovery: source={} cap={} cutoff={}",
+                    source.getSlug(), urlCap, lookback);
+            return leetcodeGraphql.fetchRecent(source, lookback, urlCap);
+        }
+
         int listingCap = Math.max(1, maxListingPages);
         FetchMode mode = FetchMode.from(source);
         boolean browserListing = ParserConfigs.bool(source, "browserListing", mode.preferBrowser());

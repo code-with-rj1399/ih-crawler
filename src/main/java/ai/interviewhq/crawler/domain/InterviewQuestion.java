@@ -30,6 +30,7 @@ public class InterviewQuestion {
     private List<String> topics = new ArrayList<>();
 
     private String questionText;
+    private String questionDescription;
     private String candidateApproach;
     private Float confidence;
 
@@ -95,6 +96,9 @@ public class InterviewQuestion {
 
     public String getQuestionText() { return questionText; }
     public void setQuestionText(String questionText) { this.questionText = questionText; }
+
+    public String getQuestionDescription() { return questionDescription; }
+    public void setQuestionDescription(String questionDescription) { this.questionDescription = questionDescription; }
 
     public String getCandidateApproach() { return candidateApproach; }
     public void setCandidateApproach(String candidateApproach) { this.candidateApproach = candidateApproach; }

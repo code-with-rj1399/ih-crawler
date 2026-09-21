@@ -50,6 +50,8 @@ crawler:
   user-agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
   lookback-hours: 48
   max-concurrency: 4
+  # Maximum number of source crawl processes that may run concurrently.
+  max-concurrent-tasks: ${CRAWLER_MAX_CONCURRENT_TASKS:20}
   per-host-concurrency: 1
   timeout-ms: 15000
   max-bytes: 1048576
@@ -59,7 +61,7 @@ crawler:
   robots-cache-hours: 6
   extract-model: gpt-5-nano
   extract-max-posts-per-job: 5
-  extract-max-posts-per-source: 5
+  extract-max-posts-per-source: 50
   extract-max-questions-per-post: 0
   extract-max-tokens: 2500
 
@@ -83,7 +85,7 @@ spring:
       on-profile: local
 
 crawler:
-  extract-max-posts-per-source: 1
+  extract-max-posts-per-source: 50
   extract-max-questions-per-post: 1
 
 ---
@@ -93,5 +95,5 @@ spring:
       on-profile: dev
 
 crawler:
-  extract-max-posts-per-source: 1
+  extract-max-posts-per-source: 50
   extract-max-questions-per-post: 1

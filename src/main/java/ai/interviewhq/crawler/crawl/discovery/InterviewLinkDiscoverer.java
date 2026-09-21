@@ -75,6 +75,14 @@ public final class InterviewLinkDiscoverer {
 
             String linkHost = hostOf(href);
             boolean sameHost = host != null && host.equalsIgnoreCase(linkHost);
+
+            // LeetCode Discuss currently exposes the actual interview posts under
+            // /discuss/post/. The /discuss/ page also contains global navigation
+            // links (Problems, Contest, Create, homepage, footer). Do not let the
+            // generic interview scoring promote those links to article candidates.
+            if ("leetcode.com".equals(host) && !isLeetcodeInterviewPost(href)) {
+                continue;
+            }
             boolean subdomain = host != null && linkHost != null
                     && (linkHost.endsWith("." + host) || host.endsWith("." + linkHost));
             if (!sameHost && !subdomain) {
@@ -141,6 +149,15 @@ public final class InterviewLinkDiscoverer {
             }
         }
         return List.copyOf(pages);
+    }
+
+    private static boolean isLeetcodeInterviewPost(String url) {
+        String path = URI.create(url).getPath();
+        if (path == null) {
+            return false;
+        }
+        return path.matches("/discuss/post/[^/]+/?")
+                || path.matches("/discuss/interview-experience/[^/]+/?");
     }
 
     static int score(String href, String title, boolean sameHost) {
