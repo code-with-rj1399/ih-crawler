@@ -8,6 +8,7 @@ public class CrawlerProperties {
     private String userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
     private int lookbackHours = 24;
     private int maxConcurrency = 4;
+    private int maxConcurrentTasks = 20;
     private int perHostConcurrency = 1;
     private int timeoutMs = 15_000;
     private int maxBytes = 1_048_576;
@@ -44,6 +45,14 @@ public class CrawlerProperties {
 
     public void setMaxConcurrency(int maxConcurrency) {
         this.maxConcurrency = maxConcurrency;
+    }
+
+    public int getMaxConcurrentTasks() {
+        return maxConcurrentTasks;
+    }
+
+    public void setMaxConcurrentTasks(int maxConcurrentTasks) {
+        this.maxConcurrentTasks = maxConcurrentTasks;
     }
 
     public int getPerHostConcurrency() {
