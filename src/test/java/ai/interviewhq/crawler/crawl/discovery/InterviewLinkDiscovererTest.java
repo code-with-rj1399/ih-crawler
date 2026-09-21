@@ -40,6 +40,30 @@ class InterviewLinkDiscovererTest {
     }
 
     @Test
+    void leetcodeKeepsOnlyDiscussPostUrls() {
+        String html = """
+                <html><body>
+                  <a href="https://leetcode.com/">Copyright © 2026 LeetCode</a>
+                  <a href="https://leetcode.com/discuss/create/">Create</a>
+                  <a href="https://leetcode.com/problemset">Problems</a>
+                  <a href="https://leetcode.com/contest">Contest</a>
+                  <a href="https://leetcode.com/discuss/post/8014509/amazon-sde-1-interview-experience">Amazon SDE-1 Interview Experience</a>
+                  <a href="https://leetcode.com/discuss/interview-experience/3276890/oracle">Legacy interview experience</a>
+                </body></html>
+                """;
+
+        List<InterviewLinkDiscoverer.DiscoveredLink> links =
+                discoverer.discover("https://leetcode.com/discuss/", html, 20);
+
+        assertTrue(links.stream().anyMatch(l -> l.url().contains("/discuss/post/8014509/")));
+        assertTrue(links.stream().anyMatch(l -> l.url().contains("/discuss/interview-experience/3276890/")));
+        assertFalse(links.stream().anyMatch(l -> l.url().equals("https://leetcode.com/")));
+        assertFalse(links.stream().anyMatch(l -> l.url().contains("/discuss/create/")));
+        assertFalse(links.stream().anyMatch(l -> l.url().contains("/problemset")));
+        assertFalse(links.stream().anyMatch(l -> l.url().contains("/contest")));
+    }
+
+    @Test
     void scoresInterviewUrlsHigherThanBarePaths() {
         int interview = InterviewLinkDiscoverer.score(
                 "https://dev.to/jane/google-interview-experience", "Google interview experience", true);
