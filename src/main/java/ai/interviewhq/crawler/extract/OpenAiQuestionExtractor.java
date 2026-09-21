@@ -104,7 +104,7 @@ public class OpenAiQuestionExtractor {
                     bodyText
             );
 
-            JsonNode root = callOpenAi(prompt, questionExtractionSchema(), source, false);
+            JsonNode root = callOpenAi(prompt, questionExtractionSchema(), source);
             String output = extractOutputText(root);
             if (output == null || output.isBlank()) {
                 return Collections.emptyList();
@@ -187,7 +187,7 @@ public class OpenAiQuestionExtractor {
                 cutoff.toString());
 
         try {
-            JsonNode root = callOpenAi(prompt, discoverySchema(), source, true);
+            JsonNode root = callOpenAi(prompt, discoverySchema(), source);
             String output = extractOutputText(root);
             log.info("OpenAI Stage 1 raw output: source={}, output={}", source.getSlug(), output);
             if (output == null || output.isBlank()) return Collections.emptyList();
@@ -249,7 +249,7 @@ public class OpenAiQuestionExtractor {
                     - difficulty: Easy, Medium, or Hard only when supported.
                     """.formatted(post.url(), post.title(), post.postDate());
 
-            JsonNode root = callOpenAi(prompt, questionExtractionSchema(), source, true);
+            JsonNode root = callOpenAi(prompt, questionExtractionSchema(), source);
             String output = extractOutputText(root);
             log.info("OpenAI Stage 2 raw output: source={}, url={}, output={}",
                     source.getSlug(), post.url(), output);
@@ -295,7 +295,7 @@ public class OpenAiQuestionExtractor {
         }
     }
 
-    private JsonNode callOpenAi(String prompt, JsonNode schema, CrawlSource source, boolean enableWebSearch) throws Exception {
+    private JsonNode callOpenAi(String prompt, JsonNode schema, CrawlSource source) throws Exception {
         ObjectNode request = objectMapper.createObjectNode();
         request.put("model", settings.extractModel());
         request.put("input", prompt);
@@ -304,24 +304,6 @@ public class OpenAiQuestionExtractor {
         ObjectNode reasoning = objectMapper.createObjectNode();
         reasoning.put("effort", "low");
         request.set("reasoning", reasoning);
-
-        if (enableWebSearch) {
-            ArrayNode tools = objectMapper.createArrayNode();
-            ObjectNode webSearch = objectMapper.createObjectNode();
-            webSearch.put("type", "web_search");
-            webSearch.put("search_context_size", "low");
-
-            String sourceHost = sourceHost(source.getUrl());
-            if (sourceHost != null) {
-                ObjectNode filters = objectMapper.createObjectNode();
-                ArrayNode allowedDomains = objectMapper.createArrayNode();
-                allowedDomains.add(sourceHost);
-                filters.set("allowed_domains", allowedDomains);
-                webSearch.set("filters", filters);
-            }
-            tools.add(webSearch);
-            request.set("tools", tools);
-        }
 
         ObjectNode text = objectMapper.createObjectNode();
         text.set("format", schema.path("format"));
