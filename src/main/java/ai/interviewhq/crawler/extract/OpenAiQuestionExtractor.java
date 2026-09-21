@@ -77,6 +77,41 @@ public class OpenAiQuestionExtractor {
                     %s
                     ---
 
+                    EXPERIENCE AUTHENTICITY GATE:
+                    First determine whether this post describes a REAL interview, assessment, or hiring interaction
+                    experienced by the author/candidate.
+
+                    Extract technical questions ONLY when they are reported as having been asked, given, or
+                    encountered by the candidate during their own interview or assessment.
+
+                    DO NOT extract questions from:
+                    - interview preparation articles
+                    - "Top X interview questions" lists
+                    - study guides
+                    - tutorials or educational articles
+                    - question banks or practice problems
+                    - generic interview tips
+                    - collections of commonly asked questions
+                    - posts that provide questions and answers without describing the author's actual interview experience
+
+                    Strong signals that the post IS an interview experience include:
+                    - "I interviewed at..."
+                    - "My interview experience..."
+                    - "I was asked..."
+                    - "The interviewer asked..."
+                    - "In the coding round..."
+                    - "In the system design round..."
+                    - "During my interview..."
+                    - interview rounds, dates, companies, roles, outcomes, or candidate experience
+
+                    If the post is primarily an educational/question-list article rather than a personal interview
+                    experience, return an empty questions list.
+
+                    If the title or content indicates a generic collection such as "Top 50 Interview Questions",
+                    "100 Java Interview Questions", "Frequently Asked Questions", "Interview Questions with Answers",
+                    or similar educational content, treat it as a preparation article unless the post clearly contains
+                    a separate personal interview experience.
+
                     Your task is to generate a list of genuine technical interview questions, coding problems,
                     system design prompts, or technical scenarios reported in this text.
 
@@ -147,7 +182,7 @@ public class OpenAiQuestionExtractor {
                     - "I was asked to write a function..."
                     - "system design round: ..."
                     - "coding round: ..."
-                    - a clearly identified list of technical questions or problems.
+                    - a clearly described sequence of questions from the author's own interview.
 
                     Do NOT list:
                     - interview preparation advice
