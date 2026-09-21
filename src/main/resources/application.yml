@@ -63,6 +63,9 @@ crawler:
   extract-max-tokens: 3000
 
   interval-ms: ${CRAWLER_INTERVAL_MS:3600000}
+  browser:
+    headless: ${CRAWLER_BROWSER_HEADLESS:true}
+    navigation-timeout-ms: ${CRAWLER_BROWSER_NAVIGATION_TIMEOUT_MS:30000}
 
 ---
 spring:
