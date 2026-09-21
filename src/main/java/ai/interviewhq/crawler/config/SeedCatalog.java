@@ -40,7 +40,7 @@ public final class SeedCatalog {
         seeds.add(seed(
                 "leetcode-interviews",
                 "LeetCode Interview Experience",
-                "https://leetcode.com/discuss/interview-experience/",
+                "https://leetcode.com/discuss/interview-experience/?currentPage=1&orderBy=newest&query=",
                 "leetcode_discuss",
                 20,
                 4000,
