@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -77,18 +78,22 @@ public class CrawlRunner {
                 });
 
         try {
-            List<Future<?>> futures = sources.stream()
-                    .map(source -> executor.submit(() -> {
-                        log.info("Crawl task started: source={}, thread={}",
+            List<Future<?>> futures = new ArrayList<>();
+
+            for (CrawlSource source : sources) {
+                Runnable task = () -> {
+                    log.info("Crawl task started: source={}, thread={}",
+                            source.getSlug(), Thread.currentThread().getName());
+                    try {
+                        crawlSource(source);
+                    } finally {
+                        log.info("Crawl task finished: source={}, thread={}",
                                 source.getSlug(), Thread.currentThread().getName());
-                        try {
-                            crawlSource(source);
-                        } finally {
-                            log.info("Crawl task finished: source={}, thread={}",
-                                    source.getSlug(), Thread.currentThread().getName());
-                        }
-                    }))
-                    .toList();
+                    }
+                };
+
+                futures.add(executor.submit(task));
+            }
 
             for (Future<?> future : futures) {
                 try {
