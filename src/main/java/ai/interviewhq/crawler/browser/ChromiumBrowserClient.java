@@ -142,7 +142,7 @@ public class ChromiumBrowserClient {
                 for (int attempt = 0; attempt <= maxRetries; attempt++) {
                     try {
                         honorHostGap(source, host);
-                        last = navigateOnce(url, referer, attempt, Math.max(0, scrollPasses));
+                        last = navigateOnce(source, url, referer, attempt, Math.max(0, scrollPasses));
                         if (last.isSuccess()) {
                             return last;
                         }
@@ -176,7 +176,7 @@ public class ChromiumBrowserClient {
             }
         }
 
-        private BrowserPage navigateOnce(String url, String referer, int attempt, int scrollPasses) {
+        private BrowserPage navigateOnce(CrawlSource source, String url, String referer, int attempt, int scrollPasses) {
             ensureContext(referer, attempt);
             Response response = null;
             try {
