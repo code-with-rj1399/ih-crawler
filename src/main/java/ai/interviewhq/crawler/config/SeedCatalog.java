@@ -8,10 +8,9 @@ import java.util.Map;
 /**
  * Verified crawl seeds. URLs were live-checked on 2026-09-21 (HTTP, no JS).
  *
- * <p>Working HTTP: HN Algolia, GFG listing, DEV.to HTML + RSS, Medium RSS,
- * Reddit Atom, Hashnode tag page.
- *
- * <p>HTTP blocked (kept for Chromium): LeetCode Discuss (Cloudflare 403).
+ * <p>LeetCode uses its GraphQL API for the Interview Discuss feed; the
+ * crawler has a LeetCode-specific GraphQL path and does not depend on this
+ * page being rendered into HTML links.
  *
  * <p>Retired: problem catalogs / prep kits / Cloudflare-only low-signal pages
  * that are not interview experiences.
@@ -40,13 +39,13 @@ public final class SeedCatalog {
         seeds.add(seed(
                 "leetcode-interviews",
                 "LeetCode Interview Experience",
-                "https://leetcode.com/discuss/interview-experience/?currentPage=1&orderBy=newest&query=",
+                "https://leetcode.com/discuss/topic/interview/",
                 "leetcode_discuss",
                 20,
                 4000,
                 true,
-                "URL is correct. Plain HTTP is Cloudflare 403; Chromium is required.",
-                config("browser_first", 48, List.of("leetcode.com"), true, false)
+                "LeetCode Interview Discuss feed. Discovery uses the GraphQL API, not HTML/Chromium.",
+                config("graphql", 48, List.of("leetcode.com"), false, false)
         ));
 
         /*
