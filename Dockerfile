@@ -4,7 +4,7 @@ COPY pom.xml .
 COPY src ./src
 RUN mvn -q -DskipTests package
 
-FROM eclipse-temurin:17-jre
+FROM mcr.microsoft.com/playwright/java:v1.63.0-noble
 WORKDIR /app
 COPY --from=build /app/target/ih-crawler-1.0.0.jar app.jar
 EXPOSE 8090

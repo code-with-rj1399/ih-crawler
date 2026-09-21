@@ -1,0 +1,175 @@
+package ai.interviewhq.crawler.crawl;
+
+import ai.interviewhq.crawler.browser.ChromiumBrowserClient;
+import ai.interviewhq.crawler.crawl.adapters.ParserConfigs;
+import ai.interviewhq.crawler.crawl.discovery.InterviewLinkDiscoverer;
+import ai.interviewhq.crawler.crawl.discovery.PageContentExtractor;
+import ai.interviewhq.crawler.crawl.http.FetchMode;
+import ai.interviewhq.crawler.crawl.http.HybridPageFetcher;
+import ai.interviewhq.crawler.crawl.http.PageSnapshot;
+import ai.interviewhq.crawler.domain.CrawlSource;
+import ai.interviewhq.crawler.util.Hashing;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+
+import java.time.Instant;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+
+/**
+ * For one site: discover interview article URLs from listing pages, then fetch
+ * each article. HTTP is tried first; Chromium is the fallback for JS shells.
+ */
+@Component
+public class ChromiumSiteCrawler {
+
+    private static final Logger log = LoggerFactory.getLogger(ChromiumSiteCrawler.class);
+
+    private final HybridPageFetcher hybrid;
+    private final ChromiumBrowserClient browser;
+    private final InterviewLinkDiscoverer discoverer = new InterviewLinkDiscoverer();
+    private final PageContentExtractor contentExtractor = new PageContentExtractor();
+
+    public ChromiumSiteCrawler(HybridPageFetcher hybrid, ChromiumBrowserClient browser) {
+        this.hybrid = hybrid;
+        this.browser = browser;
+    }
+
+    public List<ParsedEntry> crawl(CrawlSource source, Instant lookback, int maxUrls, int maxListingPages) {
+        if (source == null || source.getUrl() == null || source.getUrl().isBlank()) {
+            return List.of();
+        }
+
+        int urlCap = Math.max(1, maxUrls);
+        int listingCap = Math.max(1, maxListingPages);
+        FetchMode mode = FetchMode.from(source);
+        boolean browserListing = ParserConfigs.bool(source, "browserListing", mode.preferBrowser());
+        int listingScrolls = browserListing ? 2 : 0;
+
+        Set<String> listingSeen = new LinkedHashSet<>();
+        Set<String> articleUrls = new LinkedHashSet<>();
+        Deque<String> listings = new ArrayDeque<>();
+        listings.add(source.getUrl());
+
+        String listingReferer = source.getUrl();
+        int listingCount = 0;
+
+        try (ChromiumBrowserClient.Session session = browser.openSession()) {
+            while (!listings.isEmpty() && listingCount < listingCap) {
+                String listingUrl = listings.poll();
+                if (listingUrl == null || !listingSeen.add(listingUrl)) {
+                    continue;
+                }
+                listingCount++;
+
+                FetchMode listingMode = browserListing ? FetchMode.BROWSER_FIRST : mode;
+                PageSnapshot listing = hybrid.fetch(
+                        source,
+                        listingUrl,
+                        listingCount == 1 ? null : source.getUrl(),
+                        listingMode,
+                        listingScrolls,
+                        session
+                );
+                if (!listing.isSuccess()) {
+                    log.warn("Listing failed: source={} url={} status={} challenge={} browser={}",
+                            source.getSlug(), listingUrl, listing.status(), listing.challenge(), listing.usedBrowser());
+                    continue;
+                }
+
+                listingReferer = listing.finalUrl();
+                List<InterviewLinkDiscoverer.DiscoveredLink> links =
+                        discoverer.discover(listing.finalUrl(), listing.html(), urlCap * 4);
+                for (InterviewLinkDiscoverer.DiscoveredLink link : links) {
+                    articleUrls.add(link.url());
+                    log.info("Discovered interview candidate: source={} listingUrl={} candidateUrl={} score={} anchor={}",
+                            source.getSlug(), listing.finalUrl(), link.url(), link.score(), link.anchorText());
+                }
+                log.info("Listing parsed: source={} url={} interviewLinks={} totalUnique={} via={}",
+                        source.getSlug(), listing.finalUrl(), links.size(), articleUrls.size(),
+                        listing.usedBrowser() ? "chromium" : "http");
+                log.debug("Listing text source={} url={} chars={}",
+                        source.getSlug(), listing.finalUrl(),
+                        listing.text() == null ? 0 : listing.text().length());
+
+                for (String next : discoverer.paginationUrls(listing.finalUrl(), listing.html())) {
+                    if (!listingSeen.contains(next)) {
+                        listings.add(next);
+                    }
+                }
+            }
+
+            List<ParsedEntry> entries = new ArrayList<>();
+            int fetched = 0;
+            int httpHits = 0;
+            int browserHits = 0;
+            for (String articleUrl : articleUrls) {
+                if (entries.size() >= urlCap) {
+                    break;
+                }
+                fetched++;
+                try {
+                    PageSnapshot page = hybrid.fetch(
+                            source, articleUrl, listingReferer, FetchMode.HTTP_FIRST, 0, session);
+                    if (!page.isSuccess()) {
+                        log.info("Skipping article: source={} url={} status={} challenge={} via={}",
+                                source.getSlug(), articleUrl, page.status(), page.challenge(),
+                                page.usedBrowser() ? "chromium" : "http");
+                        continue;
+                    }
+                    if (page.usedBrowser()) {
+                        browserHits++;
+                    } else {
+                        httpHits++;
+                    }
+                    log.debug("Article fetched: source={} url={} status={} via={} text={}",
+                            source.getSlug(), page.finalUrl(), page.status(),
+                            page.usedBrowser() ? "chromium" : "http",
+                            page.text() == null ? 0 : page.text().length());
+
+                    ParsedEntry entry = toEntry(page, lookback);
+                    if (entry != null) {
+                        entries.add(entry);
+                    }
+                } catch (RuntimeException ex) {
+                    log.warn("Article fetch failed: source={} url={}: {}",
+                            source.getSlug(), articleUrl, ex.getMessage());
+                }
+            }
+
+            log.info("Site crawl finished: source={} listings={} discovered={} fetched={} kept={} httpHits={} browserHits={}",
+                    source.getSlug(), listingCount, articleUrls.size(), fetched, entries.size(), httpHits, browserHits);
+            return entries;
+        }
+    }
+
+    private ParsedEntry toEntry(PageSnapshot page, Instant lookback) {
+        PageContentExtractor.ExtractedPage extracted =
+                contentExtractor.extract(page.finalUrl(), page.html(), page.text());
+        if (extracted.body() == null || extracted.body().isBlank()) {
+            return null;
+        }
+        Instant published = extracted.publishedAt();
+        if (published != null && lookback != null && published.isBefore(lookback)) {
+            return null;
+        }
+
+        return ParsedEntry.builder(page.requestedUrl())
+                .canonicalUrl(page.finalUrl())
+                .title(extracted.title() == null ? page.title() : extracted.title())
+                .author(extracted.author())
+                .publishedAt(published)
+                .bodyText(extracted.body())
+                .contentType(page.contentType() == null ? "text/html" : page.contentType())
+                .httpStatus(page.status())
+                .etag(page.etag())
+                .contentHash(Hashing.sha256Hex(extracted.body()))
+                .robotsAllowed(page.robotsAllowed())
+                .build();
+    }
+}

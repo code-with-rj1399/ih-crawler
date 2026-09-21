@@ -46,23 +46,35 @@ info:
 
 # Crawler defaults. Runtime crawler configuration may override these values.
 crawler:
-  user-agent: "InterviewHQBot/1.0 (ih-crawler; +https://interviewhq.ai/bot)"
+  # Real Chrome UA — bot strings are a common 403 trigger.
+  user-agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
   lookback-hours: 48
   max-concurrency: 4
   per-host-concurrency: 1
   timeout-ms: 15000
   max-bytes: 1048576
-  max-retries: 3
+  max-retries: 4
   circuit-failures: 5
   circuit-open-minutes: 30
   robots-cache-hours: 6
   extract-model: gpt-5-nano
-  extract-max-posts-per-job: 12
-  extract-max-posts-per-source: 12
+  extract-max-posts-per-job: 5
+  extract-max-posts-per-source: 5
   extract-max-questions-per-post: 0
-  extract-max-tokens: 3000
+  extract-max-tokens: 2500
 
   interval-ms: ${CRAWLER_INTERVAL_MS:3600000}
+  browser:
+    headless: ${CRAWLER_BROWSER_HEADLESS:true}
+    navigation-timeout-ms: ${CRAWLER_BROWSER_NAVIGATION_TIMEOUT_MS:30000}
+    stealth: true
+    max-retries: 4
+    human-delay-min-ms: 2500
+    human-delay-max-ms: 8000
+    block-retry-min-ms: 12000
+    block-retry-max-ms: 40000
+    max-listing-pages: 3
+    user-agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
 
 ---
 spring:

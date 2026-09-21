@@ -8,11 +8,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -21,123 +20,122 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Model is used only to structure questions from page text the crawler already
+ * fetched. Discovery, browsing, and web_search tools are intentionally disabled.
+ */
 @Service
 public class OpenAiQuestionExtractor {
     private static final Logger log = LoggerFactory.getLogger(OpenAiQuestionExtractor.class);
     private static final URI RESPONSES_URI = URI.create("https://api.openai.com/v1/responses");
+    private static final int MAX_CONTENT_CHARS = 12_000;
 
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
     private final CrawlerSettings settings;
     private final String apiKey;
-    private final Environment environment;
 
     public OpenAiQuestionExtractor(ObjectMapper objectMapper, CrawlerSettings settings,
-                                   Environment environment,
                                    @Value("${OPENAI_API_KEY:}") String apiKey) {
         this.httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(15)).build();
         this.objectMapper = objectMapper;
         this.settings = settings;
-        this.environment = environment;
         this.apiKey = apiKey;
     }
 
-    public List<InterviewQuestion> extract(CrawlSource source) {
-        if (source == null || source.getName() == null || source.getName().isBlank()) {
+    public List<InterviewQuestion> extractQuestionsFromContent(CrawlSource source, String postUrl,
+                                                                 String title, String author,
+                                                                 Instant publishedAt, String bodyText) {
+        if (source == null || postUrl == null || postUrl.isBlank() || bodyText == null || bodyText.isBlank()) {
             return Collections.emptyList();
         }
         if (apiKey == null || apiKey.isBlank()) {
-            throw new IllegalStateException("OPENAI_API_KEY is not configured");
+            log.warn("OPENAI_API_KEY missing — skipping extraction for {}", postUrl);
+            return Collections.emptyList();
         }
 
         try {
-            ObjectNode request = objectMapper.createObjectNode();
-            request.put("model", settings.extractModel());
-            request.put("input", buildPrompt(source));
-            request.put("max_output_tokens", settings.extractMaxTokens());
+            String prompt = """
+                    You are InterviewHQ's structured extraction engine.
 
-            ObjectNode reasoning = objectMapper.createObjectNode();
-            reasoning.put("effort", "low");
-            request.set("reasoning", reasoning);
+                    The crawler already fetched this page with Chromium. DO NOT browse the web,
+                    search, open URLs, or use tools. Extract only what is explicitly supported
+                    by the supplied content.
 
-            ArrayNode tools = objectMapper.createArrayNode();
-            ObjectNode webSearch = objectMapper.createObjectNode();
-            webSearch.put("type", "web_search");
-            webSearch.put("search_context_size", "low");
+                    SOURCE PLATFORM: %s
+                    POST URL: %s
+                    TITLE: %s
+                    AUTHOR: %s
+                    PUBLISHED AT: %s
 
-            String sourceHost = sourceHost(source.getUrl());
-            if (sourceHost != null) {
-                ObjectNode filters = objectMapper.createObjectNode();
-                ArrayNode allowedDomains = objectMapper.createArrayNode();
-                allowedDomains.add(sourceHost);
-                filters.set("allowed_domains", allowedDomains);
-                webSearch.set("filters", filters);
-            }
+                    PAGE CONTENT:
+                    ---
+                    %s
+                    ---
 
-            tools.add(webSearch);
-            request.set("tools", tools);
+                    Extract every distinct software-engineering interview question explicitly described as
+                    having been asked in a real interview.
 
-            ObjectNode text = objectMapper.createObjectNode();
-            text.set("format", structuredOutputSchema().path("format"));
-            text.put("verbosity", "low");
-            request.set("text", text);
+                    Rules:
+                    - Never invent a question or metadata.
+                    - Exclude generic preparation advice, tutorials, hypothetical questions, and unrelated content.
+                    - One object per distinct question.
+                    - Use null when metadata is not supported by the content.
+                    - questionType: CODING, SYSTEM_DESIGN, LOW_LEVEL_DESIGN, BEHAVIORAL, TECHNICAL, DATABASE, DEVOPS, AI_ML, or OTHER.
+                    - difficulty: Easy, Medium, or Hard only when supported.
+                    - candidateApproach must only contain the candidate's explicitly stated approach.
+                    - candidateYoE must come from the candidate's content.
+                    - problemUrl only when confidently identified in the supplied content.
+                    - postDate should use the supplied publication timestamp converted to UTC date when available.
+                    - confidence must be between 0.0 and 1.0.
 
-            HttpRequest httpRequest = HttpRequest.newBuilder(RESPONSES_URI)
-                    .timeout(Duration.ofSeconds(180))
-                    .header("Authorization", "Bearer " + apiKey)
-                    .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(request.toString()))
-                    .build();
+                    Return ONLY the required JSON object.
+                    """.formatted(
+                    source.getName(),
+                    postUrl,
+                    title,
+                    author,
+                    publishedAt,
+                    truncate(bodyText)
+            );
 
-            HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-
-            if (isDevOrLocalProfile()) {
-                log.info("OpenAI discovery response: source={}, model={}, status={}, body={}",
-                        source.getSlug(), settings.extractModel(), response.statusCode(), response.body());
-            }
-
-            if (response.statusCode() < 200 || response.statusCode() >= 300) {
-                throw new IllegalStateException("OpenAI API request failed: HTTP "
-                        + response.statusCode() + " - " + response.body());
-            }
-
-            JsonNode root = objectMapper.readTree(response.body());
-            logResponseDiagnostics(source, root);
-
-            if ("incomplete".equals(root.path("status").asText())) {
-                String reason = root.path("incomplete_details").path("reason").asText("unknown");
-                JsonNode usage = root.path("usage");
-                throw new IllegalStateException(
-                        "OpenAI response incomplete: reason=" + reason + ", usage=" + usage);
-            }
-
+            log.info("""
+                    ==================== OPENAI EXTRACTION PROMPT ====================
+                    source={}
+                    postUrl={}
+                    {}
+                    ================== END OPENAI EXTRACTION PROMPT ==================
+                    """, source.getSlug(), postUrl, prompt);
+            
+            JsonNode root = callOpenAi(prompt, questionExtractionSchema(), source);
             String output = extractOutputText(root);
-            if (output == null || output.isBlank()) return Collections.emptyList();
+            if (output == null || output.isBlank()) {
+                return Collections.emptyList();
+            }
 
-            ExtractedQuestions extracted;
-            try {
-                extracted = objectMapper.readValue(cleanJson(output), ExtractedQuestions.class);
-            } catch (com.fasterxml.jackson.core.JsonProcessingException parseError) {
-                String preview = cleanJson(output);
-                if (preview.length() > 1500) preview = preview.substring(0, 1500) + "...<truncated>";
-                throw new IllegalStateException("OpenAI returned invalid structured JSON: " + preview, parseError);
+            ExtractedQuestions extracted = objectMapper.readValue(cleanJson(output), ExtractedQuestions.class);
+            if (extracted.questions() == null) {
+                return Collections.emptyList();
             }
 
             List<InterviewQuestion> questions = new ArrayList<>();
-            if (extracted.questions() == null) return questions;
-
             for (ExtractedQuestion item : extracted.questions()) {
-                if (item == null || item.questionText() == null || item.questionText().isBlank()) continue;
+                if (item == null || item.questionText() == null || item.questionText().isBlank()) {
+                    continue;
+                }
 
                 InterviewQuestion question = new InterviewQuestion();
                 question.setSourcePlatform(firstNonBlank(item.sourcePlatform(), source.getName()));
-                question.setOriginalPostUrl(item.originalPostUrl());
+                question.setOriginalPostUrl(postUrl);
                 question.setProblemUrl(normalizeProblemUrl(item.problemUrl()));
-                question.setPostDate(item.postDate());
+                question.setPostDate(item.postDate() != null
+                        ? item.postDate()
+                        : publishedAt == null ? null : publishedAt.atZone(ZoneOffset.UTC).toLocalDate());
                 question.setCompany(item.company());
                 question.setRole(item.role());
                 question.setLevel(item.level());
@@ -153,42 +151,73 @@ public class OpenAiQuestionExtractor {
                 question.setConfidence(item.confidence());
                 question.setModelName(settings.extractModel());
                 question.setExtractedAt(Instant.now());
-                question.setDedupeHash(Hashing.questionDedupeHash(question.getCompany(), question.getQuestionText()));
+                question.setDedupeHash(Hashing.questionDedupeHash(
+                        question.getCompany(), question.getQuestionText()));
                 questions.add(question);
             }
+
             return questions;
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new IllegalStateException("OpenAI extraction interrupted", e);
         } catch (Exception e) {
-            if (e instanceof IllegalStateException illegalStateException
-                    && illegalStateException.getMessage() != null
-                    && illegalStateException.getMessage().startsWith("OpenAI")) {
-                throw illegalStateException;
-            }
-            throw new IllegalStateException("Unable to discover interview questions with OpenAI", e);
+            throw new IllegalStateException("Unable to extract interview questions from " + postUrl, e);
         }
     }
 
-    private boolean isDevOrLocalProfile() {
-        for (String profile : environment.getActiveProfiles()) {
-            if ("dev".equals(profile) || "local".equals(profile)) return true;
+    private JsonNode callOpenAi(String prompt, JsonNode schema, CrawlSource source) throws Exception {
+        ObjectNode request = objectMapper.createObjectNode();
+        request.put("model", settings.extractModel());
+        request.put("input", prompt);
+        request.put("max_output_tokens", settings.extractMaxTokens());
+        // Explicitly empty — never enable web_search / browsing tools.
+        request.set("tools", objectMapper.createArrayNode());
+        request.put("store", false);
+
+        ObjectNode reasoning = objectMapper.createObjectNode();
+        reasoning.put("effort", "low");
+        request.set("reasoning", reasoning);
+
+        ObjectNode text = objectMapper.createObjectNode();
+        text.set("format", schema.path("format"));
+        text.put("verbosity", "low");
+        request.set("text", text);
+
+        HttpRequest httpRequest = HttpRequest.newBuilder(RESPONSES_URI)
+                .timeout(Duration.ofSeconds(180))
+                .header("Authorization", "Bearer " + apiKey)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(request.toString()))
+                .build();
+
+        HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        if (response.statusCode() < 200 || response.statusCode() >= 300) {
+            throw new IllegalStateException("OpenAI API request failed: HTTP "
+                    + response.statusCode() + " - " + response.body());
         }
-        return false;
+
+        JsonNode root = objectMapper.readTree(response.body());
+        log.info("OpenAI extraction diagnostics: source={}, responseId={}, status={}, outputTypes={}, usage={}",
+                source.getSlug(),
+                root.path("id").asText("unknown"),
+                root.path("status").asText("unknown"),
+                outputTypes(root),
+                root.path("usage"));
+
+        if ("incomplete".equals(root.path("status").asText())) {
+            throw new IllegalStateException("OpenAI response incomplete: reason="
+                    + root.path("incomplete_details").path("reason").asText("unknown")
+                    + ", usage=" + root.path("usage"));
+        }
+        return root;
     }
 
-    private JsonNode structuredOutputSchema() {
+    private JsonNode questionExtractionSchema() {
         var format = objectMapper.createObjectNode()
                 .put("type", "json_schema")
                 .put("name", "interview_question_extraction")
                 .put("strict", true);
 
-        var question = objectMapper.createObjectNode()
-                .put("type", "object")
-                .put("additionalProperties", false);
+        var question = objectMapper.createObjectNode().put("type", "object").put("additionalProperties", false);
         var properties = objectMapper.createObjectNode();
         properties.set("sourcePlatform", nullableStringSchema());
-        properties.set("originalPostUrl", nullableStringSchema());
         properties.set("problemUrl", nullableStringSchema());
         properties.set("postDate", nullableStringSchema());
         properties.set("company", nullableStringSchema());
@@ -197,115 +226,47 @@ public class OpenAiQuestionExtractor {
         properties.set("location", nullableStringSchema());
         properties.set("candidateYoE", nullableNumberSchema());
         properties.set("outcome", nullableStringSchema());
-        
         properties.set("roundType", nullableStringSchema());
         properties.set("questionType", nullableStringSchema());
         properties.set("questionText", nullableStringSchema());
         properties.set("candidateApproach", nullableStringSchema());
         properties.set("difficulty", nullableStringSchema());
-        properties.set("topics", objectMapper.createObjectNode()
-                .put("type", "array")
-                .set("items", objectMapper.createObjectNode().put("type", "string")));
-        properties.set("confidence", objectMapper.createObjectNode()
-                .set("type", objectMapper.createArrayNode().add("number").add("null")));
+        ObjectNode topicsSchema = objectMapper.createObjectNode().put("type", "array");
+        topicsSchema.set("items", objectMapper.createObjectNode().put("type", "string"));
+        properties.set("topics", topicsSchema);
+        properties.set("confidence", nullableNumberSchema());
         question.set("properties", properties);
-        question.set("required", requiredFields());
+        question.set("required", objectMapper.createArrayNode()
+                .add("sourcePlatform").add("problemUrl").add("postDate").add("company").add("role").add("level")
+                .add("location").add("candidateYoE").add("outcome").add("roundType")
+                .add("questionType").add("questionText").add("candidateApproach")
+                .add("difficulty").add("topics").add("confidence"));
 
-        var schema = objectMapper.createObjectNode()
-                .put("type", "object")
-                .put("additionalProperties", false);
-        schema.set("properties", objectMapper.createObjectNode()
-                .set("questions", objectMapper.createObjectNode()
-                        .put("type", "array")
-                        .set("items", question)));
+        var schema = objectMapper.createObjectNode().put("type", "object").put("additionalProperties", false);
+        ObjectNode schemaProperties = objectMapper.createObjectNode();
+        ObjectNode questionsSchema = objectMapper.createObjectNode().put("type", "array");
+        questionsSchema.set("items", question);
+        schemaProperties.set("questions", questionsSchema);
+        schema.set("properties", schemaProperties);
         schema.set("required", objectMapper.createArrayNode().add("questions"));
         format.set("schema", schema);
-
         return objectMapper.createObjectNode().set("format", format);
     }
 
-    private JsonNode requiredFields() {
-        return objectMapper.createArrayNode()
-                .add("sourcePlatform").add("originalPostUrl").add("problemUrl").add("postDate")
-                .add("company").add("role").add("level").add("location").add("candidateYoE").add("outcome")
-                .add("roundType").add("questionType").add("questionText").add("candidateApproach")
-                .add("difficulty").add("topics").add("confidence");
-    }
-
     private JsonNode nullableNumberSchema() {
-        return objectMapper.createObjectNode()
-                .set("type", objectMapper.createArrayNode().add("number").add("null"));
+        ObjectNode schema = objectMapper.createObjectNode();
+        ArrayNode types = objectMapper.createArrayNode();
+        types.add("number").add("null");
+        schema.set("type", types);
+        return schema;
     }
 
     private JsonNode nullableStringSchema() {
-        return objectMapper.createObjectNode()
-                .set("type", objectMapper.createArrayNode().add("string").add("null"));
-    }
-
-    private String buildPrompt(CrawlSource source) {
-        Instant now = Instant.now();
-        return """
-                You are InterviewHQ's interview-experience discovery engine.
-
-                SOURCE: %s
-                PLATFORM: %s
-                CURRENT TIME: %s
-                LOOKBACK: %d hours
-
-                Actively discover up to 5 recent public interview-experience posts from this source. Do not simply inspect the source URL and conclude there are no results. Find individual posts, open/read them, and verify their publication dates. Do not try to exhaustively search the entire source in one request.
-
-                For each qualifying post:
-                - Confirm it describes a real software-engineering interview.
-                - Extract every distinct interview question explicitly mentioned.
-                - Create one record per question.
-
-                Exclude generic advice, preparation guides, job ads, tutorials, hypothetical questions, and unrelated discussions.
-
-                Rules:
-                - Use the direct original post URL.
-                - Publication date determines eligibility, not interview/comment date.
-                - Never invent questions or metadata.
-                - Use null when information is unsupported.
-                - candidateApproach must only reflect the candidate's explicitly stated approach.
-                - candidateYoE must come from the candidate.
-                - problemUrl only when confidently identified.
-                - difficulty: Easy, Medium, or Hard only when supported.
-                - questionType: CODING, SYSTEM_DESIGN, LOW_LEVEL_DESIGN, BEHAVIORAL, TECHNICAL, DATABASE, DEVOPS, AI_ML, or OTHER.
-                - confidence: 0.0-1.0.
-
-                Return ONLY:
-
-                {
-                  "questions": [
-                    {
-                      "sourcePlatform": "...",
-                      "originalPostUrl": "...",
-                      "problemUrl": null,
-                      "postDate": "YYYY-MM-DD",
-                      "company": null,
-                      "role": null,
-                      "level": null,
-                      "location": null,
-                      "candidateYoE": null,
-                      "outcome": null,
-                      "roundType": null,
-                      "questionType": "CODING",
-                      "difficulty": null,
-                      "topics": [],
-                      "questionText": "...",
-                      "candidateApproach": null,
-                      "confidence": 0.0
-                    }
-                  ]
-                }
-
-                If nothing qualifies, return {"questions":[]}.
-                """.formatted(
-                source.getUrl(),
-                source.getName(),
-                now,
-                settings.lookbackHours()
-        );
+        ObjectNode schema = objectMapper.createObjectNode();
+        ArrayNode types = objectMapper.createArrayNode();
+        types.add("string").add("null");
+        schema.set("type", types);
+        return schema;
     }
 
     private String extractOutputText(JsonNode root) {
@@ -315,20 +276,28 @@ public class OpenAiQuestionExtractor {
         }
 
         JsonNode output = root.get("output");
-        if (output == null || !output.isArray()) return null;
+        if (output == null || !output.isArray()) {
+            return null;
+        }
 
         StringBuilder text = new StringBuilder();
         for (JsonNode item : output) {
-            if (!"message".equals(item.path("type").asText())) continue;
-
+            if (!"message".equals(item.path("type").asText())) {
+                continue;
+            }
             JsonNode content = item.get("content");
-            if (content == null || !content.isArray()) continue;
-
+            if (content == null || !content.isArray()) {
+                continue;
+            }
             for (JsonNode contentItem : content) {
-                if (!"output_text".equals(contentItem.path("type").asText())) continue;
+                if (!"output_text".equals(contentItem.path("type").asText())) {
+                    continue;
+                }
                 JsonNode value = contentItem.get("text");
                 if (value != null && value.isTextual() && !value.asText().isBlank()) {
-                    if (text.length() > 0) text.append('\n');
+                    if (text.length() > 0) {
+                        text.append('\n');
+                    }
                     text.append(value.asText());
                 }
             }
@@ -336,53 +305,62 @@ public class OpenAiQuestionExtractor {
         return text.isEmpty() ? null : text.toString();
     }
 
-    private void logResponseDiagnostics(CrawlSource source, JsonNode root) {
+    private List<String> outputTypes(JsonNode root) {
         JsonNode output = root.path("output");
-        List<String> outputTypes = new ArrayList<>();
-        if (output.isArray()) {
-            for (JsonNode item : output) {
-                outputTypes.add(item.path("type").asText("unknown"));
-            }
+        if (!output.isArray()) {
+            return Collections.emptyList();
         }
-        log.info("OpenAI discovery diagnostics: source={}, status={}, outputTypes={}, usage={}",
-                source.getSlug(), root.path("status").asText("unknown"), outputTypes, root.path("usage"));
+        List<String> types = new ArrayList<>();
+        for (JsonNode item : output) {
+            types.add(item.path("type").asText("unknown"));
+        }
+        return types;
     }
 
-    private static String sourceHost(String sourceUrl) {
-        if (sourceUrl == null || sourceUrl.isBlank()) return null;
-        try {
-            String host = URI.create(sourceUrl).getHost();
-            if (host == null || host.isBlank()) return null;
-            return host.startsWith("www.") ? host.substring(4) : host;
-        } catch (IllegalArgumentException e) {
-            return null;
+    private static String truncate(String bodyText) {
+        if (bodyText.length() <= MAX_CONTENT_CHARS) {
+            return bodyText;
         }
+        return bodyText.substring(0, MAX_CONTENT_CHARS);
     }
 
     private static String cleanJson(String response) {
         String value = response.trim();
-        if (value.startsWith("```json")) value = value.substring(7).trim();
-        else if (value.startsWith("```")) value = value.substring(3).trim();
-        if (value.endsWith("```")) value = value.substring(0, value.length() - 3).trim();
+        if (value.startsWith("```json")) {
+            value = value.substring(7).trim();
+        } else if (value.startsWith("```")) {
+            value = value.substring(3).trim();
+        }
+        if (value.endsWith("```")) {
+            value = value.substring(0, value.length() - 3).trim();
+        }
         return value;
     }
 
     private static String normalizeProblemUrl(String value) {
-        if (value == null || value.isBlank()) return null;
+        if (value == null || value.isBlank()) {
+            return null;
+        }
         String url = value.trim();
-        if (!url.startsWith("https://leetcode.com/problems/")) return url;
+        if (!url.startsWith("https://leetcode.com/problems/")) {
+            return url;
+        }
         int query = url.indexOf("?");
         int fragment = url.indexOf("#");
         int end = url.length();
-        if (query >= 0) end = Math.min(end, query);
-        if (fragment >= 0) end = Math.min(end, fragment);
+        if (query >= 0) {
+            end = Math.min(end, query);
+        }
+        if (fragment >= 0) {
+            end = Math.min(end, fragment);
+        }
         return url.substring(0, end);
     }
 
     private static String firstNonBlank(String value, String fallback) {
         return value != null && !value.isBlank() ? value : fallback;
     }
-    
+
     private record ExtractedQuestions(List<ExtractedQuestion> questions) {}
 
     private record ExtractedQuestion(String sourcePlatform, String originalPostUrl, String problemUrl, LocalDate postDate,

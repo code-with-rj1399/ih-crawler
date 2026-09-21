@@ -1,5 +1,6 @@
 package ai.interviewhq.crawler.crawl.adapters;
 
+import ai.interviewhq.crawler.crawl.ArticleBodyEnricher;
 import ai.interviewhq.crawler.crawl.ParsedEntry;
 import ai.interviewhq.crawler.crawl.SourceAdapter;
 import ai.interviewhq.crawler.crawl.http.FetchResult;
@@ -17,10 +18,14 @@ import java.util.List;
 @Component
 public class HnAlgoliaAdapter implements SourceAdapter {
 
-    private final ObjectMapper mapper;
+    private static final int ENRICH_CAP = 10;
 
-    public HnAlgoliaAdapter(ObjectMapper mapper) {
+    private final ObjectMapper mapper;
+    private final ArticleBodyEnricher enricher;
+
+    public HnAlgoliaAdapter(ObjectMapper mapper, ArticleBodyEnricher enricher) {
         this.mapper = mapper;
+        this.enricher = enricher;
     }
 
     @Override
@@ -73,7 +78,20 @@ public class HnAlgoliaAdapter implements SourceAdapter {
                     .robotsAllowed(true)
                     .build());
         }
-        return entries;
+        List<ParsedEntry> enriched = new ArrayList<>(entries.size());
+        int fetched = 0;
+        for (ParsedEntry entry : entries) {
+            if (fetched < ENRICH_CAP) {
+                ParsedEntry next = enricher.enrich(source, entry);
+                if (next != entry) {
+                    fetched++;
+                }
+                enriched.add(next);
+            } else {
+                enriched.add(entry);
+            }
+        }
+        return enriched;
     }
 
     static String withNumericFilter(String url, Instant lookback) {
