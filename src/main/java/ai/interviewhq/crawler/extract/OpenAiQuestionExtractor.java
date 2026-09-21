@@ -148,12 +148,17 @@ public class OpenAiQuestionExtractor {
                     - Do not include interview narrative, candidate approach, or solution explanation.
 
                     QUESTION DESCRIPTION:
-                    - questionDescription is a short explanation shown only in the View Details UI.
-                    - Write 3 to 4 short sentences, roughly 40-80 words total.
-                    - Explain what the candidate was asked to solve or design and the important constraints/context stated in the post.
-                    - Use ONLY information explicitly supported by the supplied post.
-                    - Do not provide a solution, answer, inferred requirements, or external problem knowledge.
-                    - Do not repeat interview narrative or candidate approach unless needed to explain the question itself.
+                    - questionDescription must read like a LeetCode problem statement, NOT an interview recap.
+                    - Write 3 to 4 concise sentences, roughly 40-80 words.
+                    - Start directly with the problem/task, for example: "Given two strings, determine the minimum number of edits required to transform one string into the other."
+                    - Describe the input/problem, the required output/goal, and only the constraints or allowed operations that are explicitly known.
+                    - NEVER mention "the candidate", "the interviewer", "the interview", "technical interview", "coding round", "the post", "the author", or "the prompt".
+                    - NEVER add commentary such as "This is a core...", "often used in coding rounds", "a common problem", "a dynamic programming task", or similar educational/meta commentary.
+                    - NEVER describe a solution, algorithm, data structure, complexity, or approach unless the source explicitly makes that part of the problem requirement.
+                    - Do not invent constraints or examples.
+                    - If the post only gives a problem name and does not provide enough details for a faithful problem statement, keep the description minimal rather than filling gaps from generic knowledge.
+                    - When the supplied content explicitly contains a recognizable problem statement, preserve its actual requirements and wording as closely as possible while making it concise.
+                    - The description should answer: "What problem does the user need to solve?" and nothing else.
 
                     QUESTION NORMALIZATION RULES:
                     - List the smallest meaningful description that identifies the actual technical question or problem.
