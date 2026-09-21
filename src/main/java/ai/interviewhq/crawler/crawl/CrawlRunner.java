@@ -1,5 +1,8 @@
 package ai.interviewhq.crawler.crawl;
 
+import ai.interviewhq.crawler.config.CrawlerSettings;
+import ai.interviewhq.crawler.crawl.adapters.SourceAdapterRegistry;
+import ai.interviewhq.crawler.crawl.http.PoliteFetcher;
 import ai.interviewhq.crawler.domain.CrawlSource;
 import ai.interviewhq.crawler.domain.InterviewQuestion;
 import ai.interviewhq.crawler.extract.OpenAiQuestionExtractor;
@@ -10,7 +13,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -22,14 +26,24 @@ public class CrawlRunner {
 
     private final CrawlSourceRepository sourceRepository;
     private final InterviewQuestionRepository questionRepository;
+    private final SourceAdapterRegistry adapterRegistry;
+    private final PoliteFetcher fetcher;
     private final OpenAiQuestionExtractor extractor;
+    private final CrawlerSettings settings;
 
-    public CrawlRunner(CrawlSourceRepository sourceRepository,
-                       InterviewQuestionRepository questionRepository,
-                       OpenAiQuestionExtractor extractor) {
+    public CrawlRunner(
+            CrawlSourceRepository sourceRepository,
+            InterviewQuestionRepository questionRepository,
+            SourceAdapterRegistry adapterRegistry,
+            PoliteFetcher fetcher,
+            OpenAiQuestionExtractor extractor,
+            CrawlerSettings settings) {
         this.sourceRepository = sourceRepository;
         this.questionRepository = questionRepository;
+        this.adapterRegistry = adapterRegistry;
+        this.fetcher = fetcher;
         this.extractor = extractor;
+        this.settings = settings;
     }
 
     @Scheduled(fixedDelayString = "${crawler.interval-ms:3600000}")
@@ -38,7 +52,7 @@ public class CrawlRunner {
     }
 
     public synchronized void runOnce() {
-        log.info("=== OpenAI discovery run started ===");
+        log.info("=== crawler run started: adapter-first, AI-extraction-only ===");
 
         List<CrawlSource> sources = sourceRepository.findByEnabledTrueOrderByIdAsc();
         log.info("Enabled sources: {}", sources.size());
@@ -47,96 +61,77 @@ public class CrawlRunner {
             crawlSource(source);
         }
 
-        log.info("=== OpenAI discovery run finished ===");
+        log.info("=== crawler run finished ===");
     }
 
     private void crawlSource(CrawlSource source) {
-        log.info(
-                "Starting OpenAI discovery: source={}, platform={}, scope={}",
-                source.getSlug(),
-                source.getName(),
-                source.getUrl()
-        );
+        Instant cutoff = Instant.now().minus(settings.lookbackHours(), ChronoUnit.HOURS);
 
         try {
-            List<OpenAiQuestionExtractor.DiscoveredPost> posts = extractor.discoverPostUrls(source);
-            List<InterviewQuestion> questions = new ArrayList<>();
+            SourceAdapter adapter = adapterRegistry.require(source.getSourceKind());
+            List<ParsedEntry> entries = adapter.crawl(source, cutoff, fetcher);
 
-            log.info("Stage 1 discovery finished: source={}, posts={}", source.getSlug(), posts.size());
-
-            for (OpenAiQuestionExtractor.DiscoveredPost post : posts) {
-                try {
-                    questions.addAll(extractor.extractQuestionsFromPost(source, post));
-                } catch (Exception postError) {
-                    log.warn("Stage 2 extraction failed: source={}, url={}", source.getSlug(), post.url(), postError);
-                }
-            }
+            log.info(
+                    "Source crawl finished: source={}, adapter={}, candidates={}",
+                    source.getSlug(), source.getSourceKind(), entries.size()
+            );
 
             int saved = 0;
             int skipped = 0;
+            int aiCalls = 0;
             Set<String> seenHashes = new HashSet<>();
 
-            for (InterviewQuestion question : questions) {
-                if (question.getOriginalPostUrl() == null
-                        || question.getOriginalPostUrl().isBlank()) {
-                    log.warn(
-                            "Skipping question without originalPostUrl: source={}, question={}",
-                            source.getSlug(),
-                            question.getQuestionText()
-                    );
+            for (ParsedEntry entry : entries) {
+                if (!isFresh(entry, cutoff)) {
                     skipped++;
                     continue;
                 }
 
-                String dedupeHash = question.getDedupeHash();
-                if (dedupeHash == null || dedupeHash.isBlank()) {
-                    log.warn(
-                            "Skipping question without dedupeHash: source={}, question={}",
-                            source.getSlug(),
-                            question.getQuestionText()
-                    );
+                if (entry.bodyText() == null || entry.bodyText().isBlank()) {
                     skipped++;
                     continue;
                 }
 
-                if (!seenHashes.add(dedupeHash)) {
-                    log.debug(
-                            "Skipping duplicate question in OpenAI response: source={}, hash={}",
-                            source.getSlug(),
-                            dedupeHash
-                    );
-                    skipped++;
-                    continue;
-                }
+                List<InterviewQuestion> questions = extractor.extractQuestionsFromContent(
+                        source,
+                        entry.canonicalUrl() != null ? entry.canonicalUrl() : entry.url(),
+                        entry.title(),
+                        entry.author(),
+                        entry.publishedAt(),
+                        entry.bodyText()
+                );
+                aiCalls++;
 
-                if (questionRepository.findByDedupeHash(dedupeHash).isPresent()) {
-                    log.debug(
-                            "Question already exists: source={}, hash={}",
-                            source.getSlug(),
-                            dedupeHash
-                    );
-                    skipped++;
-                    continue;
-                }
+                for (InterviewQuestion question : questions) {
+                    String dedupeHash = question.getDedupeHash();
 
-                questionRepository.save(question);
-                saved++;
+                    if (dedupeHash == null || dedupeHash.isBlank()
+                            || !seenHashes.add(dedupeHash)
+                            || questionRepository.findByDedupeHash(dedupeHash).isPresent()) {
+                        skipped++;
+                        continue;
+                    }
+
+                    questionRepository.save(question);
+                    saved++;
+                }
             }
 
             log.info(
-                    "Two-stage OpenAI crawl finished: source={}, posts={}, questions={}, saved={}, skipped={}",
-                    source.getSlug(),
-                    posts.size(),
-                    questions.size(),
-                    saved,
-                    skipped
+                    "Source pipeline finished: source={}, candidates={}, aiCalls={}, savedQuestions={}, skipped={}",
+                    source.getSlug(), entries.size(), aiCalls, saved, skipped
             );
         } catch (Exception e) {
-            log.error(
-                    "OpenAI discovery failed: source={}",
-                    source.getSlug(),
-                    e
-            );
+            log.error("Source crawl failed: source={}, adapter={}",
+                    source.getSlug(), source.getSourceKind(), e);
         }
+    }
+
+    private boolean isFresh(ParsedEntry entry, Instant cutoff) {
+        // Publication date is the hard eligibility gate. Undated content is not
+        // sent to AI because the product requirement is a strict recent window.
+        return entry != null
+                && entry.publishedAt() != null
+                && !entry.publishedAt().isBefore(cutoff);
     }
 }
