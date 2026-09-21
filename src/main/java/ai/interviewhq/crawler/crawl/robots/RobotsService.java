@@ -29,7 +29,7 @@ public class RobotsService {
     }
 
     public RobotsRules.Decision check(CrawlSource source, URI uri) {
-        if (source.getRobotsMode() != null && !"honor".equalsIgnoreCase(source.getRobotsMode())) {
+        if (ignoresRobots(source)) {
             return RobotsRules.Decision.allow(null);
         }
         String origin = originOf(uri);
@@ -87,6 +87,14 @@ public class RobotsService {
             log.warn("robots.txt fetch failed for {}: {}", origin, e.getMessage());
             return new Cached(RobotsRules.allowAll(), Instant.now().plus(Duration.ofMinutes(15)));
         }
+    }
+
+    public static boolean ignoresRobots(CrawlSource source) {
+        if (source == null || source.getRobotsMode() == null) {
+            return false;
+        }
+        String mode = source.getRobotsMode().trim().toLowerCase();
+        return mode.equals("ignore") || mode.equals("off") || mode.equals("bypass") || mode.equals("skip");
     }
 
     public static String originOf(URI uri) {

@@ -1,5 +1,6 @@
 package ai.interviewhq.crawler.crawl.adapters;
 
+import ai.interviewhq.crawler.crawl.ArticleBodyEnricher;
 import ai.interviewhq.crawler.crawl.ParsedEntry;
 import ai.interviewhq.crawler.crawl.SourceAdapter;
 import ai.interviewhq.crawler.crawl.http.FetchResult;
@@ -29,6 +30,13 @@ import java.util.Locale;
 public class RssAdapter implements SourceAdapter {
 
     private static final Logger log = LoggerFactory.getLogger(RssAdapter.class);
+    private static final int ENRICH_CAP = 12;
+
+    private final ArticleBodyEnricher enricher;
+
+    public RssAdapter(ArticleBodyEnricher enricher) {
+        this.enricher = enricher;
+    }
 
     @Override
     public String kind() {
@@ -47,15 +55,15 @@ public class RssAdapter implements SourceAdapter {
         if (!result.isSuccess()) {
             if (isHashnode(source) && result.status() == 404) {
                 log.info("hashnode RSS 404, falling back to tag HTML {}", source.getUrl());
-                return htmlFallback(source, lookback, fetcher);
+                return enrich(source, htmlFallback(source, lookback, fetcher));
             }
             throw new IllegalStateException("RSS fetch HTTP " + result.status() + " for " + source.getUrl());
         }
         try {
-            return parseFeed(source, result, lookback);
+            return enrich(source, parseFeed(source, result, lookback));
         } catch (Exception ex) {
             log.warn("RSS parse failed for {}: {} — trying HTML fallback", source.getSlug(), ex.getMessage());
-            return htmlFallback(source, lookback, fetcher);
+            return enrich(source, htmlFallback(source, lookback, fetcher));
         }
     }
 
@@ -127,6 +135,27 @@ public class RssAdapter implements SourceAdapter {
             }
         }
         return entries;
+    }
+
+    private List<ParsedEntry> enrich(CrawlSource source, List<ParsedEntry> entries) {
+        if (entries == null || entries.isEmpty()) {
+            return List.of();
+        }
+        List<ParsedEntry> out = new ArrayList<>(entries.size());
+        int enriched = 0;
+        for (ParsedEntry entry : entries) {
+            if (enriched < ENRICH_CAP) {
+                ParsedEntry next = enricher.enrich(source, entry);
+                if (next != entry) {
+                    enriched++;
+                }
+                out.add(next);
+            } else {
+                out.add(entry);
+            }
+        }
+        log.info("RSS enrich: source={} items={} fetchedFull={}", source.getSlug(), out.size(), enriched);
+        return out;
     }
 
     private static boolean isHashnode(CrawlSource source) {

@@ -1,8 +1,12 @@
 package ai.interviewhq.crawler.crawl;
 
 import ai.interviewhq.crawler.browser.ChromiumBrowserClient;
+import ai.interviewhq.crawler.crawl.adapters.ParserConfigs;
 import ai.interviewhq.crawler.crawl.discovery.InterviewLinkDiscoverer;
 import ai.interviewhq.crawler.crawl.discovery.PageContentExtractor;
+import ai.interviewhq.crawler.crawl.http.FetchMode;
+import ai.interviewhq.crawler.crawl.http.HybridPageFetcher;
+import ai.interviewhq.crawler.crawl.http.PageSnapshot;
 import ai.interviewhq.crawler.domain.CrawlSource;
 import ai.interviewhq.crawler.util.Hashing;
 import org.slf4j.Logger;
@@ -18,19 +22,21 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * For one site: Chromium-open the listing, collect interview article URLs,
- * then fetch each article one-by-one. The model is never asked to browse.
+ * For one site: discover interview article URLs from listing pages, then fetch
+ * each article. HTTP is tried first; Chromium is the fallback for JS shells.
  */
 @Component
 public class ChromiumSiteCrawler {
 
     private static final Logger log = LoggerFactory.getLogger(ChromiumSiteCrawler.class);
 
+    private final HybridPageFetcher hybrid;
     private final ChromiumBrowserClient browser;
     private final InterviewLinkDiscoverer discoverer = new InterviewLinkDiscoverer();
     private final PageContentExtractor contentExtractor = new PageContentExtractor();
 
-    public ChromiumSiteCrawler(ChromiumBrowserClient browser) {
+    public ChromiumSiteCrawler(HybridPageFetcher hybrid, ChromiumBrowserClient browser) {
+        this.hybrid = hybrid;
         this.browser = browser;
     }
 
@@ -41,6 +47,9 @@ public class ChromiumSiteCrawler {
 
         int urlCap = Math.max(1, maxUrls);
         int listingCap = Math.max(1, maxListingPages);
+        FetchMode mode = FetchMode.from(source);
+        boolean browserListing = ParserConfigs.bool(source, "browserListing", mode.preferBrowser());
+        int listingScrolls = browserListing ? 2 : 0;
 
         Set<String> listingSeen = new LinkedHashSet<>();
         Set<String> articleUrls = new LinkedHashSet<>();
@@ -50,121 +59,98 @@ public class ChromiumSiteCrawler {
         String listingReferer = source.getUrl();
         int listingCount = 0;
 
-        while (!listings.isEmpty() && listingCount < listingCap) {
-            String listingUrl = listings.poll();
-            if (listingUrl == null || !listingSeen.add(listingUrl)) {
-                continue;
-            }
-            listingCount++;
-
-            ChromiumBrowserClient.BrowserPage listing = browser.fetch(
-                    source, listingUrl, listingCount == 1 ? null : source.getUrl());
-            if (!listing.isSuccess()) {
-                log.warn("Chromium listing failed: source={} url={} status={} challenge={}",
-                        source.getSlug(), listingUrl, listing.status(), listing.challenge());
-                continue;
-            }
-
-            listingReferer = listing.url();
-            List<InterviewLinkDiscoverer.DiscoveredLink> links =
-                    discoverer.discover(listing.url(), listing.html(), urlCap * 4);
-            for (InterviewLinkDiscoverer.DiscoveredLink link : links) {
-                articleUrls.add(link.url());
-                log.info("Discovered interview candidate: source={} listingUrl={} candidateUrl={} score={} anchor={}",
-                        source.getSlug(), listing.url(), link.url(), link.score(), link.anchorText());
-            }
-            log.info("Chromium listing parsed: source={} url={} interviewLinks={} totalUnique={}",
-                    source.getSlug(), listing.url(), links.size(), articleUrls.size());
-
-            log.info("""
-                    ==================== CHROMIUM LISTING PAGE CONTENT ====================
-                    source={}
-                    url={}
-                    title={}
-                    status={}
-                    challenge={}
-                    htmlLength={}
-                    textLength={}
-                    PAGE TEXT:
-                    ---
-                    {}
-                    ---
-                    ================== END CHROMIUM LISTING PAGE CONTENT ==================
-                    """,
-                    source.getSlug(),
-                    listing.url(),
-                    listing.title(),
-                    listing.status(),
-                    listing.challenge(),
-                    listing.html() == null ? 0 : listing.html().length(),
-                    listing.text() == null ? 0 : listing.text().length(),
-                    listing.text() == null ? "" : listing.text());
-
-            for (String next : discoverer.paginationUrls(listing.url(), listing.html())) {
-                if (!listingSeen.contains(next)) {
-                    listings.add(next);
-                }
-            }
-        }
-
-        List<ParsedEntry> entries = new ArrayList<>();
-        int fetched = 0;
-        for (String articleUrl : articleUrls) {
-            if (entries.size() >= urlCap) {
-                break;
-            }
-            fetched++;
-            try {
-                ChromiumBrowserClient.BrowserPage page = browser.fetch(source, articleUrl, listingReferer);
-                if (!page.isSuccess()) {
-                    log.info("Skipping article: source={} url={} status={} challenge={}",
-                            source.getSlug(), articleUrl, page.status(), page.challenge());
+        try (ChromiumBrowserClient.Session session = browser.openSession()) {
+            while (!listings.isEmpty() && listingCount < listingCap) {
+                String listingUrl = listings.poll();
+                if (listingUrl == null || !listingSeen.add(listingUrl)) {
                     continue;
                 }
-                log.info("""
-                        ==================== CHROMIUM ARTICLE PAGE CONTENT ====================
-                        source={}
-                        requestedUrl={}
-                        finalUrl={}
-                        title={}
-                        status={}
-                        challenge={}
-                        htmlLength={}
-                        textLength={}
-                        PAGE TEXT:
-                        ---
-                        {}
-                        ---
-                        ================== END CHROMIUM ARTICLE PAGE CONTENT ==================
-                        """,
-                        source.getSlug(),
-                        articleUrl,
-                        page.url(),
-                        page.title(),
-                        page.status(),
-                        page.challenge(),
-                        page.html() == null ? 0 : page.html().length(),
-                        page.text() == null ? 0 : page.text().length(),
-                        page.text() == null ? "" : page.text());
+                listingCount++;
 
-                ParsedEntry entry = toEntry(page, lookback);
-                if (entry != null) {
-                    entries.add(entry);
+                FetchMode listingMode = browserListing ? FetchMode.BROWSER_FIRST : mode;
+                PageSnapshot listing = hybrid.fetch(
+                        source,
+                        listingUrl,
+                        listingCount == 1 ? null : source.getUrl(),
+                        listingMode,
+                        listingScrolls,
+                        session
+                );
+                if (!listing.isSuccess()) {
+                    log.warn("Listing failed: source={} url={} status={} challenge={} browser={}",
+                            source.getSlug(), listingUrl, listing.status(), listing.challenge(), listing.usedBrowser());
+                    continue;
                 }
-            } catch (RuntimeException ex) {
-                log.warn("Article fetch failed: source={} url={}: {}",
-                        source.getSlug(), articleUrl, ex.getMessage());
-            }
-        }
 
-        log.info("Chromium site crawl finished: source={} listings={} discovered={} fetched={} kept={}",
-                source.getSlug(), listingCount, articleUrls.size(), fetched, entries.size());
-        return entries;
+                listingReferer = listing.finalUrl();
+                List<InterviewLinkDiscoverer.DiscoveredLink> links =
+                        discoverer.discover(listing.finalUrl(), listing.html(), urlCap * 4);
+                for (InterviewLinkDiscoverer.DiscoveredLink link : links) {
+                    articleUrls.add(link.url());
+                    log.info("Discovered interview candidate: source={} listingUrl={} candidateUrl={} score={} anchor={}",
+                            source.getSlug(), listing.finalUrl(), link.url(), link.score(), link.anchorText());
+                }
+                log.info("Listing parsed: source={} url={} interviewLinks={} totalUnique={} via={}",
+                        source.getSlug(), listing.finalUrl(), links.size(), articleUrls.size(),
+                        listing.usedBrowser() ? "chromium" : "http");
+                log.debug("Listing text source={} url={} chars={}",
+                        source.getSlug(), listing.finalUrl(),
+                        listing.text() == null ? 0 : listing.text().length());
+
+                for (String next : discoverer.paginationUrls(listing.finalUrl(), listing.html())) {
+                    if (!listingSeen.contains(next)) {
+                        listings.add(next);
+                    }
+                }
+            }
+
+            List<ParsedEntry> entries = new ArrayList<>();
+            int fetched = 0;
+            int httpHits = 0;
+            int browserHits = 0;
+            for (String articleUrl : articleUrls) {
+                if (entries.size() >= urlCap) {
+                    break;
+                }
+                fetched++;
+                try {
+                    PageSnapshot page = hybrid.fetch(
+                            source, articleUrl, listingReferer, FetchMode.HTTP_FIRST, 0, session);
+                    if (!page.isSuccess()) {
+                        log.info("Skipping article: source={} url={} status={} challenge={} via={}",
+                                source.getSlug(), articleUrl, page.status(), page.challenge(),
+                                page.usedBrowser() ? "chromium" : "http");
+                        continue;
+                    }
+                    if (page.usedBrowser()) {
+                        browserHits++;
+                    } else {
+                        httpHits++;
+                    }
+                    log.debug("Article fetched: source={} url={} status={} via={} text={}",
+                            source.getSlug(), page.finalUrl(), page.status(),
+                            page.usedBrowser() ? "chromium" : "http",
+                            page.text() == null ? 0 : page.text().length());
+
+                    ParsedEntry entry = toEntry(page, lookback);
+                    if (entry != null) {
+                        entries.add(entry);
+                    }
+                } catch (RuntimeException ex) {
+                    log.warn("Article fetch failed: source={} url={}: {}",
+                            source.getSlug(), articleUrl, ex.getMessage());
+                }
+            }
+
+            log.info("Site crawl finished: source={} listings={} discovered={} fetched={} kept={} httpHits={} browserHits={}",
+                    source.getSlug(), listingCount, articleUrls.size(), fetched, entries.size(), httpHits, browserHits);
+            return entries;
+        }
     }
 
-    private ParsedEntry toEntry(ChromiumBrowserClient.BrowserPage page, Instant lookback) {
+    private ParsedEntry toEntry(PageSnapshot page, Instant lookback) {
         PageContentExtractor.ExtractedPage extracted =
-                contentExtractor.extract(page.url(), page.html(), page.text());
+                contentExtractor.extract(page.finalUrl(), page.html(), page.text());
         if (extracted.body() == null || extracted.body().isBlank()) {
             return null;
         }
@@ -173,16 +159,17 @@ public class ChromiumSiteCrawler {
             return null;
         }
 
-        return ParsedEntry.builder(page.url())
-                .canonicalUrl(page.url())
+        return ParsedEntry.builder(page.requestedUrl())
+                .canonicalUrl(page.finalUrl())
                 .title(extracted.title() == null ? page.title() : extracted.title())
                 .author(extracted.author())
                 .publishedAt(published)
                 .bodyText(extracted.body())
-                .contentType("text/html")
+                .contentType(page.contentType() == null ? "text/html" : page.contentType())
                 .httpStatus(page.status())
+                .etag(page.etag())
                 .contentHash(Hashing.sha256Hex(extracted.body()))
-                .robotsAllowed(true)
+                .robotsAllowed(page.robotsAllowed())
                 .build();
     }
 }

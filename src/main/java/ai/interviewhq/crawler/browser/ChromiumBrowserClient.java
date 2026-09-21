@@ -104,68 +104,80 @@ public class ChromiumBrowserClient {
     }
 
     public BrowserPage fetch(CrawlSource source, String url) {
-        return fetch(source, url, null);
+        return fetch(source, url, null, 0);
     }
 
     public BrowserPage fetch(CrawlSource source, String url, String referer) {
-        Objects.requireNonNull(url, "url");
-        String host = hostOf(url);
-        Object lock = hostLocks.computeIfAbsent(host, key -> new Object());
-        synchronized (lock) {
-            BrowserPage last = empty(url, 0);
-            for (int attempt = 0; attempt <= maxRetries; attempt++) {
-                try {
-                    honorHostGap(source, host);
-                    last = navigateOnce(url, referer, attempt);
-                    if (last.isSuccess()) {
-                        return last;
-                    }
-                    if (isRetryable(last) && attempt < maxRetries) {
-                        long waitMs = HumanDelay.exponentialJitter(attempt, blockRetryMinMs, blockRetryMaxMs);
-                        log.info("Chromium retry {}/{} url={} status={} challenge={} wait={}ms",
-                                attempt + 1, maxRetries, url, last.status(), last.challenge(), waitMs);
-                        Thread.sleep(waitMs);
-                        continue;
-                    }
-                    return last;
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    throw new IllegalStateException("Chromium fetch interrupted for " + url, e);
-                } catch (RuntimeException e) {
-                    log.warn("Chromium fetch error attempt {} for {}: {}", attempt, url, e.getMessage());
-                    last = empty(url, 0);
-                    if (attempt < maxRetries) {
-                        try {
-                            Thread.sleep(HumanDelay.exponentialJitter(attempt, blockRetryMinMs, blockRetryMaxMs));
-                        } catch (InterruptedException ie) {
-                            Thread.currentThread().interrupt();
-                            throw new IllegalStateException("Chromium fetch interrupted for " + url, ie);
-                        }
-                    }
-                }
-            }
-            return last;
+        return fetch(source, url, referer, 0);
+    }
+
+    public BrowserPage fetch(CrawlSource source, String url, String referer, int scrollPasses) {
+        try (Session session = openSession()) {
+            return session.fetch(source, url, referer, scrollPasses);
         }
     }
 
-    private BrowserPage navigateOnce(String url, String referer, int attempt) {
-        int[] viewport = VIEWPORTS[ThreadLocalRandom.current().nextInt(VIEWPORTS.length)];
-        String userAgent = userAgentForAttempt(attempt);
+    public Session openSession() {
+        return new Session();
+    }
 
-        BrowserContext context = browser.newContext(new Browser.NewContextOptions()
-                .setUserAgent(userAgent)
-                .setViewportSize(viewport[0], viewport[1])
-                .setLocale("en-US")
-                .setTimezoneId("America/New_York")
-                .setExtraHTTPHeaders(headers(referer, userAgent)));
-        Page page = context.newPage();
-        page.setDefaultNavigationTimeout(navigationTimeoutMs);
-        page.setDefaultTimeout(navigationTimeoutMs);
-        if (stealth) {
-            context.addInitScript(STEALTH_JS);
+    /**
+     * Reuses one browser context across sequential same-host fetches. Fresh
+     * context is created only on retries / challenges.
+     */
+    public final class Session implements AutoCloseable {
+        private BrowserContext context;
+        private Page page;
+
+        public BrowserPage fetch(CrawlSource source, String url, String referer) {
+            return fetch(source, url, referer, 0);
         }
 
-        try {
+        public BrowserPage fetch(CrawlSource source, String url, String referer, int scrollPasses) {
+            Objects.requireNonNull(url, "url");
+            String host = hostOf(url);
+            Object lock = hostLocks.computeIfAbsent(host, key -> new Object());
+            synchronized (lock) {
+                BrowserPage last = empty(url, 0);
+                for (int attempt = 0; attempt <= maxRetries; attempt++) {
+                    try {
+                        honorHostGap(source, host);
+                        last = navigateOnce(url, referer, attempt, Math.max(0, scrollPasses));
+                        if (last.isSuccess()) {
+                            return last;
+                        }
+                        resetContext();
+                        if (isRetryable(last) && attempt < maxRetries) {
+                            long waitMs = HumanDelay.exponentialJitter(attempt, blockRetryMinMs, blockRetryMaxMs);
+                            log.info("Chromium retry {}/{} url={} status={} challenge={} wait={}ms",
+                                    attempt + 1, maxRetries, url, last.status(), last.challenge(), waitMs);
+                            Thread.sleep(waitMs);
+                            continue;
+                        }
+                        return last;
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        throw new IllegalStateException("Chromium fetch interrupted for " + url, e);
+                    } catch (RuntimeException e) {
+                        log.warn("Chromium fetch error attempt {} for {}: {}", attempt, url, e.getMessage());
+                        resetContext();
+                        last = empty(url, 0);
+                        if (attempt < maxRetries) {
+                            try {
+                                Thread.sleep(HumanDelay.exponentialJitter(attempt, blockRetryMinMs, blockRetryMaxMs));
+                            } catch (InterruptedException ie) {
+                                Thread.currentThread().interrupt();
+                                throw new IllegalStateException("Chromium fetch interrupted for " + url, ie);
+                            }
+                        }
+                    }
+                }
+                return last;
+            }
+        }
+
+        private BrowserPage navigateOnce(String url, String referer, int attempt, int scrollPasses) {
+            ensureContext(referer, attempt);
             Response response = null;
             try {
                 response = page.navigate(url, new Page.NavigateOptions()
@@ -176,6 +188,7 @@ public class ChromiumBrowserClient {
             }
 
             behaveLikeReader(page);
+            extraScrolls(page, scrollPasses);
 
             int status = response == null ? guessStatus(page) : response.status();
             String html = safe(() -> page.content(), "");
@@ -183,17 +196,79 @@ public class ChromiumBrowserClient {
             String title = safe(page::title, "");
             String finalUrl = safe(page::url, url);
             boolean challenge = looksLikeChallenge(title, html, text, status);
-
             return new BrowserPage(finalUrl, title, html, text, status, challenge);
-        } finally {
-            try {
-                page.close();
-            } catch (RuntimeException ignored) {
+        }
+
+        private void ensureContext(String referer, int attempt) {
+            if (context != null && page != null && attempt == 0) {
+                return;
             }
-            try {
-                context.close();
-            } catch (RuntimeException ignored) {
+            resetContext();
+            int[] viewport = VIEWPORTS[ThreadLocalRandom.current().nextInt(VIEWPORTS.length)];
+            String userAgent = userAgentForAttempt(attempt);
+            context = browser.newContext(new Browser.NewContextOptions()
+                    .setUserAgent(userAgent)
+                    .setViewportSize(viewport[0], viewport[1])
+                    .setLocale("en-US")
+                    .setTimezoneId("America/New_York")
+                    .setExtraHTTPHeaders(headers(referer, userAgent)));
+            if (stealth) {
+                context.addInitScript(STEALTH_JS);
             }
+            page = context.newPage();
+            page.setDefaultNavigationTimeout(navigationTimeoutMs);
+            page.setDefaultTimeout(navigationTimeoutMs);
+        }
+
+        private void resetContext() {
+            if (page != null) {
+                try {
+                    page.close();
+                } catch (RuntimeException ignored) {
+                }
+                page = null;
+            }
+            if (context != null) {
+                try {
+                    context.close();
+                } catch (RuntimeException ignored) {
+                }
+                context = null;
+            }
+        }
+
+        @Override
+        public void close() {
+            resetContext();
+        }
+    }
+
+    private void extraScrolls(Page page, int scrollPasses) {
+        if (scrollPasses <= 0 || page == null) {
+            return;
+        }
+        for (int i = 0; i < scrollPasses; i++) {
+            try {
+                page.evaluate("() => window.scrollTo(0, document.body.scrollHeight)");
+                clickIfPresent(page, "text=Load more");
+                clickIfPresent(page, "text=Show more");
+                clickIfPresent(page, "text=See more");
+                clickIfPresent(page, "text=Next");
+                page.waitForTimeout(HumanDelay.between(350, 900));
+            } catch (RuntimeException ignored) {
+                return;
+            }
+        }
+    }
+
+    private static void clickIfPresent(Page page, String selector) {
+        try {
+            var locator = page.locator(selector).first();
+            if (locator.count() > 0) {
+                locator.click(new com.microsoft.playwright.Locator.ClickOptions().setTimeout(800));
+            }
+        } catch (RuntimeException ignored) {
+            // Listing pagination is best-effort.
         }
     }
 
@@ -267,7 +342,7 @@ public class ChromiumBrowserClient {
                 || status == 429 || status == 500 || status == 502 || status == 503 || status == 504;
     }
 
-    static boolean looksLikeChallenge(String title, String html, String text, int status) {
+    public static boolean looksLikeChallenge(String title, String html, String text, int status) {
         if (status == 403 || status == 429) {
             return true;
         }
