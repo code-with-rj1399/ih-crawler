@@ -63,7 +63,7 @@ public class OpenAiQuestionExtractor {
             String prompt = """
                     You are InterviewHQ's structured extraction engine.
 
-                    The crawler already fetched this page with Chromium. DO NOT browse the web,
+                    The crawler already fetched this post and supplied its content below. DO NOT browse the web,
                     search, open URLs, or use tools. Extract only what is explicitly supported
                     by the supplied content.
 
@@ -78,12 +78,31 @@ public class OpenAiQuestionExtractor {
                     %s
                     ---
 
-                    Extract every distinct software-engineering interview question explicitly described as
-                    having been asked in a real interview.
+                    Extract every distinct software-engineering interview question that the candidate explicitly
+                    reports was ASKED in a real interview.
+
+                    IMPORTANT ELIGIBILITY GATE:
+                    - A question is eligible only when the post clearly indicates that an interviewer/recruiter
+                      actually asked it, or clearly lists it as an interview-round question/problem.
+                    - Do NOT turn a topic, heading, subject of discussion, or statement into a question.
+                    - Do NOT extract "Past projects discussion", "Project discussion", "Experience discussion",
+                      "Resume discussion", "Introduction", "Questions asked", or similar section/topic labels.
+                    - A named coding problem such as "Edit Distance", "Dutch National Flag", or "Next Greater Element"
+                      is eligible only when the post indicates it was actually asked/solved/discussed as an interview problem.
+                    - A system-design description is eligible when the post identifies it as an interview/design problem,
+                      even if the author did not phrase it as a literal question.
+                    - Behavioral prompts such as "Why X?", "Tell me about...", "What do you bring?" are eligible
+                      when the post reports that they were asked.
+                    - Never infer an interview question merely because a company, technology, project, or topic is mentioned.
+                    - Never convert a statement into a more specific question than the source supports.
+                    - Preserve the source's wording as closely as possible. Minimal cleanup is allowed, but do not invent
+                      constraints, technologies, requirements, or expected answers.
 
                     Rules:
                     - Never invent a question or metadata.
                     - Exclude generic preparation advice, tutorials, hypothetical questions, and unrelated content.
+                    - Exclude topics that were merely discussed unless the post makes clear that the interviewer asked
+                      a concrete interview question/problem.
                     - One object per distinct question.
                     - Use null when metadata is not supported by the content.
                     - questionType: CODING, SYSTEM_DESIGN, LOW_LEVEL_DESIGN, BEHAVIORAL, TECHNICAL, DATABASE, DEVOPS, AI_ML, or OTHER.
