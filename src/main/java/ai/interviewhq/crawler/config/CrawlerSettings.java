@@ -17,6 +17,7 @@ public class CrawlerSettings {
     public static final String CRON_INTERVAL_MINUTES = "cron.interval_minutes";
     public static final String CRAWL_LOOKBACK_HOURS = "crawl.lookback_hours";
     public static final String CRAWL_MAX_CONCURRENCY = "crawl.max_concurrency";
+    public static final String CRAWL_MAX_CONCURRENT_TASKS = "crawl.max_concurrent_tasks";
     public static final String CRAWL_PER_HOST_CONCURRENCY = "crawl.per_host_concurrency";
     public static final String CRAWL_USER_AGENT = "crawl.user_agent";
     public static final String CRAWL_TIMEOUT_MS = "crawl.timeout_ms";
@@ -86,6 +87,10 @@ public class CrawlerSettings {
 
     public int maxConcurrency() {
         return Math.max(1, getInt(CRAWL_MAX_CONCURRENCY, defaults.getMaxConcurrency()));
+    }
+
+    public int maxConcurrentTasks() {
+        return Math.max(1, getInt(CRAWL_MAX_CONCURRENT_TASKS, defaults.getMaxConcurrentTasks()));
     }
 
     public int perHostConcurrency() {
