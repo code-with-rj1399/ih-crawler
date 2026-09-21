@@ -1,5 +1,6 @@
 package ai.interviewhq.crawler.crawl.http;
 
+import ai.interviewhq.crawler.browser.HumanDelay;
 import ai.interviewhq.crawler.config.CrawlerSettings;
 import ai.interviewhq.crawler.crawl.CircuitOpenException;
 import ai.interviewhq.crawler.crawl.FetchBlockedException;
@@ -122,8 +123,10 @@ public class PoliteHttpClient implements PoliteFetcher {
             }
 
             if (last != null && last.isRetryableStatus() && attempt < maxRetries) {
-                long waitMs = retryAfterMs(last.retryAfter(), attempt);
-                log.info("retry {} {} status={} after {}ms (honoring Retry-After if present)",
+                long waitMs = last.status() == 403
+                        ? HumanDelay.exponentialJitter(attempt, 12_000, 45_000)
+                        : retryAfterMs(last.retryAfter(), attempt);
+                log.info("retry {} {} status={} after {}ms (403/429 treated as human-backoff)",
                         method, url, last.status(), waitMs);
                 Thread.sleep(waitMs);
                 continue;
@@ -178,8 +181,10 @@ public class PoliteHttpClient implements PoliteFetcher {
             HttpRequest.Builder builder = HttpRequest.newBuilder(current)
                     .timeout(Duration.ofMillis(timeoutMs))
                     .header("User-Agent", userAgent)
-                    .header("Accept", "application/rss+xml, application/atom+xml, application/json, text/html, */*;q=0.5")
-                    .header("Accept-Language", "en");
+                    .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,application/json,application/rss+xml,*/*;q=0.8")
+                    .header("Accept-Language", "en-US,en;q=0.9")
+                    .header("Cache-Control", "max-age=0")
+                    .header("Upgrade-Insecure-Requests", "1");
 
             if (etag != null && !etag.isBlank() && "GET".equals(currentMethod)) {
                 builder.header("If-None-Match", etag);

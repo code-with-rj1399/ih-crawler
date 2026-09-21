@@ -30,7 +30,9 @@ public record FetchResult(
     }
 
     public boolean isRetryableStatus() {
-        return status == 429 || status == 503;
+        return status == 403 || status == 408 || status == 425
+                || status == 429 || status == 500 || status == 502
+                || status == 503 || status == 504;
     }
 
     public String bodyAsString() {

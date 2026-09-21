@@ -6,8 +6,6 @@ import ai.interviewhq.crawler.crawl.ParsedEntry;
 import ai.interviewhq.crawler.crawl.SourceAdapter;
 import ai.interviewhq.crawler.crawl.http.PoliteFetcher;
 import ai.interviewhq.crawler.domain.CrawlSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -15,15 +13,13 @@ import java.time.Instant;
 import java.util.List;
 
 @Component
-public class GlassdoorAdapter implements SourceAdapter {
-
-    private static final Logger log = LoggerFactory.getLogger(GlassdoorAdapter.class);
+public class HtmlChromiumAdapter implements SourceAdapter {
 
     private final ChromiumSiteCrawler siteCrawler;
     private final CrawlerSettings settings;
     private final int maxListingPages;
 
-    public GlassdoorAdapter(
+    public HtmlChromiumAdapter(
             ChromiumSiteCrawler siteCrawler,
             CrawlerSettings settings,
             @Value("${crawler.browser.max-listing-pages:3}") int maxListingPages) {
@@ -34,12 +30,12 @@ public class GlassdoorAdapter implements SourceAdapter {
 
     @Override
     public String kind() {
-        return "glassdoor";
+        return "html";
     }
 
     @Override
     public List<ParsedEntry> crawl(CrawlSource source, Instant lookback, PoliteFetcher fetcher) {
-        log.info("Glassdoor crawl via Chromium (no AI search): {}", source.getUrl());
-        return siteCrawler.crawl(source, lookback, Math.max(1, settings.extractMaxPostsPerSource()), maxListingPages);
+        int maxUrls = Math.max(1, settings.extractMaxPostsPerSource());
+        return siteCrawler.crawl(source, lookback, maxUrls, maxListingPages);
     }
 }

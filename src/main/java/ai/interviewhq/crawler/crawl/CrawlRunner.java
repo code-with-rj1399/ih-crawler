@@ -30,6 +30,7 @@ public class CrawlRunner {
     private final PoliteFetcher fetcher;
     private final OpenAiQuestionExtractor extractor;
     private final CrawlerSettings settings;
+    private final ChromiumSiteCrawler chromiumSiteCrawler;
 
     public CrawlRunner(
             CrawlSourceRepository sourceRepository,
@@ -37,13 +38,15 @@ public class CrawlRunner {
             SourceAdapterRegistry adapterRegistry,
             PoliteFetcher fetcher,
             OpenAiQuestionExtractor extractor,
-            CrawlerSettings settings) {
+            CrawlerSettings settings,
+            ChromiumSiteCrawler chromiumSiteCrawler) {
         this.sourceRepository = sourceRepository;
         this.questionRepository = questionRepository;
         this.adapterRegistry = adapterRegistry;
         this.fetcher = fetcher;
         this.extractor = extractor;
         this.settings = settings;
+        this.chromiumSiteCrawler = chromiumSiteCrawler;
     }
 
     @Scheduled(fixedDelayString = "${crawler.interval-ms:3600000}")
@@ -52,7 +55,7 @@ public class CrawlRunner {
     }
 
     public synchronized void runOnce() {
-        log.info("=== crawler run started: adapter-first, AI-extraction-only ===");
+        log.info("=== crawler run started: Chromium discovery, AI extraction-only (no search tools) ===");
 
         List<CrawlSource> sources = sourceRepository.findByEnabledTrueOrderByIdAsc();
         log.info("Enabled sources: {}", sources.size());
@@ -66,14 +69,22 @@ public class CrawlRunner {
 
     private void crawlSource(CrawlSource source) {
         Instant cutoff = Instant.now().minus(settings.lookbackHours(), ChronoUnit.HOURS);
+        int cap = Math.max(1, settings.extractMaxPostsPerSource());
 
         try {
             SourceAdapter adapter = adapterRegistry.require(source.getSourceKind());
-            List<ParsedEntry> entries = adapter.crawl(source, cutoff, fetcher);
+            List<ParsedEntry> entries;
+            try {
+                entries = adapter.crawl(source, cutoff, fetcher);
+            } catch (FetchBlockedException blocked) {
+                log.warn("HTTP blocked for source={}, falling back to Chromium: {}",
+                        source.getSlug(), blocked.getMessage());
+                entries = chromiumSiteCrawler.crawl(source, cutoff, cap, 3);
+            }
 
             log.info(
-                    "Source crawl finished: source={}, adapter={}, candidates={}",
-                    source.getSlug(), source.getSourceKind(), entries.size()
+                    "Source crawl finished: source={}, adapter={}, candidates={}, extractionCap={}",
+                    source.getSlug(), source.getSourceKind(), entries.size(), cap
             );
 
             int saved = 0;
@@ -82,11 +93,14 @@ public class CrawlRunner {
             Set<String> seenHashes = new HashSet<>();
 
             for (ParsedEntry entry : entries) {
-                if (!isFresh(entry, cutoff)) {
+                if (aiCalls >= cap) {
                     skipped++;
                     continue;
                 }
-
+                if (!isEligible(entry, cutoff)) {
+                    skipped++;
+                    continue;
+                }
                 if (entry.bodyText() == null || entry.bodyText().isBlank()) {
                     skipped++;
                     continue;
@@ -127,11 +141,16 @@ public class CrawlRunner {
         }
     }
 
-    private boolean isFresh(ParsedEntry entry, Instant cutoff) {
-        // Publication date is the hard eligibility gate. Undated content is not
-        // sent to AI because the product requirement is a strict recent window.
-        return entry != null
-                && entry.publishedAt() != null
-                && !entry.publishedAt().isBefore(cutoff);
+    private boolean isEligible(ParsedEntry entry, Instant cutoff) {
+        if (entry == null) {
+            return false;
+        }
+        // Dated posts must be inside the lookback window. Undated HTML pages are
+        // allowed because many interview blogs omit timestamps; the per-source
+        // extraction cap keeps model spend bounded.
+        if (entry.publishedAt() == null) {
+            return true;
+        }
+        return !entry.publishedAt().isBefore(cutoff);
     }
 }

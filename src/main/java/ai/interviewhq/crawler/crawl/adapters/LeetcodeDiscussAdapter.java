@@ -43,6 +43,9 @@ public class LeetcodeDiscussAdapter implements SourceAdapter {
             throws Exception {
 
         ChromiumBrowserClient.BrowserPage listing = browser.fetch(source, source.getUrl());
+        if (!listing.isSuccess()) {
+            return List.of();
+        }
         Document listingDoc = Jsoup.parse(listing.html(), listing.url());
 
         List<String> urls = new ArrayList<>();
@@ -63,7 +66,10 @@ public class LeetcodeDiscussAdapter implements SourceAdapter {
 
         for (String url : urls) {
             try {
-                ChromiumBrowserClient.BrowserPage page = browser.fetch(source, url);
+                ChromiumBrowserClient.BrowserPage page = browser.fetch(source, url, listing.url());
+                if (!page.isSuccess()) {
+                    continue;
+                }
                 ParsedEntry entry = parsePost(page, lookback);
                 if (entry != null) {
                     entries.add(entry);
