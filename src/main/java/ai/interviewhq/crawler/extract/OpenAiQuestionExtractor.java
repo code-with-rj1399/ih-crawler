@@ -61,11 +61,10 @@ public class OpenAiQuestionExtractor {
 
         try {
             String prompt = """
-                    You are InterviewHQ's structured extraction engine.
+                    You are an advanced technical interview question and problem listing engine.
 
-                    The crawler already fetched this post and supplied its content below. DO NOT browse the web,
-                    search, open URLs, or use tools. Extract only what is explicitly supported
-                    by the supplied content.
+                    The crawler has already fetched this interview-experience post and supplied its content below.
+                    DO NOT browse the web, search, open URLs, or use tools.
 
                     SOURCE PLATFORM: %s
                     POST URL: %s
@@ -78,32 +77,114 @@ public class OpenAiQuestionExtractor {
                     %s
                     ---
 
-                    Extract every distinct software-engineering interview question that the candidate explicitly
-                    reports was ASKED in a real interview.
+                    Your task is to generate a list of genuine technical interview questions, coding problems,
+                    system design prompts, or technical scenarios reported in this text.
 
-                    IMPORTANT ELIGIBILITY GATE:
-                    - A question is eligible only when the post clearly indicates that an interviewer/recruiter
-                      actually asked it, or clearly lists it as an interview-round question/problem.
-                    - Do NOT turn a topic, heading, subject of discussion, or statement into a question.
-                    - Do NOT extract "Past projects discussion", "Project discussion", "Experience discussion",
-                      "Resume discussion", "Introduction", "Questions asked", or similar section/topic labels.
-                    - A named coding problem such as "Edit Distance", "Dutch National Flag", or "Next Greater Element"
-                      is eligible only when the post indicates it was actually asked/solved/discussed as an interview problem.
-                    - A system-design description is eligible when the post identifies it as an interview/design problem,
-                      even if the author did not phrase it as a literal question.
-                    - Behavioral prompts such as "Why X?", "Tell me about...", "What do you bring?" are eligible
-                      when the post reports that they were asked.
-                    - Never infer an interview question merely because a company, technology, project, or topic is mentioned.
-                    - Never convert a statement into a more specific question than the source supports.
-                    - Preserve the source's wording as closely as possible. Minimal cleanup is allowed, but do not invent
-                      constraints, technologies, requirements, or expected answers.
+                    IMPORTANT:
+                    You are listing the ACTUAL CORE TECHNICAL QUESTION OR PROBLEM, not blindly copying sentences
+                    from the post.
+
+                    For every candidate item, determine:
+                    1. What was actually asked or given to the candidate?
+                    2. What is the core technical problem or prompt?
+                    3. Which words are merely describing, qualifying, comparing, or explaining that question?
+
+                    CORE PROBLEM EXTRACTION:
+                    Separate the source text into:
+                    A. The actual technical problem/question
+                    B. Description or qualification of that problem
+                    C. Surrounding interview narrative
+
+                    questionText must represent A.
+                    Use B only to accurately describe A.
+                    Never include C in questionText.
+
+                    QUESTION NORMALIZATION RULES:
+                    - List the smallest meaningful description that identifies the actual technical question or problem.
+                    - Preserve the original meaning and technical context.
+                    - Do not invent information that is not present in the post.
+                    - Remove conversational prefixes, filler phrases, and qualifiers when they do not form part
+                      of the actual problem identity.
+                    - Remove conversational qualifiers such as "a variation of", "a modified version of",
+                      "a variant of", "similar to", "based on", "something like", "one question was",
+                      "the question was", "they asked me", "was asked", and "just explanation".
+                    - Preserve technical constraints, requirements, data structures, scale requirements, and other
+                      details that materially describe the problem.
+
+                    However:
+                    - Do NOT remove information that changes the identity of the problem.
+                    - Do NOT assume that two problems are the same just because they sound similar.
+                    - Do NOT replace a problem with a standard/canonical name based on similarity.
+                    - Do NOT use external knowledge to determine what the author "must have meant".
+                    - When the author gives only a descriptive technical problem statement, preserve that description.
+                    - When the author explicitly names a problem, prefer the explicit problem name.
+
+                    Examples:
+                    "the coding question was a variation of Two Sum with negative numbers"
+                    → "Two Sum with negative numbers"
+
+                    "they asked to design a notification system like Kafka-based pub-sub"
+                    → "Design a Kafka-based pub-sub notification system"
+
+                    "question was similar to Longest Substring Without Repeating Characters"
+                    → "Longest Substring Without Repeating Characters"
+
+                    "Past project architecture discussion"
+                    → DO NOT list as a technical question unless the post explicitly describes a concrete
+                      technical question or problem that was asked about the architecture.
+
+                    "Discussed microservices and Docker"
+                    → DO NOT list as a question unless the post explicitly identifies a technical interview
+                      question or problem involving them.
+
+                    EVIDENCE REQUIREMENT:
+                    Include an item only when the post provides sufficient evidence that it was part of an actual
+                    technical interview or assessment.
+
+                    Valid evidence includes:
+                    - "they asked..."
+                    - "the coding problem was..."
+                    - "I was asked to write a function..."
+                    - "system design round: ..."
+                    - "coding round: ..."
+                    - a clearly identified list of technical questions or problems.
+
+                    Do NOT list:
+                    - interview preparation advice
+                    - technologies or frameworks merely mentioned
+                    - candidate background/previous projects without a concrete technical prompt
+                    - hypothetical examples or generic skills
+                    - recruiter/screening questions unless they contain an actual technical problem
+
+                    MULTIPLE QUESTIONS:
+                    - List every distinct technical question/problem separately.
+                    - Do not merge different questions.
+                    - Do not split one question into multiple questions merely because it contains multiple
+                      requirements or constraints.
+
+                    CANONICAL NAME RULE:
+                    - If the post explicitly names the problem, preserve that exact problem name.
+                    - If the post describes a known problem but does not explicitly provide its name, DO NOT infer
+                      or substitute a canonical LeetCode, GFG, HackerRank, or other platform problem name.
+                    - If the post says "variation of N-Anagram", list "N-Anagram".
+                    - If the post says "similar to Two Sum with negative numbers", list
+                      "Two Sum with negative numbers".
+                    - If the post only provides a descriptive problem statement, create a concise description
+                      using ONLY information contained in the supplied content.
+                    - Never hallucinate or rename the author's problem based on external knowledge.
+
+                    QUALITY TEST:
+                    Before including each technical question, ask internally:
+                    "Could I point to a specific part of the supplied post that shows it was an actual technical
+                    question or problem?"
+                    If NO → do not list it.
+
+                    Then ask:
+                    "Does questionText describe the actual technical problem, rather than the author's narrative?"
+                    If NO → normalize it before adding it to the list.
 
                     Rules:
                     - Never invent a question or metadata.
-                    - Exclude generic preparation advice, tutorials, hypothetical questions, and unrelated content.
-                    - Exclude topics that were merely discussed unless the post makes clear that the interviewer asked
-                      a concrete interview question/problem.
-                    - One object per distinct question.
                     - Use null when metadata is not supported by the content.
                     - questionType: CODING, SYSTEM_DESIGN, LOW_LEVEL_DESIGN, BEHAVIORAL, TECHNICAL, DATABASE, DEVOPS, AI_ML, or OTHER.
                     - difficulty: Easy, Medium, or Hard only when supported.
