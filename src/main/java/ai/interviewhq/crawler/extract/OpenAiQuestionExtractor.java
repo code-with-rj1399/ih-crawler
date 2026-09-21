@@ -104,6 +104,14 @@ public class OpenAiQuestionExtractor {
                     truncate(bodyText)
             );
 
+            log.info("""
+                    ==================== OPENAI EXTRACTION PROMPT ====================
+                    source={}
+                    postUrl={}
+                    {}
+                    ================== END OPENAI EXTRACTION PROMPT ==================
+                    """, source.getSlug(), postUrl, prompt);
+            
             JsonNode root = callOpenAi(prompt, questionExtractionSchema(), source);
             String output = extractOutputText(root);
             if (output == null || output.isBlank()) {
