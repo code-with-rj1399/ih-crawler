@@ -19,7 +19,11 @@ import java.util.regex.Pattern;
  */
 public final class InterviewLinkDiscoverer {
 
-    public record DiscoveredLink(String url, String title, int score) {}
+    public record DiscoveredLink(String url, String title, int score) {
+        public String anchorText() {
+            return title;
+        }
+    }
 
     private static final Pattern INTERVIEW_TOKEN = Pattern.compile(
             "interview|experience|onsite|phone.?screen|system.?design|coding.?question|"
