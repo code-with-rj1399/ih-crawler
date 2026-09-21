@@ -187,6 +187,7 @@ public class ChromiumBrowserClient {
                 log.debug("navigation wait incomplete for {}: {}", url, ex.getMessage());
             }
 
+            waitForLeetcodePosts(source, page);
             behaveLikeReader(page);
             extraScrolls(page, scrollPasses);
 
@@ -240,6 +241,23 @@ public class ChromiumBrowserClient {
         @Override
         public void close() {
             resetContext();
+        }
+    }
+
+    private void waitForLeetcodePosts(CrawlSource source, Page page) {
+        if (source == null || page == null || !"leetcode-interviews".equals(source.getSlug())) {
+            return;
+        }
+        try {
+            // LeetCode Discuss is a JS-rendered page. DOMContentLoaded only gives
+            // us the application shell, before the post links are attached.
+            page.waitForSelector("a[href*='/discuss/post/']",
+                    new Page.WaitForSelectorOptions()
+                            .setState(com.microsoft.playwright.options.WaitForSelectorState.ATTACHED)
+                            .setTimeout(8000));
+            log.debug("LeetCode interview post links rendered: url={}", page.url());
+        } catch (PlaywrightException ex) {
+            log.warn("LeetCode interview post links did not render before timeout: url={}", page.url());
         }
     }
 
