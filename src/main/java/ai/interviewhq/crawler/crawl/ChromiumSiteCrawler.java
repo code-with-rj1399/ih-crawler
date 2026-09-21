@@ -70,6 +70,8 @@ public class ChromiumSiteCrawler {
                     discoverer.discover(listing.url(), listing.html(), urlCap * 4);
             for (InterviewLinkDiscoverer.DiscoveredLink link : links) {
                 articleUrls.add(link.url());
+                log.info("Discovered interview candidate: source={} listingUrl={} candidateUrl={} score={} anchor={}",
+                        source.getSlug(), listing.url(), link.url(), link.score(), link.anchorText());
             }
             log.info("Chromium listing parsed: source={} url={} interviewLinks={} totalUnique={}",
                     source.getSlug(), listing.url(), links.size(), articleUrls.size());
