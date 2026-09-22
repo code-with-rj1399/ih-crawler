@@ -46,7 +46,7 @@ EXCLUDE THESE AS QUESTIONS
 - Tooling checks: "Are you using Jenkins?", "Are you using GitHub Actions?"
 - Generic technology usage checks: "What tools do you use?", "What tech stack are you using?"
 - Project discussion prompts when they contain no concrete technical task: "Explain your project."
-- Statements/topics: "They asked about Kafka."
+- Mere topic mentions without evidence that questions were asked: "They use Kafka."
 - Round labels: "System design round", "coding round", "project discussion".
 - Narrative without the actual question: "We discussed Kafka failures."
 - Generic recommendations or lists: "Top DSA questions for Amazon."
@@ -104,7 +104,7 @@ QUESTION TEXT
 - Example: "LRU cache" -> "Implement an LRU cache." ONLY when the surrounding source clearly indicates it was an implementation task.
 - Do NOT add algorithmic requirements, input/output details, constraints, examples, data structures, optimization requirements, or solution techniques that are not present in the source.
 - In particular, do NOT turn "next greatest element" into a detailed problem statement or mention a monotonic stack unless the source explicitly does so.
-- Do not turn a source statement into a question unless the source clearly indicates that the item was asked/presented as an interview task.
+- Do not turn a mere topic mention into a question. However, an explicit statement that the candidate was asked questions about a technical subject may be represented as a reported technical question area using the minimal normalization rules above.
 
 QUESTION DESCRIPTION
 
@@ -159,7 +159,7 @@ For every extracted question:
 4. topics must be supported by the question/source.
 5. Never use general knowledge to fill missing details.
 6. Never make the question "better" by adding likely requirements.
-7. If evidence is ambiguous, omit the question.
+7. If evidence is ambiguous, omit the question.\n8. If the source summarizes a technical question area, did we preserve the reported subjects without inventing the missing wording?
 
 DEDUPLICATION
 
@@ -173,7 +173,7 @@ CONFIDENCE
 Confidence measures extraction certainty, not how impressive or difficult the question is.
 - 0.90-1.00: explicit, concrete question/task with strong source evidence.
 - 0.80-0.89: explicit technical question/task with sufficient evidence but limited detail.
-- 0.70-0.79: clearly reported question but sparse wording.
+- 0.70-0.79: clearly reported question/task or summarized technical question area with sparse wording.
 - 0.50-0.69: ambiguous/generic technical content; normally reject unless the source clearly says it was asked.
 - <0.50: reject.
 Never assign high confidence merely because the question is a well-known interview problem.
