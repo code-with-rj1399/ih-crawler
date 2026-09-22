@@ -168,6 +168,32 @@ DEDUPLICATION
 - Preserve the most complete source-supported wording.
 - Do not merge genuinely different questions merely because they are related.
 
+QUESTION CONFIDENCE
+
+confidence is a number from 0.0 to 1.0.
+It measures how confident we are that the source actually supports this as an interview question.
+It does NOT measure difficulty, importance, or quality.
+
+- 0.95-1.00: explicit concrete question/task with strong source evidence.
+- 0.85-0.94: clearly reported question/task with minor wording ambiguity.
+- 0.70-0.84: clearly reported technical question area or sparse technical task where exact wording is missing.
+- <0.70: reject.
+
+QUESTION SPECIFICITY
+
+questionSpecificity is a number from 0.0 to 1.0.
+It measures how specifically the source describes the actual interview question.
+It is independent of confidence.
+
+Examples:
+- "Design a coupon generation and application service." -> 0.98
+- "Next greatest element in circular array." -> 0.95
+- "Some DB questions for isolation levels." -> 0.55
+- "Questions regarding Kafka, partitions, backpressure etc." -> 0.50
+
+A low questionSpecificity does NOT automatically mean rejection.
+Only confidence determines whether the evidence is strong enough to extract.
+
 CONFIDENCE
 
 Confidence measures extraction certainty, not how impressive or difficult the question is.
@@ -191,6 +217,7 @@ Before returning a question, verify:
 8. Are topics grounded in the source?
 9. Is confidence >= 0.70?
 10. Is this not a duplicate?
+11. Is questionSpecificity a faithful 0.0-1.0 measure of how specifically the source reports the question?
 
 If any answer is NO, drop the question.
 
