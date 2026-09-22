@@ -74,6 +74,20 @@ Examples:
 Do not include interview-story wording such as "they asked me" or "in the
 second round".
 
+QUESTION TEXT QUALITY
+---------------------
+questionText must be grammatically correct and useful as a standalone
+problem statement.
+
+Fix obvious grammar problems from the source. Do not blindly copy malformed
+phrases such as "Return true of false", "The rat and cheese question", or
+"The question was...".
+
+Rewrite awkward wording into a clear problem statement ONLY using information
+actually present in the source. Never add missing requirements or assumptions.
+
+Keep questionText concise, normally <= 160 characters.
+
 ANTI-HALLUCINATION
 ------------------
 Every question and every detail in questionDescription MUST be supported by
@@ -119,6 +133,12 @@ Do NOT describe the candidate's solution or approach.
 
 If the source only says "Design a calendar", keep the description short.
 Do not manufacture a full specification.
+
+Keep questionDescription concise:
+- normally 1–2 sentences
+- normally <= 60 words
+- include only source-supported details
+- do not repeat questionText unnecessarily
 
 The questionText and questionDescription MUST describe the same problem.
 
@@ -319,11 +339,31 @@ def call_json(prompt: str, schema: dict[str, Any], schema_name: str, max_output_
     )
     text = (response.output_text or "").strip()
     if not text:
-        raise ValueError("OpenAI returned an empty output")
+        details = []
+        incomplete = getattr(response, "incomplete_details", None)
+        if incomplete:
+            details.append(f"incomplete_details={incomplete}")
+        usage = getattr(response, "usage", None)
+        if usage:
+            details.append(f"usage={usage}")
+        raise ValueError(
+            "OpenAI returned an empty output"
+            + (f" ({'; '.join(details)})" if details else "")
+        )
     try:
         return json.loads(text)
     except json.JSONDecodeError as exc:
-        raise ValueError(f"Invalid JSON from OpenAI: {text[:1000]}") from exc
+        details = []
+        incomplete = getattr(response, "incomplete_details", None)
+        if incomplete:
+            details.append(f"incomplete_details={incomplete}")
+        usage = getattr(response, "usage", None)
+        if usage:
+            details.append(f"usage={usage}")
+        suffix = f" ({'; '.join(details)})" if details else ""
+        raise ValueError(
+            f"Invalid JSON from OpenAI: {text[:2000]}{suffix}"
+        ) from exc
 
 
 def extract_questions(fields: dict[str, str]) -> dict[str, Any]:
@@ -331,7 +371,7 @@ def extract_questions(fields: dict[str, str]) -> dict[str, Any]:
         STAGE1_PROMPT.format(**fields),
         STAGE1_SCHEMA,
         "interview_question_extraction",
-        3000,
+        6000,
     )
 
 
