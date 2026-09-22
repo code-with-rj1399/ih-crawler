@@ -33,17 +33,9 @@ def extract(record):
 def experience_id(payload):
     value = payload.get("sourceUrl") or json.dumps(payload, sort_keys=True, ensure_ascii=False)
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
-def push_to_dynamodb(payload):
-    now = datetime.now(timezone.utc).isoformat()
-    item = {"experienceId": experience_id(payload), **payload, "createdAt": now, "updatedAt": now, "crawledAt": now}
-    try:
-        table.put_item(Item=item, ConditionExpression="attribute_not_exists(experienceId)")
-        return True
-    except ClientError as e:
-        if e.response.get("Error", {}).get("Code") == "ConditionalCheckFailedException":
-            print(f"[SKIP] Already exists: {item['experienceId']}")
-            return False
-        raise
+def print_payload(payload):
+    print(json.dumps(payload, ensure_ascii=False, indent=2))
+    return True
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--input", default=os.getenv("INPUT_DIR", "/data"))
@@ -54,8 +46,7 @@ def main():
     for i, record in enumerate(records, 1):
         try:
             payload = extract(record)
-            inserted = push_to_dynamodb(payload)
-            status = "pushed" if inserted else "already exists"
-            print(f"[OK] {i}/{len(records)} {status}: {len(payload.get('questions', []))} questions")
+            print_payload(payload)
+            print(f"[OK] {i}/{len(records)} generated: {len(payload.get('questions', []))} questions")
         except Exception as e: print(f"[ERROR] {i}/{len(records)}: {e}")
 if __name__ == "__main__": main()
