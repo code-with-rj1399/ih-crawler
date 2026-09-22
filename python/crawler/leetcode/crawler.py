@@ -17,8 +17,8 @@ HEADERS = {
 }
 
 TOPIC_LIST_QUERY = """
-query categoryTopicList($categories: [String!]!, $first: Int!, $after: String, $sortBy: TopicSortingOption, $query: String) {
-  categoryTopicList(categories: $categories, first: $first, after: $after, sortBy: $sortBy, query: $query) {
+query categoryTopicList($categories: [String!]!, $first: Int!, $after: String, $query: String) {
+  categoryTopicList(categories: $categories, first: $first, after: $after, query: $query) {
     totalNum
     edges {
       cursor
@@ -70,9 +70,11 @@ def is_real_interview_experience(title: str, content: str) -> bool:
 
 
 def crawl_interview_experiences(
-    output_file="leetcode_interviews.jsonl",
-    checkpoint_file="checkpoint.txt",
+    output_file=None,
+    checkpoint_file=None,
 ):
+    output_file = output_file or os.getenv("OUTPUT_FILE", "leetcode_interviews.jsonl")
+    checkpoint_file = checkpoint_file or os.getenv("CHECKPOINT_FILE", "checkpoint.txt")
     after_cursor = ""
     if os.path.exists(checkpoint_file):
         with open(checkpoint_file, "r", encoding="utf-8") as f:
@@ -94,7 +96,6 @@ def crawl_interview_experiences(
                 "categories": ["interview-experience"],
                 "first": 50,
                 "after": after_cursor or None,
-                "sortBy": "NEWEST",
                 "query": "",
             },
             "operationName": "categoryTopicList",
@@ -109,11 +110,16 @@ def crawl_interview_experiences(
                 continue
 
             if response.status_code != 200:
-                print(f"Error {response.status_code}: {response.text[:200]}")
-                time.sleep(10)
-                continue
+                print(f"Error {response.status_code}: {response.text[:500]}", flush=True)
+                if response.status_code == 429:
+                    time.sleep(60)
+                    continue
+                raise RuntimeError(f"LeetCode GraphQL request failed with HTTP {response.status_code}")
 
             data = response.json()
+            if data.get("errors"):
+                print(f"GraphQL errors: {json.dumps(data["errors"], ensure_ascii=False)}", flush=True)
+                raise RuntimeError("LeetCode GraphQL request failed")
             topic_data = data.get("data", {}).get("categoryTopicList", {})
             edges = topic_data.get("edges", [])
             page_info = topic_data.get("pageInfo", {})
@@ -204,5 +210,9 @@ def convert_jsonl_to_json(
 
 
 if __name__ == "__main__":
-    crawl_interview_experiences()
-    convert_jsonl_to_json()
+    output_file = os.getenv("OUTPUT_FILE", "leetcode_interviews.jsonl")
+    crawl_interview_experiences(output_file=output_file)
+    convert_jsonl_to_json(
+        jsonl_file=output_file,
+        json_file=os.path.splitext(output_file)[0] + ".json",
+    )
