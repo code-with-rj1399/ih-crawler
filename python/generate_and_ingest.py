@@ -34,9 +34,27 @@ A valid interview experience must identify the company explicitly from the suppl
 
 Extract genuine technical interview questions, coding problems, system design prompts, or technical scenarios actually reported in the text. List the ACTUAL CORE TECHNICAL QUESTION OR PROBLEM, not surrounding interview narrative.
 
-questionText must be one concise line, one sentence whenever possible, <=140 characters, containing only the essential technical problem and constraints.
+QUESTION TEXT:
+- questionText is the actual interview question/problem in the shortest faithful form.
+- Keep it direct, natural, and <=140 characters.
+- Preserve the core wording and meaning from the source.
+- Remove surrounding interview narrative, explanations, labels, and editorial wording.
+- Do not add product/category labels such as "(Product)", "(System Design)", or "(Coding)".
+- Do not embellish a short question into a more elaborate one.
+- Do not invent requirements, scale, architecture, constraints, technologies, or objectives.
+- Prefer "Design Instagram." over "Design Instagram (Product): architect a scalable photo-sharing app."
+- Prefer "Design a social media news feed." over adding unstated scalability requirements.
+- If the source only gives a short topic such as "Design: Calendar", preserve it as a concise question such as "Design a calendar." Do not invent details.
 
-questionDescription must read like a LeetCode problem statement, 3-4 concise sentences and roughly 40-80 words. Start directly with the problem/task. Describe only requirements and constraints explicitly known. Never mention candidate, interviewer, interview, post, author, or prompt. Never invent constraints, examples, algorithms, solutions, or metadata.
+QUESTION DESCRIPTION:
+- questionDescription elaborates the question using ONLY information explicitly supported by the source.
+- Explain the requirements, constraints, context, or expected task that the source actually provides.
+- Start directly with the problem/task.
+- Never mention candidate, interviewer, interview, post, author, or prompt.
+- Never invent constraints, examples, algorithms, solutions, scale, APIs, storage, traffic, or other requirements.
+- If the source provides insufficient detail, keep the description short rather than filling gaps with general knowledge.
+- Use roughly 40-80 words only when the source contains enough detail to support that level of description.
+- The questionText and questionDescription must describe the same actual question; description adds supported detail but does not reinterpret or expand the question.
 
 NORMALIZATION:
 - Preserve original meaning and technical context.
