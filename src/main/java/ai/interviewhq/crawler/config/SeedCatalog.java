@@ -46,18 +46,6 @@ public final class SeedCatalog {
         ));
 
         seeds.add(seed(
-                "glassdoor-interview-questions",
-                "Glassdoor Company Interview Questions",
-                "https://www.glassdoor.com/Interview/index.htm",
-                "html",
-                6,
-                10000,
-                true,
-                "Company-specific Glassdoor URLs require a concrete company slug and employer ID; use the general interview index as the dev seed until those values are configured.",
-                config("browser_first", 48, List.of("glassdoor.com"), true, false)
-        ));
-
-        seeds.add(seed(
                 "teamblind",
                 "TeamBlind",
                 "https://www.teamblind.com/",
@@ -126,18 +114,6 @@ public final class SeedCatalog {
                 10000,
                 true,
                 "Experienced-developer interview discussions.",
-                config("browser_first", 48, List.of("reddit.com"), true, false)
-        ));
-
-        seeds.add(seed(
-                "reddit-company-interviews",
-                "Reddit Company Interview Discussions",
-                "https://www.reddit.com/",
-                "html",
-                6,
-                10000,
-                true,
-                "Company-specific Reddit searches are dynamic; use Reddit search/discovery for [Company] interview experience.",
                 config("browser_first", 48, List.of("reddit.com"), true, false)
         ));
 
