@@ -44,14 +44,25 @@ STEP 1: AUTHENTICITY & COMPANY GATE
 - If the supplied content and metadata contain no reliable company signal, return an empty questions list.
 
 STEP 2: QUESTION EXTRACTION
-Extract only the actual technical questions/problems given to the candidate.
-For each question, formulate:
-- questionText: A 1-line, concise core problem statement (<= 140 chars).
-- questionDescription: An elaborative, source-grounded description. Preserve useful technical details explicitly present in the source, including requirements, inputs, outputs, constraints, edge cases, clarifications, follow-ups, approaches discussed, complexity observations, and trade-offs. Do not force a short word limit or omit useful details merely for brevity.
+Extract ONLY questions that were actually asked, or clearly named/described as an interview task in the supplied experience.
+
+CRITICAL:
+- Do NOT create a question from generic statements such as "standard LeetCode tagged questions", "LeetCode questions", "coding rounds", "technical discussion", or "project discussion".
+- Do NOT invent a specific coding problem when the source does not identify one.
+- If a round only says "Standard Leetcode tagged questions", extract NOTHING from that statement.
+- If the source explicitly names or clearly describes a task, extract it even when details are sparse. Example: "Design: Calendar" should become "Design a calendar."
+- Preserve the source's level of specificity. Do not turn a vague topic into a detailed hypothetical problem.
+- Extract separately named questions from different rounds; do not merge them.
+- questionText: A 1-line, concise representation of the actual task (<= 140 chars).
+- questionDescription: Elaborative and source-grounded. Preserve useful technical details explicitly present in the source, including requirements, inputs, outputs, constraints, edge cases, clarifications, follow-ups, approaches discussed, complexity observations, and trade-offs. Do not force a short word limit.
+- If the source only provides a short task name/topic, keep the description short and faithful rather than inventing requirements.
 
 STEP 3: APPLY STRICT PROHIBITIONS (CRITICAL)
 - NEVER include interview narrative (Remove: "The interviewer asked me...", "A variation of...", etc.).
-- NEVER substitute canonical names (e.g., replacing a vague description with "Two Sum"). Keep the original meaning.
+- NEVER substitute canonical names or fill in missing details from general knowledge.
+- NEVER convert a generic category into a specific question.
+- Example: "Standard Leetcode tagged questions" is NOT a question.
+- Example: "Design: Calendar" IS a question/task and should become "Design a calendar."
 - NEVER invent constraints, solutions, or context not present in the text.
 - NEVER merge different questions together.
 
