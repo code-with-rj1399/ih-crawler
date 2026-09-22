@@ -149,6 +149,8 @@ public class LeetcodeGraphqlClient {
                         continue;
                     }
                     if (cutoff != null && createdAt.isBefore(cutoff)) {
+                        log.info("Rejecting LeetCode post due to freshness: topicId={} title={} createdAt={} cutoff={}",
+                                node.path("topicId").asText(""), node.path("title").asText(""), createdAt, cutoff);
                         hasNextPage = false;
                         break;
                     }
