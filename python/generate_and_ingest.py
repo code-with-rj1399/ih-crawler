@@ -15,14 +15,15 @@ MAX_CONTENT_CHARS = int(os.getenv("MAX_CONTENT_CHARS", "30000"))
 client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
 
-QUESTION_DISCOVERY_PROMPT = r"""
-You are InterviewHQ's QUESTION DISCOVERY engine.
+STAGE1_PROMPT = r"""
+You are InterviewHQ's QUESTION EXTRACTION engine.
 
-Your ONLY job is to find technical questions/problems that were ACTUALLY
-asked or given to the candidate in the supplied interview-experience source.
+Your ONLY job is to extract the actual interview questions/problems from the
+supplied interview-experience source and write a faithful questionDescription.
 
-You are NOT a metadata extractor, question generator, LeetCode classifier,
-or solution writer. You are NOT allowed to use outside knowledge.
+Stage 1 MUST NOT extract company, role, level, location, candidate experience,
+outcome, round type, question type, difficulty, topics, candidate approach,
+URLs, dates, confidence, or any other metadata.
 
 SOURCE
 ------
@@ -39,116 +40,114 @@ CONTENT
 
 AUTHENTICITY GATE
 -----------------
-Accept only a personal interview/assessment experience describing the
-author's actual interview, assessment, hiring loop, coding round,
-system-design round, LLD round, etc.
+Extract questions only when the source describes an actual interview,
+assessment, hiring loop, coding round, system-design round, LLD round, etc.
 
-Reject the entire source if it is primarily:
-- interview preparation
+Do NOT extract questions from:
+- interview preparation material
 - "top N interview questions"
 - question banks
 - tutorials/courses
 - generic interview advice
 - commonly asked question collections
-- hypothetical examples that were not reported as asked
+- hypothetical examples not reported as asked
 
-Do not reject merely because the post is informal, short, or incomplete.
-
-QUESTION EVIDENCE
------------------
-A question must have evidence in the source that it was actually asked.
-
-Strong evidence:
-- "I was asked..."
-- "they asked me..."
-- "the interviewer asked..."
-- "coding round: ..."
-- "system design: ..."
-- "LLD round: ..."
-- "question was..."
-- "given an array..."
-- "design X..."
-- "implement X..."
-- a clearly described sequence of questions from the author's own round
+QUESTION EXTRACTION
+-------------------
+Extract every distinct technical problem/question actually asked or given
+to the candidate.
 
 A technology mention is NOT a question.
 A project discussion is NOT automatically a question.
+
 "Discussed Kafka" is NOT a question.
 "Interviewer asked me to design a Kafka-based notification system" IS a question.
 
-EXTRACT THE QUESTION, NOT THE STORY
-------------------------------------
-Return the smallest faithful representation of the actual problem.
+Return the smallest faithful representation of the actual question.
 
-Good:
+Examples:
 - "Design a calendar."
 - "Find the longest substring without repeating characters."
 - "Design a notification system."
 - "Implement an LRU cache."
 
-Bad:
-- "In the second round the interviewer asked me to..."
-- "I explained my approach and then they asked..."
-- "This was a difficult system design question..."
-
-Do not turn a short source statement into a more elaborate problem.
+Do not include interview-story wording such as "they asked me" or "in the
+second round".
 
 ANTI-HALLUCINATION
 ------------------
-Every extracted question MUST be supported by a specific span of the source.
+Every question and every detail in questionDescription MUST be supported by
+the supplied source.
 
-If you cannot point to source evidence, do not extract it.
-
-Never infer a canonical LeetCode/GFG/HackerRank problem merely because the
-description resembles one.
+Never infer a canonical LeetCode/GFG/HackerRank problem because the source
+resembles one.
 
 If the source explicitly names a known problem, preserve that name.
 
 If the source says "variation of Two Sum with negative numbers", preserve
 that meaning. Do not silently convert it to generic "Two Sum".
 
-MULTIPLE QUESTIONS
-------------------
-Extract every distinct actual question separately.
-Do not merge separate questions.
-Do not split one problem into artificial subquestions.
+QUESTION DESCRIPTION
+--------------------
+For each extracted question, write a concise, source-grounded problem
+description explaining what the candidate was actually asked to solve.
 
-SOURCE EVIDENCE
----------------
-For every candidate return a short verbatim evidence quote copied from the
-source, maximum 300 characters. This is quality-control evidence only.
+Include ONLY details explicitly present in the source:
+- requirements
+- constraints
+- inputs/outputs
+- edge cases
+- functional behaviour
+- explicitly stated follow-ups
+- explicitly stated interviewer requirements
 
-COMPANY
--------
-Return the company only when the source supports it. Never guess it from
-technology, URL, role, or author.
+Do NOT invent:
+- traffic or scale
+- APIs
+- architecture
+- storage
+- latency
+- availability
+- algorithms
+- data structures
+- examples
+- constraints
+- acceptance criteria
+- business requirements
+
+Do NOT describe the candidate's solution or approach.
+
+If the source only says "Design a calendar", keep the description short.
+Do not manufacture a full specification.
+
+The questionText and questionDescription MUST describe the same problem.
 
 OUTPUT
 ------
 Return ONLY JSON matching the supplied schema.
 
-Each candidate contains:
+The ONLY fields allowed are:
 - questionText
-- evidence
-- confidence
+- questionDescription
 
-Do not output descriptions, solutions, difficulty, topics, candidate approach,
-or other metadata.
+If the source is not an interview experience or contains no actual questions,
+return an empty questions array.
 """
 
-ENRICHMENT_PROMPT = r"""
-You are InterviewHQ's QUESTION QUALITY + METADATA engine.
 
-Stage 1 already found candidate interview questions.
+STAGE2_PROMPT = r"""
+You are InterviewHQ's METADATA EXTRACTION engine.
 
-Your job is to:
-1. validate every candidate against the ORIGINAL SOURCE,
-2. remove false positives,
-3. produce a high-quality questionText,
-4. write a faithful questionDescription,
-5. extract supported metadata.
+Stage 1 has already extracted the interview questions and their
+source-grounded descriptions.
 
-YOU MUST NOT INVENT QUESTIONS.
+Your ONLY job is to extract metadata for those questions from the ORIGINAL
+SOURCE.
+
+Do NOT rewrite, improve, expand, classify, or generate questionText or
+questionDescription.
+
+Do NOT invent information.
 
 ORIGINAL SOURCE
 ---------------
@@ -162,114 +161,48 @@ SOURCE CONTENT
 --------------
 {page_content}
 
-STAGE 1 CANDIDATES
-------------------
-{candidates}
-
-NON-NEGOTIABLE RULE
--------------------
-A candidate may survive ONLY if the original source contains evidence that
-this exact technical problem/question was part of the author's actual
-interview/assessment.
-
-If unsupported, DROP it.
-
-Do not use general programming knowledge to fill missing information.
-
-QUESTION TEXT
--------------
-questionText is the canonical short display form for InterviewHQ.
-
-Rules:
-- one concise sentence where possible
-- usually <= 140 characters
-- describe the actual problem/prompt
-- preserve important constraints explicitly stated in the source
-- remove interview-story wording
-- remove "they asked me", "I was asked", "in the interview", etc.
-- do NOT add "(Coding)", "(System Design)", "(Product)", etc.
-- do NOT add unstated scale, APIs, architecture, requirements, constraints,
-  examples, algorithms, data structures, or business goals
-- do NOT convert a descriptive problem into a guessed canonical platform name
-- if the source explicitly names the problem, preserve that name
-
-Examples:
-Source: "They asked me to design a calendar."
-=> "Design a calendar."
-
-Source: "The coding question was a variation of Two Sum with negative numbers."
-=> "Two Sum with negative numbers"
-
-Source: "They asked: Given an array, find the maximum sum subarray."
-=> "Find the maximum-sum subarray in an array."
-
-QUESTION DESCRIPTION
---------------------
-Write a concise problem statement explaining what a reader actually had to
-solve.
-
-Include ONLY details explicitly present in the source:
-- requirements
-- constraints
-- inputs/outputs
-- edge cases
-- functional behaviour
-- explicitly stated follow-ups
-- explicitly stated interviewer requirements
-
-Do NOT invent traffic, scale, APIs, storage, latency, availability,
-data structures, algorithms, examples, constraints, or acceptance criteria.
-
-Do NOT describe the candidate's solution in the problem description.
-
-If the source contains only "Design a calendar", keep the description short.
-Do NOT manufacture a full calendar-system specification.
-
-The description and questionText MUST represent the same problem.
+STAGE 1 QUESTIONS
+-----------------
+{questions}
 
 METADATA
 --------
-Extract only what the source supports:
+For each Stage 1 question, in EXACTLY the same order, extract only:
 company, role, level, location, candidateYoE, outcome, roundType,
-questionType, difficulty, candidateApproach, problemUrl, postDate, topics,
-confidence.
+questionType, difficulty, candidateApproach, problemUrl, postDate, topics.
+
+Rules:
+- Extract only what the source supports.
+- Use null when unsupported.
+- candidateApproach must contain only the candidate's explicitly described
+  approach. Never solve the problem.
+- difficulty may be Easy/Medium/Hard only when explicitly stated or strongly
+  supported by direct evidence. Do not infer it from problem type.
+- problemUrl must be a URL present in the supplied source and directly
+  corresponding to that question. Never construct or search for one.
+- postDate should use the supplied publication timestamp converted to UTC
+  date when available.
+- company must be supported by the source; never guess it from URL,
+  technology, role, or author.
+- topics must contain only topics explicitly supported by the source.
 
 questionType must be one of:
 CODING, SYSTEM_DESIGN, LOW_LEVEL_DESIGN, BEHAVIORAL, TECHNICAL, DATABASE,
 DEVOPS, AI_ML, OTHER
 
-Use null for unsupported values.
-
-candidateApproach must contain only the candidate's explicitly described
-approach. Do not solve the problem yourself.
-
-difficulty:
-Only set Easy/Medium/Hard when the source explicitly states it or gives
-strong direct evidence. Do NOT infer difficulty from the problem type.
-
-problemUrl:
-Use ONLY a URL that appears in the supplied source and directly corresponds
-to this problem. Never construct or search for one.
-
-postDate:
-Use the supplied publication timestamp converted to UTC date when available.
-
-CONFIDENCE
-----------
-Confidence is confidence in the FINAL extracted record, not how common the
-problem is.
+The output array MUST have the same number and order as the Stage 1 questions.
+Do not drop or add questions in Stage 2.
 
 OUTPUT
 ------
-Return ONLY the JSON defined by the schema.
+Return ONLY JSON matching the supplied schema.
 """
 
-DISCOVERY_SCHEMA = {
+
+STAGE1_SCHEMA = {
     "type": "object",
     "additionalProperties": False,
     "properties": {
-        "isInterviewExperience": {"type": "boolean"},
-        "company": {"type": ["string", "null"]},
         "questions": {
             "type": "array",
             "items": {
@@ -277,17 +210,16 @@ DISCOVERY_SCHEMA = {
                 "additionalProperties": False,
                 "properties": {
                     "questionText": {"type": "string"},
-                    "evidence": {"type": "string"},
-                    "confidence": {"type": "number"},
+                    "questionDescription": {"type": "string"},
                 },
-                "required": ["questionText", "evidence", "confidence"],
+                "required": ["questionText", "questionDescription"],
             },
-        },
+        }
     },
-    "required": ["isInterviewExperience", "company", "questions"],
+    "required": ["questions"],
 }
 
-ENRICHMENT_SCHEMA = {
+STAGE2_SCHEMA = {
     "type": "object",
     "additionalProperties": False,
     "properties": {
@@ -298,27 +230,23 @@ ENRICHMENT_SCHEMA = {
                 "additionalProperties": False,
                 "properties": {
                     "company": {"type": ["string", "null"]},
-                    "questionText": {"type": ["string", "null"]},
-                    "questionDescription": {"type": ["string", "null"]},
-                    "questionType": {"type": ["string", "null"]},
-                    "difficulty": {"type": ["string", "null"]},
-                    "candidateApproach": {"type": ["string", "null"]},
-                    "candidateYoE": {"type": ["number", "null"]},
-                    "problemUrl": {"type": ["string", "null"]},
-                    "postDate": {"type": ["string", "null"]},
                     "role": {"type": ["string", "null"]},
                     "level": {"type": ["string", "null"]},
                     "location": {"type": ["string", "null"]},
+                    "candidateYoE": {"type": ["number", "null"]},
                     "outcome": {"type": ["string", "null"]},
                     "roundType": {"type": ["string", "null"]},
+                    "questionType": {"type": ["string", "null"]},
+                    "difficulty": {"type": ["string", "null"]},
+                    "candidateApproach": {"type": ["string", "null"]},
+                    "problemUrl": {"type": ["string", "null"]},
+                    "postDate": {"type": ["string", "null"]},
                     "topics": {"type": "array", "items": {"type": "string"}},
-                    "confidence": {"type": "number"},
                 },
                 "required": [
-                    "company", "questionText", "questionDescription",
-                    "questionType", "difficulty", "candidateApproach",
-                    "candidateYoE", "problemUrl", "postDate", "role", "level",
-                    "location", "outcome", "roundType", "topics", "confidence"
+                    "company", "role", "level", "location", "candidateYoE",
+                    "outcome", "roundType", "questionType", "difficulty",
+                    "candidateApproach", "problemUrl", "postDate", "topics",
                 ],
             },
         }
@@ -392,45 +320,68 @@ def call_json(prompt: str, schema: dict[str, Any], schema_name: str, max_output_
         raise ValueError(f"Invalid JSON from OpenAI: {text[:1000]}") from exc
 
 
-def discover_questions(fields: dict[str, str]) -> dict[str, Any]:
+def extract_questions(fields: dict[str, str]) -> dict[str, Any]:
     return call_json(
-        QUESTION_DISCOVERY_PROMPT.format(**fields),
-        DISCOVERY_SCHEMA,
-        "interview_question_discovery",
-        2500,
+        STAGE1_PROMPT.format(**fields),
+        STAGE1_SCHEMA,
+        "interview_question_extraction",
+        3000,
     )
 
 
-def enrich_questions(fields: dict[str, str], discovery: dict[str, Any]) -> dict[str, Any]:
-    candidates = json.dumps(discovery, ensure_ascii=False, indent=2)
-    prompt = ENRICHMENT_PROMPT.format(**fields, candidates=candidates)
+def extract_metadata(
+    fields: dict[str, str],
+    stage1: dict[str, Any],
+) -> dict[str, Any]:
+    questions = json.dumps(stage1.get("questions") or [], ensure_ascii=False, indent=2)
+    prompt = STAGE2_PROMPT.format(**fields, questions=questions)
     return call_json(
         prompt,
-        ENRICHMENT_SCHEMA,
-        "interview_question_enrichment",
-        4500,
+        STAGE2_SCHEMA,
+        "interview_metadata_extraction",
+        3000,
     )
 
 
-def normalize_payload(payload: dict[str, Any]) -> dict[str, Any]:
+def normalize_payload(
+    stage1: dict[str, Any],
+    stage2: dict[str, Any],
+) -> dict[str, Any]:
+    questions1 = stage1.get("questions") or []
+    questions2 = stage2.get("questions") or []
+
+    if len(questions1) != len(questions2):
+        raise ValueError(
+            f"Stage 2 returned {len(questions2)} records for "
+            f"{len(questions1)} Stage 1 questions"
+        )
+
     clean_questions: list[dict[str, Any]] = []
-    for q in payload.get("questions") or []:
-        if not isinstance(q, dict):
+    for q1, q2 in zip(questions1, questions2):
+        question_text = (q1.get("questionText") or "").strip()
+        question_description = (q1.get("questionDescription") or "").strip()
+        company = (q2.get("company") or "").strip()
+
+        if not question_text or not question_description or not company:
             continue
 
-        question_text = (q.get("questionText") or "").strip()
-        company = (q.get("company") or "").strip()
-
-        if not question_text or not company:
-            continue
-
-        q["questionText"] = question_text
-        q["company"] = company
-
-        if q.get("questionDescription"):
-            q["questionDescription"] = q["questionDescription"].strip()
-
-        clean_questions.append(q)
+        clean_questions.append({
+            "company": company,
+            "questionText": question_text,
+            "questionDescription": question_description,
+            "questionType": q2.get("questionType"),
+            "difficulty": q2.get("difficulty"),
+            "candidateApproach": q2.get("candidateApproach"),
+            "candidateYoE": q2.get("candidateYoE"),
+            "problemUrl": q2.get("problemUrl"),
+            "postDate": q2.get("postDate"),
+            "role": q2.get("role"),
+            "level": q2.get("level"),
+            "location": q2.get("location"),
+            "outcome": q2.get("outcome"),
+            "roundType": q2.get("roundType"),
+            "topics": q2.get("topics") or [],
+        })
 
     return {"questions": clean_questions}
 
@@ -438,21 +389,18 @@ def normalize_payload(payload: dict[str, Any]) -> dict[str, Any]:
 def extract(record: dict[str, Any]) -> dict[str, Any]:
     fields = get_source_fields(record)
 
-    discovery = discover_questions(fields)
-    candidates = discovery.get("questions") or []
+    stage1 = extract_questions(fields)
+    questions = stage1.get("questions") or []
 
-    print(
-        f"[STAGE-1] interview={discovery.get('isInterviewExperience')} "
-        f"company={discovery.get('company')} candidates={len(candidates)}"
-    )
+    print(f"[STAGE-1] questions={len(questions)}")
 
-    if not discovery.get("isInterviewExperience") or not candidates:
+    if not questions:
         return {"questions": []}
 
-    enriched = enrich_questions(fields, discovery)
-    result = normalize_payload(enriched)
+    stage2 = extract_metadata(fields, stage1)
 
-    print(f"[STAGE-2] final_questions={len(result['questions'])}")
+    result = normalize_payload(stage1, stage2)
+    print(f"[STAGE-2] metadata={len(stage2.get('questions') or [])} final={len(result['questions'])}")
     return result
 
 
