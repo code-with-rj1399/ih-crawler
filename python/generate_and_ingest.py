@@ -16,14 +16,10 @@ client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
 
 STAGE1_PROMPT = r"""
-You are InterviewHQ's interview-question extractor.
+Extract every distinct question or problem that was actually asked or given to
+the candidate from the complete interview-experience source.
 
-Read the complete interview-experience source and extract every distinct
-question or problem that was actually asked or given to the candidate.
-
-Stage 1 has exactly one responsibility: produce high-quality questionText and
-questionDescription. Use all source context to understand the question, but
-do not output metadata. Stage 2 handles metadata.
+Return only questionText and questionDescription for each question.
 
 SOURCE
 ------
@@ -107,14 +103,12 @@ If there are no actual interview questions, return an empty questions array.
 
 
 STAGE2_PROMPT = r"""
-Extract metadata for each interview question below.
+For each question below, extract its metadata from the original source.
 
-Use the ORIGINAL SOURCE as the source of truth. Use the questionText and
-questionDescription to identify exactly which part of the source the metadata
-belongs to.
+Use the questionText and questionDescription to identify exactly which part of
+the source the metadata belongs to.
 
-Do not rewrite, improve, classify, or generate the questionText or
-questionDescription. Extract only the metadata fields defined by the schema.
+Extract only the metadata fields defined by the schema.
 
 ORIGINAL SOURCE
 ---------------
