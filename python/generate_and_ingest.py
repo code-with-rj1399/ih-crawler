@@ -264,6 +264,7 @@ def call_json(prompt: str, schema: dict[str, Any], schema_name: str, max_output_
     response = client.responses.create(
         model=MODEL,
         input=prompt,
+        reasoning={"effort": "minimal"},
         max_output_tokens=max_output_tokens,
         text={
             "format": {
