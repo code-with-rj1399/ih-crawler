@@ -1,0 +1,15 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY crawler ./crawler
+
+RUN mkdir -p /data
+
+ENV OUTPUT_FILE=/data/leetcode_interviews.jsonl
+ENV CHECKPOINT_FILE=/data/checkpoint.txt
+
+CMD ["python", "-m", "crawler.leetcode.crawler"]
