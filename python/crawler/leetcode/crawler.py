@@ -96,60 +96,125 @@ def month_key(value: date) -> str:
     return value.strftime("%Y-%m")
 
 
-def month_file(output_dir: str, month: str) -> str:
-    return os.path.join(output_dir, f"leetcode_interviews_{month}.jsonl")
+def chunk_file(output_dir: str, chunk_number: int) -> str:
+    return os.path.join(
+        output_dir,
+        f"leetcode_interviews_{chunk_number:05d}.json",
+    )
 
 
-def convert_jsonl_to_json(jsonl_file: str, json_file: str):
-    records = []
-    if os.path.exists(jsonl_file):
-        with open(jsonl_file, "r", encoding="utf-8") as f:
-            for line in f:
-                if line.strip():
-                    records.append(json.loads(line))
+def write_chunk(output_dir: str, chunk_number: int, records: list[dict]) -> None:
+    if not records:
+        return
 
-    with open(json_file, "w", encoding="utf-8") as f:
-        json.dump(records, f, indent=2, ensure_ascii=False)
-
-    print(f"Converted {len(records)} records into {json_file}", flush=True)
-
-
-def crawl_interview_experiences(output_dir=None, checkpoint_file=None, lookback_months=None):
-    output_dir = output_dir or os.getenv("OUTPUT_DIR", "/data")
-    checkpoint_file = checkpoint_file or os.getenv("CHECKPOINT_FILE", "/data/checkpoint.txt")
-    lookback_months = lookback_months or int(os.getenv("LOOKBACK_MONTHS", "24"))
-
-    os.makedirs(output_dir, exist_ok=True)
-
-    today = datetime.now(timezone.utc).date()
-    cutoff_date = subtract_months(today, lookback_months)
+    path = chunk_file(output_dir, chunk_number)
+    with open(path, "w", encoding="utf-8") as out_f:
+        json.dump(records, out_f, indent=2, ensure_ascii=False)
 
     print(
-        f"Starting LeetCode interview crawl. "
-        f"Lookback: {lookback_months} months; cutoff: {cutoff_date}; "
-        f"output: {output_dir}",
+        f"Wrote chunk {chunk_number}: {len(records)} records -> {path}",
         flush=True,
     )
 
-    after_cursor = ""
-    if os.path.exists(checkpoint_file):
-        with open(checkpoint_file, "r", encoding="utf-8") as f:
-            after_cursor = f.read().strip()
-            if after_cursor:
-                print(f"Resuming from cursor: {after_cursor}", flush=True)
+
+def load_checkpoint(checkpoint_file: str):
+    if not os.path.exists(checkpoint_file):
+        return "", 0, 1
+
+    with open(checkpoint_file, "r", encoding="utf-8") as f:
+        raw = f.read().strip()
+
+    if not raw:
+        return "", 0, 1
+
+    # Backward compatibility with the old cursor-only checkpoint.
+    try:
+        checkpoint = json.loads(raw)
+        if isinstance(checkpoint, dict):
+            return (
+                checkpoint.get("cursor", ""),
+                int(checkpoint.get("saved", 0)),
+                int(checkpoint.get("chunk", 1)),
+            )
+    except (json.JSONDecodeError, TypeError, ValueError):
+        pass
+
+    return raw, 0, 1
+
+
+def save_checkpoint(
+    checkpoint_file: str,
+    cursor: str,
+    saved: int,
+    chunk_number: int,
+) -> None:
+    tmp_file = f"{checkpoint_file}.tmp"
+    checkpoint = {
+        "cursor": cursor or "",
+        "saved": saved,
+        "chunk": chunk_number,
+    }
+
+    with open(tmp_file, "w", encoding="utf-8") as f:
+        json.dump(checkpoint, f)
+
+    os.replace(tmp_file, checkpoint_file)
+
+
+def crawl_interview_experiences(
+    output_dir=None,
+    checkpoint_file=None,
+    target_records=None,
+    chunk_size=None,
+):
+    output_dir = output_dir or os.getenv("OUTPUT_DIR", "/data")
+    checkpoint_file = checkpoint_file or os.getenv(
+        "CHECKPOINT_FILE",
+        "/data/checkpoint.json",
+    )
+    target_records = target_records or int(
+        os.getenv("TARGET_RECORDS", "20000")
+    )
+    chunk_size = chunk_size or int(
+        os.getenv("CHUNK_SIZE", "100")
+    )
+
+    if target_records <= 0:
+        raise ValueError("TARGET_RECORDS must be greater than zero")
+    if chunk_size <= 0:
+        raise ValueError("CHUNK_SIZE must be greater than zero")
+
+    os.makedirs(output_dir, exist_ok=True)
+
+    print(
+        f"Starting LeetCode interview crawl. "
+        f"Target: {target_records} qualifying records; "
+        f"chunk size: {chunk_size}; output: {output_dir}",
+        flush=True,
+    )
+
+    after_cursor, total_saved, chunk_number = load_checkpoint(checkpoint_file)
+
+    if total_saved:
+        print(
+            f"Resuming: saved={total_saved}, next chunk={chunk_number}, "
+            f"cursor={after_cursor}",
+            flush=True,
+        )
 
     session = requests.Session()
     session.headers.update(HEADERS)
 
     has_next = True
     page = 1
-    total_saved = 0
     total_seen = 0
     oldest_seen = None
     total_in_window = 0
     total_outside_window = 0
+    total_rejected_as_non_experience = 0
+    chunk_records = []
 
-    while has_next:
+    while has_next and total_saved < target_records:
         payload = {
             "query": TOPIC_LIST_QUERY,
             "variables": {
@@ -162,28 +227,45 @@ def crawl_interview_experiences(output_dir=None, checkpoint_file=None, lookback_
         }
 
         try:
-            response = session.post(GRAPHQL_URL, json=payload, timeout=15)
+            response = session.post(
+                GRAPHQL_URL,
+                json=payload,
+                timeout=15,
+            )
 
             if response.status_code == 429:
-                print("Rate limited (429). Sleeping for 60 seconds...", flush=True)
+                print(
+                    "Rate limited (429). Sleeping for 60 seconds...",
+                    flush=True,
+                )
                 time.sleep(60)
                 continue
 
             if response.status_code != 200:
-                print(f"Error {response.status_code}: {response.text[:500]}", flush=True)
+                print(
+                    f"Error {response.status_code}: "
+                    f"{response.text[:500]}",
+                    flush=True,
+                )
                 raise RuntimeError(
-                    f"LeetCode GraphQL request failed with HTTP {response.status_code}"
+                    f"LeetCode GraphQL request failed with "
+                    f"HTTP {response.status_code}"
                 )
 
             data = response.json()
+
             if data.get("errors"):
                 print(
-                    f"GraphQL errors: {json.dumps(data['errors'], ensure_ascii=False)}",
+                    f"GraphQL errors: "
+                    f"{json.dumps(data['errors'], ensure_ascii=False)}",
                     flush=True,
                 )
                 raise RuntimeError("LeetCode GraphQL request failed")
 
-            topic_data = data.get("data", {}).get("categoryTopicList", {})
+            topic_data = data.get("data", {}).get(
+                "categoryTopicList",
+                {},
+            )
             edges = topic_data.get("edges", [])
             page_info = topic_data.get("pageInfo", {})
 
@@ -195,33 +277,45 @@ def crawl_interview_experiences(output_dir=None, checkpoint_file=None, lookback_
             page_dates = []
 
             for edge in edges:
+                if total_saved >= target_records:
+                    break
+
                 node = edge.get("node", {})
                 post = node.get("post") or {}
                 total_seen += 1
 
-                creation_date = parse_creation_date(post.get("creationDate"))
+                creation_date = parse_creation_date(
+                    post.get("creationDate")
+                )
+
                 if creation_date:
                     page_dates.append(creation_date)
                     if oldest_seen is None or creation_date < oldest_seen:
                         oldest_seen = creation_date
 
-                # Freshness is a hard gate. Undated posts are excluded.
                 if creation_date is None or creation_date < cutoff_date:
                     total_outside_window += 1
                     continue
+
                 total_in_window += 1
 
                 title = node.get("title", "")
                 content = post.get("content", "")
 
                 if not is_real_interview_experience(title, content):
+                    total_rejected_as_non_experience += 1
                     continue
 
-                slug = re.sub(r"[^a-zA-Z0-9]+", "-", title.lower()).strip("-")
+                slug = re.sub(
+                    r"[^a-zA-Z0-9]+",
+                    "-",
+                    title.lower(),
+                ).strip("-")
+
                 topic_id = node.get("id")
                 post_url = (
-                    f"https://leetcode.com/discuss/interview-experience/"
-                    f"{topic_id}/{slug}"
+                    "https://leetcode.com/discuss/"
+                    f"interview-experience/{topic_id}/{slug}"
                 )
 
                 record = {
@@ -240,53 +334,78 @@ def crawl_interview_experiences(output_dir=None, checkpoint_file=None, lookback_
                     "author": (post.get("author") or {}).get("username"),
                 }
 
-                target_month = month_key(creation_date)
-                target_file = month_file(output_dir, target_month)
-                with open(target_file, "a", encoding="utf-8") as out_f:
-                    out_f.write(json.dumps(record, ensure_ascii=False) + "\n")
-
+                chunk_records.append(record)
                 total_saved += 1
                 page_saved += 1
+
+                if len(chunk_records) >= chunk_size:
+                    write_chunk(
+                        output_dir,
+                        chunk_number,
+                        chunk_records,
+                    )
+                    chunk_records = []
+                    chunk_number += 1
 
             has_next = page_info.get("hasNextPage", False)
             after_cursor = page_info.get("endCursor", "")
 
-            with open(checkpoint_file, "w", encoding="utf-8") as cf:
-                cf.write(after_cursor or "")
+            save_checkpoint(
+                checkpoint_file,
+                after_cursor,
+                total_saved,
+                chunk_number,
+            )
 
             oldest_page = min(page_dates) if page_dates else None
+
             print(
                 f"Page {page} processed. "
-                f"Page saved: {page_saved}. Total saved: {total_saved}. "
-                f"In window: {total_in_window}. Outside window: {total_outside_window}. "
-                f"Oldest on page: {oldest_page}. Cutoff: {cutoff_date}.",
+                f"Page saved: {page_saved}. "
+                f"Total saved: {total_saved}/{target_records}. "
+                f"In window: {total_in_window}. "
+                f"Outside window: {total_outside_window}. "
+                f"Rejected: {total_rejected_as_non_experience}. "
+                f"Oldest on page: {oldest_page}.",
                 flush=True,
             )
 
-            # Do not stop based on page dates. LeetCode's current connection is not
-            # guaranteed to be ordered by creationDate; a page can contain both recent
-            # and very old posts. Continue until GraphQL reports no next page.
+            if total_saved >= target_records:
+                break
+
+            if not has_next:
+                print(
+                    "LeetCode returned no next page before reaching "
+                    f"the target of {target_records}.",
+                    flush=True,
+                )
+                break
+
             page += 1
             time.sleep(1.5)
 
         except Exception as e:
-            print(f"Exception during request: {e}. Retrying in 10s...", flush=True)
+            print(
+                f"Exception during request: {e}. Retrying in 10s...",
+                flush=True,
+            )
             time.sleep(10)
 
-    # Convert each monthly JSONL file into a JSON file.
-    monthly_files = sorted(
-        filename for filename in os.listdir(output_dir)
-        if filename.startswith("leetcode_interviews_") and filename.endswith(".jsonl")
-    )
-    for filename in monthly_files:
-        jsonl_path = os.path.join(output_dir, filename)
-        json_path = os.path.splitext(jsonl_path)[0] + ".json"
-        convert_jsonl_to_json(jsonl_path, json_path)
+    if chunk_records:
+        write_chunk(
+            output_dir,
+            chunk_number,
+            chunk_records,
+        )
 
     print(
-        f"Crawl completed. Seen: {total_seen}; saved: {total_saved}; "
-        f"in window: {total_in_window}; outside window: {total_outside_window}; "
-        f"oldest seen: {oldest_seen}; cutoff: {cutoff_date}.",
+        f"Crawl completed. Seen: {total_seen}; "
+        f"saved: {total_saved}; "
+        f"in window: {total_in_window}; "
+        f"outside window: {total_outside_window}; "
+        f"rejected: {total_rejected_as_non_experience}; "
+        f"oldest seen: {oldest_seen}; "
+        f"target: {target_records}.",
         flush=True,
     )
 
