@@ -21,7 +21,7 @@ InterviewHQ crawler is packaged as a Spring Boot + Playwright container and is i
              CloudWatch Logs
 ```
 
-The crawler is outbound-only: there is no public load balancer or inbound security-group rule. AWS recommends private ECS networking with NAT for workloads that need outbound internet access. citeturn3search0turn3search4
+The crawler is outbound-only: there is no public load balancer or inbound security-group rule. AWS recommends private ECS networking with NAT for workloads that need outbound internet access.
 
 ## Prerequisites
 
@@ -56,7 +56,7 @@ docker tag "$ECR_REPO:prod-ready" "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws
 docker push "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:prod-ready"
 ```
 
-ECR is used so ECS can pull a private image with the standard ECS task execution role. citeturn5search0turn5search7
+ECR is used so ECS can pull a private image with the standard ECS task execution role.
 
 ## Deploy the ECS stack
 
@@ -86,7 +86,7 @@ The stack creates:
 - CloudWatch log group
 - outbound-only security group
 
-ECS uses separate task and task-execution roles for application permissions versus ECS infrastructure permissions. citeturn5search1turn5search4
+ECS uses separate task and task-execution roles for application permissions versus ECS infrastructure permissions.
 
 ## Scheduling
 
@@ -114,7 +114,7 @@ Examples:
 0 0 2 * * MON-FRI # weekdays at 02:00 UTC
 ```
 
-Spring supports cron-based scheduling and timezone configuration through `@Scheduled`. citeturn2search12
+Spring supports cron-based scheduling and timezone configuration through `@Scheduled`.
 
 For this service we intentionally keep **one ECS task** because the crawler itself owns the schedule and uses an in-process synchronization guard. Do not increase ECS desired count until distributed job locking is added.
 
@@ -126,11 +126,11 @@ Container stdout/stderr is sent to:
 /aws/ecs/interviewhq-crawler
 ```
 
-Fargate supports the `awslogs` driver for sending container logs to CloudWatch Logs. citeturn5search5
+Fargate supports the `awslogs` driver for sending container logs to CloudWatch Logs.
 
 ## Secrets
 
-`OPENAI_API_KEY` is injected from AWS Secrets Manager rather than committed to Git or placed in the task definition as plaintext. ECS requires the task execution role to have `secretsmanager:GetSecretValue` for referenced secrets. citeturn5search0turn5search9
+`OPENAI_API_KEY` is injected from AWS Secrets Manager rather than committed to Git or placed in the task definition as plaintext. ECS requires the task execution role to have `secretsmanager:GetSecretValue` for referenced secrets.
 
 ## Production checklist
 
