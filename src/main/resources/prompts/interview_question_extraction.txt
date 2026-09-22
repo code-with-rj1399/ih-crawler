@@ -48,13 +48,10 @@ questionText
 - Strip narrative ("they asked me...", "then they said...").
 - No labels.
 - Use the exact problem/task name if given. Never invent problem names.
+- Use professional Title Case: capitalize major words only. Keep short words (a, an, the, and, or, but, for, nor, on, at, to, from, by, with, of, in) lowercase unless they are the first word.
 - A technical topic or category is not a question.
 
-questionDescription
-- Only details explicitly present in the source.
-- Include requirements, constraints, edge cases, follow-ups, approaches, or other details only when explicitly mentioned.
-- Never expand vague topics with external knowledge.
-- Keep it short and faithful when the source is sparse.
+questionDescription: Write a pure technical problem statement in LeetCode style using only details present in the source. Never include round numbers/names (HLD, LLD, Round 1/2…), interviewer comments, or any narrative. Add requirements, constraints, edge cases, or follow-ups only if explicitly mentioned. Never invent or expand with external knowledge. Keep short and faithful when the source is sparse.
 
 problemUrl
 - Only a URL visibly present in the supplied content for that exact question.
