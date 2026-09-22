@@ -1,0 +1,28 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+  dynamodb:
+    table: ${DYNAMODB_TABLE:interviewhq-crawler-prod}
+    region: ${AWS_REGION:ap-south-1}
+    endpoint: ${DYNAMODB_ENDPOINT:}
+    auto-create-table: false
+
+crawler:
+  cron: ${CRAWLER_CRON:0 0 * * * *}
+  cron-zone: ${CRAWLER_CRON_ZONE:UTC}
+  lookback-hours: ${CRAWLER_LOOKBACK_HOURS:48}
+  max-concurrency: ${CRAWLER_MAX_CONCURRENCY:4}
+  max-concurrent-tasks: ${CRAWLER_MAX_CONCURRENT_TASKS:8}
+  extract-model: ${OPENAI_MODEL:gpt-5-nano}
+  extract-max-posts-per-source: ${CRAWLER_EXTRACT_MAX_POSTS_PER_SOURCE:50}
+  browser:
+    headless: ${CRAWLER_BROWSER_HEADLESS:true}
+
+logging:
+  structured:
+    format:
+      console: ecs
+  level:
+    root: INFO
+    ai.interviewhq.crawler: INFO
