@@ -56,6 +56,13 @@ CRITICAL:
 - questionText: A 1-line, concise representation of the actual task (<= 140 chars).
 - questionDescription: Elaborative and source-grounded. Preserve useful technical details explicitly present in the source, including requirements, inputs, outputs, constraints, edge cases, clarifications, follow-ups, approaches discussed, complexity observations, and trade-offs. Do not force a short word limit.
 - If the source only provides a short task name/topic, keep the description short and faithful rather than inventing requirements.
+- confidence MUST represent how strongly the supplied source supports that this is a specific question/task actually presented to the candidate during the reported interview experience, rather than generic interview content.
+- A technical-looking sentence is NOT automatically an interview question.
+- Do NOT extract or give high confidence to requests for interview advice, preparation tips, question lists, expectations, recommendations, or generic discussion topics.
+- Examples that are NOT actual interview questions: "What are the most frequently asked system design questions?", "LLD question and expectations", "Tips for DSA questions", "They asked standard LeetCode questions".
+- A concrete task explicitly reported as being asked/given to the candidate should have high confidence.
+- A vague statement that a technical topic was discussed should have low confidence.
+- confidence is about interview-question authenticity/evidence, NOT problem difficulty, extraction quality in general, or likelihood that the company identification is correct.
 
 STEP 3: APPLY STRICT PROHIBITIONS (CRITICAL)
 - NEVER include interview narrative (Remove: "The interviewer asked me...", "A variation of...", etc.).
@@ -65,6 +72,7 @@ STEP 3: APPLY STRICT PROHIBITIONS (CRITICAL)
 - Example: "Design: Calendar" IS a question/task and should become "Design a calendar."
 - NEVER invent constraints, solutions, or context not present in the text.
 - NEVER merge different questions together.
+- For each extracted question, first determine whether the source contains specific evidence that the candidate was actually asked or given that task. If not, do not extract it.
 
 STEP 4: OUTPUT FORMAT
 Return ONLY valid JSON matching the exact schema below. Do not wrap in ```json markdown.
@@ -89,6 +97,7 @@ Return ONLY valid JSON matching the exact schema below. Do not wrap in ```json m
       "outcome": "Interview outcome (or null)",
       "roundType": "Round name/type (or null)",
       "confidence": 0.95
+      // confidence is 0.0-1.0: evidence that this was an actual interview question/task, not generic interview content
     }
   ]
 }
