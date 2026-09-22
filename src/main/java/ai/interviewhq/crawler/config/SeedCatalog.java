@@ -42,7 +42,7 @@ public final class SeedCatalog {
                 2000,
                 true,
                 "LeetCode interview-question discussions. Keep only genuine candidate interview experiences.",
-                config("browser_first", 48, List.of("leetcode.com"), true, false)
+                config("browser_first", 26, List.of("leetcode.com"), true, false)
         ));
 
         seeds.add(seed(
@@ -54,7 +54,7 @@ public final class SeedCatalog {
                 2000,
                 true,
                 "General Glassdoor interview index. Company-specific pages follow /Interview/[Company-Name]-Interview-Questions-E[ID].htm.",
-                config("browser_first", 48, List.of("glassdoor.com"), true, false)
+                config("browser_first", 26, List.of("glassdoor.com"), true, false)
         ));
 
         seeds.add(seed(
@@ -66,7 +66,7 @@ public final class SeedCatalog {
                 2000,
                 true,
                 "Search for recent interview experience and company-specific interview discussions.",
-                config("browser_first", 48, List.of("teamblind.com"), true, false)
+                config("browser_first", 26, List.of("teamblind.com"), true, false)
         ));
 
         seeds.add(seed(
@@ -78,7 +78,7 @@ public final class SeedCatalog {
                 2000,
                 true,
                 "TeamBlind interview-experiences channel.",
-                config("browser_first", 48, List.of("teamblind.com"), true, false)
+                config("browser_first", 26, List.of("teamblind.com"), true, false)
         ));
 
         seeds.add(seed(
@@ -90,7 +90,7 @@ public final class SeedCatalog {
                 2000,
                 true,
                 "Interview / 面经 community. Company search pages can be discovered from the forum.",
-                config("browser_first", 48, List.of("1point3acres.com"), true, false)
+                config("browser_first", 26, List.of("1point3acres.com"), true, false)
         ));
 
         seeds.add(seed(
@@ -102,7 +102,7 @@ public final class SeedCatalog {
                 2000,
                 true,
                 "Recent software-career interview discussions. Prefer dated posts and candidate-authored experiences.",
-                config("browser_first", 48, List.of("reddit.com"), true, false)
+                config("browser_first", 26, List.of("reddit.com"), true, false)
         ));
 
         seeds.add(seed(
@@ -114,7 +114,7 @@ public final class SeedCatalog {
                 2000,
                 true,
                 "Recent LeetCode/interview discussions. Keep only genuine candidate interview experiences.",
-                config("browser_first", 48, List.of("reddit.com"), true, false)
+                config("browser_first", 26, List.of("reddit.com"), true, false)
         ));
 
         seeds.add(seed(
@@ -126,7 +126,7 @@ public final class SeedCatalog {
                 2000,
                 true,
                 "Experienced-developer interview discussions.",
-                config("browser_first", 48, List.of("reddit.com"), true, false)
+                config("browser_first", 26, List.of("reddit.com"), true, false)
         ));
 
         return List.copyOf(seeds);
