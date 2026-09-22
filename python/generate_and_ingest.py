@@ -107,20 +107,14 @@ If there are no actual interview questions, return an empty questions array.
 
 
 STAGE2_PROMPT = r"""
-You are InterviewHQ's METADATA EXTRACTION engine.
+Extract metadata for each interview question below.
 
-Stage 1 has already extracted the interview questions and their
-source-grounded descriptions.
+Use the ORIGINAL SOURCE as the source of truth. Use the questionText and
+questionDescription to identify exactly which part of the source the metadata
+belongs to.
 
-Your ONLY job is to extract the OTHER metadata fields for each Stage 1
-question from the ORIGINAL SOURCE.
-
-Use the original source plus the Stage 1 question and description as context.
-
-Do NOT rewrite, improve, expand, classify, or generate questionText or
-questionDescription. Stage 1 owns those two fields.
-
-Do NOT invent information.
+Do not rewrite, improve, classify, or generate the questionText or
+questionDescription. Extract only the metadata fields defined by the schema.
 
 ORIGINAL SOURCE
 ---------------
@@ -130,188 +124,46 @@ title: {title}
 author: {author}
 published_at: {published_at}
 
-SOURCE CONTENT
---------------
+content:
 {page_content}
 
-STAGE 1 QUESTIONS
------------------
-{questions}
+QUESTIONS
+---------
+{questions_json}
 
-METADATA
---------
-For each Stage 1 question, extract metadata only:
-questionId, company, role, level, location, candidateYoE, outcome, roundType,
-questionType, difficulty, candidateApproach, problemUrl, postDate, topics.
+For every supplied question, return exactly one metadata object with the same
+questionId.
 
-Rules:
-- Extract only what the source supports.
-- Use null when unsupported.
-- candidateApproach must contain only the candidate's explicitly described
-  approach. Never solve the problem.
-- difficulty may be Easy/Medium/Hard only when explicitly stated or strongly
-  supported by direct evidence. Do not infer it from problem type.
-- problemUrl must be a URL present in the supplied source and directly
-  corresponding to that question. Never construct or search for one.
-- postDate should use the supplied publication timestamp converted to UTC
-  date when available.
-- company must be supported by the source; never guess it from URL,
-  technology, role, or author.
-- topics must contain only topics explicitly supported by the source.
+Extract only information supported by the source. Use null when a field is not
+supported. Do not guess.
 
-questionType must be one of:
-CODING, SYSTEM_DESIGN, LOW_LEVEL_DESIGN, BEHAVIORAL, TECHNICAL, DATABASE,
-DEVOPS, AI_ML, OTHER
+Metadata fields:
+- company
+- role
+- level
+- location
+- candidateYoE
+- outcome
+- roundType
+- questionType
+- difficulty
+- candidateApproach
+- problemUrl
+- postDate
+- topics
 
-Every Stage 1 question must have exactly one corresponding Stage 2 metadata object. Preserve the Stage 1 questionId exactly. Do not invent, drop, merge, or duplicate question IDs.
+questionType must use only the allowed enum values in the schema.
+topics must contain only source-supported topics.
+candidateApproach must contain only the candidate's explicitly described
+approach or solution.
+problemUrl must be included only when the source contains a URL directly
+corresponding to that question.
+postDate should use the supplied publication date when available.
 
-OUTPUT
-------
+Preserve the supplied questionId exactly. Do not add, remove, merge, split,
+duplicate, or reorder questions.
 Return ONLY JSON matching the supplied schema.
 """
-
-
-STAGE1_SCHEMA = {
-    "type": "object",
-    "additionalProperties": False,
-    "properties": {
-        "questions": {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "additionalProperties": False,
-                "properties": {
-                    "questionId": {"type": "string"},
-                    "questionText": {"type": "string"},
-                    "questionDescription": {"type": "string"},
-                },
-                "required": ["questionId", "questionText", "questionDescription"],
-            },
-        }
-    },
-    "required": ["questions"],
-}
-
-STAGE2_SCHEMA = {
-    "type": "object",
-    "additionalProperties": False,
-    "properties": {
-        "questions": {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "additionalProperties": False,
-                "properties": {
-                    "questionId": {"type": "string"},
-                    "company": {"type": ["string", "null"]},
-                    "role": {"type": ["string", "null"]},
-                    "level": {"type": ["string", "null"]},
-                    "location": {"type": ["string", "null"]},
-                    "candidateYoE": {"type": ["number", "null"]},
-                    "outcome": {"type": ["string", "null"]},
-                    "roundType": {"type": ["string", "null"]},
-                    "questionType": {"type": ["string", "null"]},
-                    "difficulty": {"type": ["string", "null"]},
-                    "candidateApproach": {"type": ["string", "null"]},
-                    "problemUrl": {"type": ["string", "null"]},
-                    "postDate": {"type": ["string", "null"]},
-                    "topics": {"type": "array", "items": {"type": "string"}},
-                },
-                "required": [
-                    "questionId", "company", "role", "level", "location", "candidateYoE",
-                    "outcome", "roundType", "questionType", "difficulty",
-                    "candidateApproach", "problemUrl", "postDate", "topics",
-                ],
-            },
-        }
-    },
-    "required": ["questions"],
-}
-
-
-def load_records(directory: str, limit: int) -> list[dict[str, Any]]:
-    records: list[dict[str, Any]] = []
-    for path in sorted(glob.glob(os.path.join(directory, "*.json"))):
-        try:
-            with open(path, encoding="utf-8") as f:
-                data = json.load(f)
-            items = data if isinstance(data, list) else [data]
-            for item in items:
-                if isinstance(item, dict):
-                    records.append(item)
-                    if len(records) >= limit:
-                        return records
-        except Exception as e:
-            print(f"[WARN] {path}: {e}")
-    return records
-
-
-def get_source_fields(record: dict[str, Any]) -> dict[str, str]:
-    source_platform = record.get("platform") or record.get("source") or record.get("sourcePlatform") or ""
-    post_url = record.get("url") or record.get("sourceUrl") or record.get("originalPostUrl") or ""
-    title = record.get("title") or ""
-    author = record.get("author") or record.get("postedBy") or ""
-    published_at = record.get("publishedAt") or record.get("postDate") or record.get("postedAt") or ""
-    page_content = (
-        record.get("pageContent")
-        or record.get("content")
-        or record.get("text")
-        or json.dumps(record, ensure_ascii=False)
-    )
-    page_content = str(page_content)
-    if len(page_content) > MAX_CONTENT_CHARS:
-        page_content = page_content[:MAX_CONTENT_CHARS]
-    return {
-        "source_platform": str(source_platform),
-        "post_url": str(post_url),
-        "title": str(title),
-        "author": str(author),
-        "published_at": str(published_at),
-        "page_content": page_content,
-    }
-
-
-def call_json(prompt: str, schema: dict[str, Any], schema_name: str, max_output_tokens: int) -> dict[str, Any]:
-    response = client.responses.create(
-        model=MODEL,
-        input=prompt,
-        max_output_tokens=max_output_tokens,
-        text={
-            "format": {
-                "type": "json_schema",
-                "name": schema_name,
-                "strict": True,
-                "schema": schema,
-            }
-        },
-    )
-    text = (response.output_text or "").strip()
-    if not text:
-        details = []
-        incomplete = getattr(response, "incomplete_details", None)
-        if incomplete:
-            details.append(f"incomplete_details={incomplete}")
-        usage = getattr(response, "usage", None)
-        if usage:
-            details.append(f"usage={usage}")
-        raise ValueError(
-            "OpenAI returned an empty output"
-            + (f" ({'; '.join(details)})" if details else "")
-        )
-    try:
-        return json.loads(text)
-    except json.JSONDecodeError as exc:
-        details = []
-        incomplete = getattr(response, "incomplete_details", None)
-        if incomplete:
-            details.append(f"incomplete_details={incomplete}")
-        usage = getattr(response, "usage", None)
-        if usage:
-            details.append(f"usage={usage}")
-        suffix = f" ({'; '.join(details)})" if details else ""
-        raise ValueError(
-            f"Invalid JSON from OpenAI: {text[:2000]}{suffix}"
-        ) from exc
 
 
 def extract_questions(fields: dict[str, str]) -> dict[str, Any]:
