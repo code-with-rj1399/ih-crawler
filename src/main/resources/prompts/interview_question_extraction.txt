@@ -41,7 +41,7 @@ RULES FOR EXTRACTION
 - Never convert narrative, statements, discussions, or answers into questions.
 - Multiple distinct questions -> extract separately. Never merge.
 - One question with follow-ups/requirements -> keep as one. Never artificially split.
-- Prefer an empty list over weak or inferred questions. Precision > recall.
+- Prefer precision, but do extract clearly named design/LLD/HLD tasks even when description is short.
 
 questionText
 - <= 140 chars, pure technical task only.
