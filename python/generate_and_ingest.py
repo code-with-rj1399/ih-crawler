@@ -55,6 +55,7 @@ def main():
         try:
             payload = extract(record)
             inserted = push_to_dynamodb(payload)
-            status = "pushed" if inserted else "already exists"\n            print(f"[OK] {i}/{len(records)} {status}: {len(payload.get('questions', []))} questions")
+            status = "pushed" if inserted else "already exists"
+            print(f"[OK] {i}/{len(records)} {status}: {len(payload.get('questions', []))} questions")
         except Exception as e: print(f"[ERROR] {i}/{len(records)}: {e}")
 if __name__ == "__main__": main()
