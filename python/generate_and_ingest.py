@@ -16,7 +16,7 @@ client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
 
 EXTRACTION_PROMPT = r"""
-You are an advanced technical interview data extraction engine.
+Extract only real, specific interview questions. No tools, no external knowledge, no invention.
 
 SOURCE PLATFORM: {source_platform}
 POST URL: {post_url}
@@ -24,83 +24,91 @@ TITLE: {title}
 AUTHOR: {author}
 PUBLISHED AT: {published_at}
 TAGS: {tags}
-TAGS: {tags}
 
-PAGE CONTENT:
+CONTENT:
 ---
 {page_content}
 ---
 
-Follow these strictly ordered steps to extract data:
+CORE RULES
 
-STEP 1: AUTHENTICITY & COMPANY GATE
-- Evaluate if this is a REAL, personal interview experience (e.g., "I interviewed at...").
-- If it is a tutorial, generic list ("Top 50 questions"), or study guide, STOP. Return an empty questions list.
-- A COMPANY MUST BE IDENTIFIED from the supplied source material or metadata.
-- Company identification may come from the page content, title, tags, source metadata, or explicit company URL/path.
-- Treat company-specific tags (for example, "facebook", "linkedin", "google") as explicit source metadata when supplied.
-- Normalize obvious company-name capitalization (for example, "facebook" -> "Facebook").
-- NEVER infer a company from the question itself or from general knowledge.
-- If the supplied content and metadata contain no reliable company signal, return an empty questions list.
+COMPANY GATE
+- Real personal interview experience only.
+- Company must be explicit in content or supplied metadata. Never infer.
+- No company -> {"questions": []}
+- Reject tutorials, prep guides, question banks, tip lists, and "what are common questions" posts.
 
-STEP 2: QUESTION EXTRACTION
-Extract ONLY questions that were actually asked, or clearly named/described as an interview task in the supplied experience.
+WHAT COUNTS AS A QUESTION
+Extract ONLY when the source shows a concrete task/question presented to the candidate.
 
-CRITICAL:
-- Do NOT create a question from generic statements such as "standard LeetCode tagged questions", "LeetCode questions", "coding rounds", "technical discussion", or "project discussion".
-- Do NOT invent a specific coding problem when the source does not identify one.
-- If a round only says "Standard Leetcode tagged questions", extract NOTHING from that statement.
-- If the source explicitly names or clearly describes a task, extract it even when details are sparse. Example: "Design: Calendar" should become "Design a calendar."
-- Preserve the source's level of specificity. Do not turn a vague topic into a detailed hypothetical problem.
-- Extract separately named questions from different rounds; do not merge them.
-- questionText: A 1-line, concise representation of the actual task (<= 140 chars).
-- questionDescription: Elaborative and source-grounded. Preserve useful technical details explicitly present in the source, including requirements, inputs, outputs, constraints, edge cases, clarifications, follow-ups, approaches discussed, complexity observations, and trade-offs. Do not force a short word limit.
-- If the source only provides a short task name/topic, keep the description short and faithful rather than inventing requirements.
-- confidence MUST represent how strongly the supplied source supports that this is a specific question/task actually presented to the candidate during the reported interview experience, rather than generic interview content.
-- A technical-looking sentence is NOT automatically an interview question.
-- Do NOT extract or give high confidence to requests for interview advice, preparation tips, question lists, expectations, recommendations, or generic discussion topics.
-- Examples that are NOT actual interview questions: "What are the most frequently asked system design questions?", "LLD question and expectations", "Tips for DSA questions", "They asked standard LeetCode questions".
-- A concrete task explicitly reported as being asked/given to the candidate should have high confidence.
-- A vague statement that a technical topic was discussed should have low confidence.
-- confidence is about interview-question authenticity/evidence, NOT problem difficulty, extraction quality in general, or likelihood that the company identification is correct.
+YES examples:
+- "Design a rate limiter."
+- "Implement an LRU cache."
+- "Design: Calendar."
+- "Given an array, find the longest subarray..."
 
-STEP 3: APPLY STRICT PROHIBITIONS (CRITICAL)
-- NEVER include interview narrative (Remove: "The interviewer asked me...", "A variation of...", etc.).
-- NEVER substitute canonical names or fill in missing details from general knowledge.
-- NEVER convert a generic category into a specific question.
-- Example: "Standard Leetcode tagged questions" is NOT a question.
-- Example: "Design: Calendar" IS a question/task and should become "Design a calendar."
-- NEVER invent constraints, solutions, or context not present in the text.
-- NEVER merge different questions together.
-- For each extracted question, first determine whether the source contains specific evidence that the candidate was actually asked or given that task. If not, do not extract it.
+NO examples (never extract):
+- "They asked about Kafka / Redis / microservices"
+- "System design round / coding round / project discussion"
+- "They asked LeetCode questions"
+- "We discussed how Kafka handles failures" -> do NOT turn into a question
+- Any generic list request ("common Google questions", "DSA questions", etc.)
 
-STEP 4: OUTPUT FORMAT
-Return ONLY valid JSON matching the exact schema below. Do not wrap in ```json markdown.
+RULES FOR EXTRACTION
+- Preserve exact source specificity. Never add scale, APIs, constraints, requirements, or other details unless present.
+- Never convert narrative, statements, discussions, or answers into questions.
+- Multiple distinct questions -> extract separately. Never merge.
+- One question with follow-ups/requirements -> keep as one. Never artificially split.
+- Prefer an empty list over weak or inferred questions. Precision > recall.
 
-{
-  "is_authentic_experience": true,
-  "company": "Company Name (or null)",
-  "questions": [
-    {
-      "questionText": "Concise 1-line problem statement",
-      "questionDescription": "Neutral LeetCode-style description using only provided details",
-      "questionType": "CODING | SYSTEM_DESIGN | LOW_LEVEL_DESIGN | BEHAVIORAL | TECHNICAL | DATABASE | DEVOPS | AI_ML | OTHER",
-      "difficulty": "Easy | Medium | Hard | null",
-      "topics": ["topic1", "topic2"],
-      "sourcePlatform": "From inputs",
-      "problemUrl": "Explicitly provided URL (or null)",
-      "postDate": "From inputs",
-      "role": "Role (or null)",
-      "level": "Level (or null)",
-      "location": "Location (or null)",
-      "candidateYoE": "Candidate's years of experience (or null)",
-      "outcome": "Interview outcome (or null)",
-      "roundType": "Round name/type (or null)",
-      "confidence": 0.95
-      // confidence is 0.0-1.0: evidence that this was an actual interview question/task, not generic interview content
-    }
-  ]
-}
+questionText
+- <= 140 chars, pure technical task only.
+- Strip narrative ("they asked me...", "then they said...").
+- No labels.
+- Use the exact problem/task name if given. Never invent problem names.
+- A technical topic or category is not a question.
+
+questionDescription
+- Only details explicitly present in the source.
+- Include requirements, constraints, edge cases, follow-ups, approaches, or other details only when explicitly mentioned.
+- Never expand vague topics with external knowledge.
+- Keep it short and faithful when the source is sparse.
+
+problemUrl
+- Only a URL visibly present in the supplied content for that exact question.
+- Never invent, construct, infer, search for, or use the post URL.
+- Otherwise null.
+
+METADATA
+- Only values directly supported by the supplied content or metadata.
+- Never infer company, role, level, location, candidateYoE, outcome, difficulty, topics, or roundType.
+- difficulty = Easy, Medium, Hard, or null.
+
+CONFIDENCE (authenticity only)
+- Confidence measures how strongly the source proves that this specific question/task was actually presented to the candidate.
+- It does NOT measure difficulty, extraction quality, popularity, or company confidence.
+
+0.9-1.0 = explicit concrete question with strong evidence
+0.7-0.8 = clear real question but sparse
+0.5-0.6 = weak / borderline evidence
+0.3-0.4 = very weak / mostly inferred
+< 0.3 = do not include
+
+FINAL GATE (apply before returning)
+1. Real personal interview experience?
+2. Company explicit?
+3. Specific evidence this exact task/question was presented to the candidate?
+4. Is it a concrete question/task, not a topic or category?
+5. No narrative conversion?
+6. Zero external knowledge added?
+7. questionText and questionDescription fully source-faithful?
+8. confidence >= 0.3?
+
+Any NO -> drop the question.
+
+If evidence is ambiguous, return no question rather than guessing.
+
+Return ONLY valid JSON.
 """
 
 EXTRACTION_SCHEMA = {
@@ -224,7 +232,6 @@ def call_json(prompt: str, schema: dict[str, Any], schema_name: str, max_output_
         return json.loads(text)
     except json.JSONDecodeError as exc:
         raise ValueError(f"Invalid JSON from OpenAI: {text[:2000]}") from exc
-
 
 
 def extract(record: dict[str, Any]) -> dict[str, Any]:
