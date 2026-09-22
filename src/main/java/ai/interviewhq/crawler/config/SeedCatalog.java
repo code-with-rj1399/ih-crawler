@@ -70,6 +70,18 @@ public final class SeedCatalog {
         ));
 
         seeds.add(seed(
+                "geeksforgeeks-interview-experiences",
+                "GeeksforGeeks Interview Experiences",
+                "https://www.geeksforgeeks.org/category/experiences/interview-experiences/",
+                "html",
+                6,
+                5000,
+                true,
+                "GeeksforGeeks interview experiences category. Crawl recent experience posts and extract only genuine interview questions.",
+                config("browser_first", 26, List.of("geeksforgeeks.org"), true, false)
+        ));
+
+        seeds.add(seed(
                 "teamblind-interview-experiences",
                 "TeamBlind Interview Experiences",
                 "https://www.teamblind.com/channels/interview-experiences",
