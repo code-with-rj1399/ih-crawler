@@ -187,8 +187,8 @@ Resources:
 Outputs:
   ClusterName:
     Value: !Ref Cluster
-  ServiceName:
-    Value: !GetAtt Service.Name
+  ServiceArn:
+    Value: !Ref Service
   LogGroupName:
     Value: !Ref LogGroup
   SecurityGroupId:
