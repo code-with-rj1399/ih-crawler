@@ -16,14 +16,14 @@ client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
 
 STAGE1_PROMPT = r"""
-You are InterviewHQ's QUESTION EXTRACTION engine.
+You are InterviewHQ's interview-question extractor.
 
-Your ONLY job is to extract the actual interview questions/problems from the
-supplied interview-experience source and write a faithful questionDescription.
+Read the complete interview-experience source and extract every distinct
+question or problem that was actually asked or given to the candidate.
 
-Stage 1 output is intentionally limited to questionText and questionDescription. However, use the ENTIRE source and all surrounding context to understand each question correctly. Company, round, role, interviewer wording, and other contextual information may be used as evidence while extracting the two output fields.
-
-Do not produce metadata fields in the Stage 1 output.
+Stage 1 has exactly one responsibility: produce high-quality questionText and
+questionDescription. Use all source context to understand the question, but
+do not output metadata. Stage 2 handles metadata.
 
 SOURCE
 ------
@@ -38,123 +38,71 @@ CONTENT
 {page_content}
 -------
 
-AUTHENTICITY GATE
------------------
-Extract questions only when the source describes an actual interview,
-assessment, hiring loop, coding round, system-design round, LLD round, etc.
+WHAT COUNTS AS A QUESTION
+-------------------------
+Extract questions that the source reports as part of the candidate's actual
+interview, assessment, coding round, system-design round, LLD round, etc.
 
-Do NOT extract questions from:
-- interview preparation material
-- "top N interview questions"
-- question banks
-- tutorials/courses
-- generic interview advice
-- commonly asked question collections
-- hypothetical examples not reported as asked
+Do not extract generic preparation questions, question-bank items, tutorials,
+generic advice, or hypothetical examples that were not reported as asked.
 
-QUESTION EXTRACTION
--------------------
-Extract every distinct technical problem/question actually asked or given
-to the candidate.
+A technology mention is not a question.
+A project discussion is not automatically a question.
 
-A technology mention is NOT a question.
-A project discussion is NOT automatically a question.
+Extract every distinct actual question separately. Do not merge separate
+questions or split one problem into artificial subquestions.
 
-"Discussed Kafka" is NOT a question.
-"Interviewer asked me to design a Kafka-based notification system" IS a question.
+QUESTION TEXT
+-------------
+Write a concise, grammatically correct standalone representation of the
+actual problem.
 
-Return the smallest faithful representation of the actual question.
+Remove interview-story wording such as "they asked me" or "in the interview".
 
-Examples:
-- "Design a calendar."
-- "Find the longest substring without repeating characters."
-- "Design a notification system."
-- "Implement an LRU cache."
+Fix obvious grammar problems in the source, but do not add information that
+is not present.
 
-Do not include interview-story wording such as "they asked me" or "in the
-second round".
+Preserve explicitly stated constraints, variations, and requirements.
 
-QUESTION TEXT QUALITY
----------------------
-questionText must be grammatically correct and useful as a standalone
-problem statement.
-
-Fix obvious grammar problems from the source. Do not blindly copy malformed
-phrases such as "Return true of false", "The rat and cheese question", or
-"The question was...".
-
-Rewrite awkward wording into a clear problem statement ONLY using information
-actually present in the source. Never add missing requirements or assumptions.
-
-Keep questionText concise, normally <= 160 characters.
-
-ANTI-HALLUCINATION
-------------------
-Every question and every detail in questionDescription MUST be supported by
-the supplied source.
-
-Never infer a canonical LeetCode/GFG/HackerRank problem because the source
-resembles one.
-
-If the source explicitly names a known problem, preserve that name.
-
-If the source says "variation of Two Sum with negative numbers", preserve
-that meaning. Do not silently convert it to generic "Two Sum".
+Never guess a canonical LeetCode/GFG/HackerRank problem from resemblance.
 
 QUESTION DESCRIPTION
 --------------------
-For each extracted question, write a concise, source-grounded problem
-description explaining what the candidate was actually asked to solve.
+Write a concise 1–2 sentence description of what the candidate was asked to
+solve.
 
-Include ONLY details explicitly present in the source:
+Use only information explicitly present in the source.
+
+Do not invent or infer:
 - requirements
 - constraints
-- inputs/outputs
-- edge cases
-- functional behaviour
-- explicitly stated follow-ups
-- explicitly stated interviewer requirements
-
-Do NOT invent:
-- traffic or scale
-- APIs
-- architecture
-- storage
-- latency
-- availability
+- examples
 - algorithms
 - data structures
-- examples
-- constraints
-- acceptance criteria
+- APIs
+- architecture
+- scale or traffic
+- storage
+- latency or availability
 - business requirements
+- acceptance criteria
 
-Do NOT describe the candidate's solution or approach.
+Do not describe the candidate's solution.
 
-If the source only says "Design a calendar", keep the description short.
-Do not manufacture a full specification.
-
-Keep questionDescription concise:
-- normally 1–2 sentences
-- normally <= 60 words
-- include only source-supported details
-- do not repeat questionText unnecessarily
-
-The questionText and questionDescription MUST describe the same problem.
+If the source gives only a short question, keep the description short.
 
 OUTPUT
 ------
 Return ONLY JSON matching the supplied schema.
 
-The ONLY output fields are:
+For each question return exactly:
 - questionId
 - questionText
 - questionDescription
 
-questionId must be a deterministic sequential identifier in source order: q1, q2, q3, etc. Do not skip or reuse IDs.
+questionId must be q1, q2, q3, ... in source order.
 
-If the source is not an interview experience or contains no actual questions,
-return an empty questions array.
+If there are no actual interview questions, return an empty questions array.
 """
 
 
@@ -371,7 +319,7 @@ def extract_questions(fields: dict[str, str]) -> dict[str, Any]:
         STAGE1_PROMPT.format(**fields),
         STAGE1_SCHEMA,
         "interview_question_extraction",
-        6000,
+        8000,
     )
 
 
