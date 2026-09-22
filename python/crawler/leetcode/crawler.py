@@ -178,6 +178,7 @@ def crawl_interview_experiences(
     chunk_size = chunk_size or int(
         os.getenv("CHUNK_SIZE", "100")
     )
+    lookback_months = int(os.getenv("LOOKBACK_MONTHS", "24"))
 
     if target_records <= 0:
         raise ValueError("TARGET_RECORDS must be greater than zero")
@@ -186,10 +187,14 @@ def crawl_interview_experiences(
 
     os.makedirs(output_dir, exist_ok=True)
 
+    today = datetime.now(timezone.utc).date()
+    cutoff_date = subtract_months(today, lookback_months)
+
     print(
         f"Starting LeetCode interview crawl. "
         f"Target: {target_records} qualifying records; "
-        f"chunk size: {chunk_size}; output: {output_dir}",
+        f"chunk size: {chunk_size}; lookback: {lookback_months} months; "
+        f"cutoff: {cutoff_date}; output: {output_dir}",
         flush=True,
     )
 
