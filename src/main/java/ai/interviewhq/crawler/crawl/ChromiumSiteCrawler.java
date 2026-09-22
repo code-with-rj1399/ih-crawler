@@ -152,7 +152,7 @@ public class ChromiumSiteCrawler {
                             page.usedBrowser() ? "chromium" : "http",
                             page.text() == null ? 0 : page.text().length());
 
-                    ParsedEntry entry = toEntry(page, lookback);
+                    ParsedEntry entry = toEntry(page, lookback, source.getSlug());
                     if (entry != null) {
                         entries.add(entry);
                     }
@@ -168,11 +168,7 @@ public class ChromiumSiteCrawler {
         }
     }
 
-    private String sourceSlug(PageSnapshot page) {
-        return page == null ? "" : page.requestedUrl();
-    }
-
-    private ParsedEntry toEntry(PageSnapshot page, Instant lookback) {
+    private ParsedEntry toEntry(PageSnapshot page, Instant lookback, String currentSourceSlug) {
         PageContentExtractor.ExtractedPage extracted =
                 contentExtractor.extract(page.finalUrl(), page.html(), page.text());
         if (extracted.body() == null || extracted.body().isBlank()) {
@@ -181,7 +177,7 @@ public class ChromiumSiteCrawler {
         Instant published = extracted.publishedAt();
         if (published != null && lookback != null && published.isBefore(lookback)) {
             log.info("Rejecting article due to freshness: source={} url={} publishedAt={} cutoff={}",
-                    sourceSlug(page), page.finalUrl(), published, lookback);
+                    currentSourceSlug, page.finalUrl(), published, lookback);
             return null;
         }
 
