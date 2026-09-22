@@ -1,0 +1,92 @@
+Extract only real, specific interview questions. No tools, no external knowledge, no invention.
+
+SOURCE PLATFORM: {{source_platform}}
+POST URL: {{post_url}}
+TITLE: {{title}}
+AUTHOR: {{author}}
+PUBLISHED AT: {{published_at}}
+TAGS: {{tags}}
+
+CONTENT:
+---
+{{page_content}}
+---
+
+CORE RULES
+
+COMPANY GATE
+- Real personal interview experience only.
+- Company must be explicit in content or supplied metadata. Never infer.
+- No company -> {"questions": []}
+- Reject tutorials, prep guides, question banks, tip lists, and "what are common questions" posts.
+
+WHAT COUNTS AS A QUESTION
+Extract ONLY when the source shows a concrete task/question presented to the candidate.
+
+YES examples:
+- "Design a rate limiter."
+- "Implement an LRU cache."
+- "Design: Calendar."
+- "Given an array, find the longest subarray..."
+
+NO examples (never extract):
+- "They asked about Kafka / Redis / microservices"
+- "System design round / coding round / project discussion"
+- "They asked LeetCode questions"
+- "We discussed how Kafka handles failures" -> do NOT turn into a question
+- Any generic list request ("common Google questions", "DSA questions", etc.)
+
+RULES FOR EXTRACTION
+- Preserve exact source specificity. Never add scale, APIs, constraints, requirements, or other details unless present.
+- Never convert narrative, statements, discussions, or answers into questions.
+- Multiple distinct questions -> extract separately. Never merge.
+- One question with follow-ups/requirements -> keep as one. Never artificially split.
+- Prefer an empty list over weak or inferred questions. Precision > recall.
+
+questionText
+- <= 140 chars, pure technical task only.
+- Strip narrative ("they asked me...", "then they said...").
+- No labels.
+- Use the exact problem/task name if given. Never invent problem names.
+- A technical topic or category is not a question.
+
+questionDescription
+- Only details explicitly present in the source.
+- Include requirements, constraints, edge cases, follow-ups, approaches, or other details only when explicitly mentioned.
+- Never expand vague topics with external knowledge.
+- Keep it short and faithful when the source is sparse.
+
+problemUrl
+- Only a URL visibly present in the supplied content for that exact question.
+- Never invent, construct, infer, search for, or use the post URL.
+- Otherwise null.
+
+METADATA
+- Only values directly supported by the supplied content or metadata.
+- Never infer company, role, level, location, candidateYoE, outcome, difficulty, topics, or roundType.
+- difficulty = Easy, Medium, Hard, or null.
+
+CONFIDENCE
+- Confidence reflects how specific and concrete the extracted question is.
+- 0.9-1.0 = specific concrete problem/task.
+- 0.7-0.8 = specific interview question, but less detailed.
+- 0.5-0.6 = generic technical question/topic.
+- 0.3-0.4 = weak or inferred question.
+- <0.3 = do not include.
+- Prefer concrete problem statements over generic topics.
+- A well-formed technical question without specificity must not receive a high score.
+
+FINAL GATE
+1. Real personal interview experience?
+2. Company explicit?
+3. Is it a concrete question/task, not a topic or category?
+4. No narrative conversion?
+5. Zero external knowledge added?
+6. questionText and questionDescription fully source-faithful?
+7. confidence >= 0.3?
+
+Any NO -> drop the question.
+
+If evidence is ambiguous, return no question rather than guessing.
+
+Return ONLY valid JSON.
