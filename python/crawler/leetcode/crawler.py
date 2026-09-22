@@ -114,7 +114,7 @@ def convert_jsonl_to_json(jsonl_file: str, json_file: str):
 def crawl_interview_experiences(output_dir=None, checkpoint_file=None, lookback_months=None):
     output_dir = output_dir or os.getenv("OUTPUT_DIR", "/data")
     checkpoint_file = checkpoint_file or os.getenv("CHECKPOINT_FILE", "/data/checkpoint.txt")
-    lookback_months = lookback_months or int(os.getenv("LOOKBACK_MONTHS", "6"))
+    lookback_months = lookback_months or int(os.getenv("LOOKBACK_MONTHS", "24"))
 
     os.makedirs(output_dir, exist_ok=True)
 
