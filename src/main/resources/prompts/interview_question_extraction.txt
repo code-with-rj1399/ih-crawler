@@ -48,7 +48,17 @@ questionText
 - Strip narrative ("they asked me...", "then they said...").
 - No labels.
 - Use the exact problem/task name if given. Never invent problem names.
-- Use professional Title Case: capitalize major words only. Keep short words (a, an, the, and, or, but, for, nor, on, at, to, from, by, with, of, in) lowercase unless they are the first word.
+- Use professional, natural sentence case. Do NOT use Title Case for every word.
+- Capitalize only the first word of a sentence, proper nouns, and standard acronyms.
+- Preserve established proper names and product names such as Postman, Amazon, LinkedIn, AWS, API, SQL, Java, etc.
+- Do not unnecessarily capitalize ordinary words such as "zeros", "end", "salary", "gateway", "array", or "subarray".
+- Examples:
+  - "Move Zeros To End" -> "Move zeros to the end"
+  - "Find The Second Highest Salary" -> "Find the second-highest salary"
+  - "Design A Payment Gateway" -> "Design a payment gateway"
+  - "Design Postman" -> "Design Postman"
+  - "Find Second Highest Salary Using SQL" -> "Find second-highest salary using SQL"
+- Do not rewrite or embellish the question. Only normalize capitalization and minor formatting while preserving the original meaning.
 - A technical topic or category is not a question.
 
 questionDescription: Write a pure technical problem statement in LeetCode style using only details present in the source. Never include round numbers/names (HLD, LLD, Round 1/2…), interviewer comments, or any narrative. Add requirements, constraints, edge cases, or follow-ups only if explicitly mentioned. Never invent or expand with external knowledge. Keep short and faithful when the source is sparse.
