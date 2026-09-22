@@ -119,6 +119,7 @@ public class OpenAiQuestionExtractor {
                                 question.setDifficulty(item.difficulty());
                 question.setTopics(item.topics() == null ? Collections.emptyList() : item.topics());
                 question.setConfidence(item.confidence());
+                question.setQuestionSpecificity(item.questionSpecificity());
                 question.setModelName(settings.extractModel());
                 question.setExtractedAt(Instant.now());
                 question.setDedupeHash(Hashing.questionDedupeHash(
@@ -237,12 +238,13 @@ public class OpenAiQuestionExtractor {
         topicsSchema.set("items", objectMapper.createObjectNode().put("type", "string"));
         properties.set("topics", topicsSchema);
         properties.set("confidence", nullableNumberSchema());
+        properties.set("questionSpecificity", nullableNumberSchema());
         question.set("properties", properties);
         question.set("required", objectMapper.createArrayNode()
                 .add("sourcePlatform").add("problemUrl").add("postDate").add("company").add("role").add("level")
                 .add("location").add("candidateYoE").add("outcome").add("roundType")
                 .add("questionType").add("questionText").add("questionDescription")
-                .add("difficulty").add("topics").add("confidence"));
+                .add("difficulty").add("topics").add("confidence").add("questionSpecificity"));
 
         var schema = objectMapper.createObjectNode().put("type", "object").put("additionalProperties", false);
         ObjectNode schemaProperties = objectMapper.createObjectNode();
@@ -369,5 +371,5 @@ public class OpenAiQuestionExtractor {
                                      String company, String role, String level, String location, Float candidateYoE,
                                      String outcome, String roundType, String questionType, String questionText,
                                      String questionDescription, String difficulty,
-                                     List<String> topics, Float confidence) {}
+                                     List<String> topics, Float confidence, Float questionSpecificity) {}
 }
