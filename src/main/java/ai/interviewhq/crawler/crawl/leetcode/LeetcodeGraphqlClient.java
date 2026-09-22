@@ -102,99 +102,117 @@ public class LeetcodeGraphqlClient {
     }
 
     public List<ParsedEntry> fetchRecent(CrawlSource source, Instant cutoff, int maxPosts) {
-        int pageSize = Math.min(50, Math.max(1, maxPosts));
+        int target = Math.max(1, Math.min(100, maxPosts));
+        int pageSize = Math.min(50, target);
         int delayMs = source == null ? 4000 : Math.max(0, source.getCrawlDelayMs());
 
         try {
-            JsonNode listing = execute(LIST_QUERY, Map.of(
-                    "orderBy", "MOST_RECENT",
-                    "keywords", List.of(),
-                    "tagSlugs", List.of("interview"),
-                    "skip", 0,
-                    "first", pageSize
-            ));
-
-            JsonNode edges = listing.path("data")
-                    .path("ugcArticleDiscussionArticles")
-                    .path("edges");
-
-            if (!edges.isArray()) {
-                log.warn("LeetCode GraphQL returned no discussion edges");
-                return List.of();
-            }
-
             List<ParsedEntry> entries = new ArrayList<>();
-            for (JsonNode edge : edges) {
-                JsonNode node = edge.path("node");
-                if (node.isMissingNode()) {
-                    continue;
-                }
+            int skip = 0;
+            boolean hasNextPage = true;
 
-                Instant createdAt = parseInstant(node.path("createdAt").asText(null));
-                if (createdAt == null) {
-                    log.info("LeetCode GraphQL skipping undated post topicId={}", node.path("topicId").asText(""));
-                    continue;
-                }
-                if (cutoff != null && createdAt.isBefore(cutoff)) {
-                    // MOST_RECENT is the ordering requested from LeetCode. Once
-                    // we cross the hard cutoff, the remaining page is older.
+            while (entries.size() < target && hasNextPage) {
+                int requested = Math.min(pageSize, target - entries.size());
+                JsonNode listing = execute(LIST_QUERY, Map.of(
+                        "orderBy", "MOST_RECENT",
+                        "keywords", List.of(),
+                        "tagSlugs", List.of("interview"),
+                        "skip", skip,
+                        "first", requested
+                ));
+
+                JsonNode container = listing.path("data")
+                        .path("ugcArticleDiscussionArticles");
+                JsonNode edges = container.path("edges");
+
+                if (!edges.isArray() || edges.isEmpty()) {
+                    log.warn("LeetCode GraphQL returned no discussion edges: skip={}", skip);
                     break;
                 }
 
-                String topicId = node.path("topicId").asText(null);
-                if (topicId == null || topicId.isBlank()) {
-                    continue;
+                hasNextPage = container.path("pageInfo").path("hasNextPage").asBoolean(false);
+
+                for (JsonNode edge : edges) {
+                    if (entries.size() >= target) {
+                        break;
+                    }
+
+                    JsonNode node = edge.path("node");
+                    if (node.isMissingNode()) {
+                        continue;
+                    }
+
+                    Instant createdAt = parseInstant(node.path("createdAt").asText(null));
+                    if (createdAt == null) {
+                        log.info("LeetCode GraphQL skipping undated post topicId={}",
+                                node.path("topicId").asText(""));
+                        continue;
+                    }
+                    if (cutoff != null && createdAt.isBefore(cutoff)) {
+                        hasNextPage = false;
+                        break;
+                    }
+
+                    String topicId = node.path("topicId").asText(null);
+                    if (topicId == null || topicId.isBlank()) {
+                        continue;
+                    }
+
+                    sleep(delayMs);
+                    JsonNode detail = execute(DETAIL_QUERY, Map.of("topicId", topicId))
+                            .path("data")
+                            .path("ugcArticleDiscussionArticle");
+
+                    if (detail.isMissingNode() || detail.isNull()) {
+                        log.info("LeetCode GraphQL detail missing topicId={}", topicId);
+                        continue;
+                    }
+
+                    String title = text(detail, "title", node.path("title").asText(""));
+                    String body = text(detail, "content", node.path("summary").asText(""));
+                    if (body == null || body.isBlank()) {
+                        body = node.path("summary").asText("");
+                    }
+                    if (body == null || body.isBlank()) {
+                        continue;
+                    }
+
+                    String slug = text(detail, "slug", node.path("slug").asText(""));
+                    String url = "https://leetcode.com/discuss/post/" + topicId + "/";
+                    if (slug != null && !slug.isBlank()) {
+                        url = "https://leetcode.com/discuss/post/" + topicId + "/" + slug + "/";
+                    }
+
+                    String author = author(detail.path("author"));
+                    if (author == null || author.isBlank()) {
+                        author = author(node.path("author"));
+                    }
+
+                    entries.add(ParsedEntry.builder(url)
+                            .canonicalUrl(url)
+                            .externalId(topicId)
+                            .title(title)
+                            .author(Boolean.TRUE.equals(detail.path("isAnonymous").asBoolean(false))
+                                    ? "Anonymous" : author)
+                            .publishedAt(createdAt)
+                            .bodyText(body)
+                            .contentType("text/html")
+                            .httpStatus(200)
+                            .contentHash(Hashing.sha256Hex(body))
+                            .robotsAllowed(Boolean.TRUE)
+                            .build());
+
+                    log.info("LeetCode GraphQL post: topicId={} createdAt={} title={}",
+                            topicId, createdAt, title);
                 }
 
-                sleep(delayMs);
-                JsonNode detail = execute(DETAIL_QUERY, Map.of("topicId", topicId))
-                        .path("data")
-                        .path("ugcArticleDiscussionArticle");
-
-                if (detail.isMissingNode() || detail.isNull()) {
-                    log.info("LeetCode GraphQL detail missing topicId={}", topicId);
-                    continue;
+                skip += edges.size();
+                if (edges.size() < requested) {
+                    hasNextPage = false;
                 }
-
-                String title = text(detail, "title", node.path("title").asText(""));
-                String body = text(detail, "content", node.path("summary").asText(""));
-                if (body == null || body.isBlank()) {
-                    body = node.path("summary").asText("");
-                }
-                if (body == null || body.isBlank()) {
-                    continue;
-                }
-
-                String slug = text(detail, "slug", node.path("slug").asText(""));
-                String url = "https://leetcode.com/discuss/post/" + topicId + "/";
-                if (slug != null && !slug.isBlank()) {
-                    url = "https://leetcode.com/discuss/post/" + topicId + "/" + slug + "/";
-                }
-
-                String author = author(detail.path("author"));
-                if (author == null || author.isBlank()) {
-                    author = author(node.path("author"));
-                }
-
-                entries.add(ParsedEntry.builder(url)
-                        .canonicalUrl(url)
-                        .externalId(topicId)
-                        .title(title)
-                        .author(Boolean.TRUE.equals(detail.path("isAnonymous").asBoolean(false)) ? "Anonymous" : author)
-                        .publishedAt(createdAt)
-                        .bodyText(body)
-                        .contentType("text/html")
-                        .httpStatus(200)
-                        .contentHash(Hashing.sha256Hex(body))
-                        .robotsAllowed(Boolean.TRUE)
-                        .build());
-
-                log.info("LeetCode GraphQL post: topicId={} createdAt={} title={}",
-                        topicId, createdAt, title);
             }
 
-            log.info("LeetCode GraphQL crawl finished: returned={} kept={} pageSize={}",
-                    edges.size(), entries.size(), pageSize);
+            log.info("LeetCode GraphQL crawl finished: kept={} target={}", entries.size(), target);
             return entries;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
