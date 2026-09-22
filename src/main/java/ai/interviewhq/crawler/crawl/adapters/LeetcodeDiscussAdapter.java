@@ -1,5 +1,6 @@
 package ai.interviewhq.crawler.crawl.adapters;
 
+import ai.interviewhq.crawler.config.CrawlerSettings;
 import ai.interviewhq.crawler.crawl.ParsedEntry;
 import ai.interviewhq.crawler.crawl.SourceAdapter;
 import ai.interviewhq.crawler.crawl.http.PoliteFetcher;
@@ -15,9 +16,11 @@ import java.util.function.Consumer;
 public class LeetcodeDiscussAdapter implements SourceAdapter {
 
     private final LeetcodeGraphqlClient client;
+    private final CrawlerSettings settings;
 
-    public LeetcodeDiscussAdapter(LeetcodeGraphqlClient client) {
+    public LeetcodeDiscussAdapter(LeetcodeGraphqlClient client, CrawlerSettings settings) {
         this.client = client;
+        this.settings = settings;
     }
 
     @Override
@@ -31,7 +34,7 @@ public class LeetcodeDiscussAdapter implements SourceAdapter {
             Instant lookback,
             PoliteFetcher fetcher,
             Consumer<ParsedEntry> consumer) {
-        client.fetchRecentStreaming(source, lookback, 100, consumer);
+        client.fetchRecentStreaming(source, lookback, Math.max(1, settings.extractMaxPostsPerSource()), consumer);
     }
 
     @Override
@@ -39,6 +42,6 @@ public class LeetcodeDiscussAdapter implements SourceAdapter {
             CrawlSource source,
             Instant lookback,
             PoliteFetcher fetcher) {
-        return client.fetchRecent(source, lookback, 100);
+        return client.fetchRecent(source, lookback, Math.max(1, settings.extractMaxPostsPerSource()));
     }
 }
