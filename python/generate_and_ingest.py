@@ -67,7 +67,6 @@ Return ONLY valid JSON matching the exact schema below. Do not wrap in ```json m
       "questionDescription": "Neutral LeetCode-style description using only provided details",
       "questionType": "CODING | SYSTEM_DESIGN | LOW_LEVEL_DESIGN | BEHAVIORAL | TECHNICAL | DATABASE | DEVOPS | AI_ML | OTHER",
       "difficulty": "Easy | Medium | Hard | null",
-      "candidateApproach": "Candidate's explicitly stated approach (or null)",
       "topics": ["topic1", "topic2"],
       "sourcePlatform": "From inputs",
       "problemUrl": "Explicitly provided URL (or null)",
@@ -113,7 +112,6 @@ EXTRACTION_SCHEMA = {
                     },
                     "questionText": {"type": "string"},
                     "questionDescription": {"type": "string"},
-                    "candidateApproach": {"type": ["string", "null"]},
                     "difficulty": {
                         "type": ["string", "null"],
                         "enum": ["Easy", "Medium", "Hard", None],
@@ -124,7 +122,7 @@ EXTRACTION_SCHEMA = {
                 "required": [
                     "company", "sourcePlatform", "problemUrl", "postDate", "role", "level",
                     "location", "candidateYoE", "outcome", "roundType", "questionType",
-                    "questionText", "questionDescription", "candidateApproach", "difficulty",
+                    "questionText", "questionDescription", "difficulty",
                     "topics", "confidence",
                 ],
             },
