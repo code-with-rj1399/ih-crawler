@@ -85,14 +85,13 @@ def extract(record):
     author = record.get("author") or record.get("postedBy") or ""
     published_at = record.get("publishedAt") or record.get("postDate") or record.get("postedAt") or ""
     page_content = record.get("pageContent") or record.get("content") or record.get("text") or json.dumps(record, ensure_ascii=False)
-    prompt = PROMPT.format(
-        source_platform=source_platform,
-        post_url=post_url,
-        title=title,
-        author=author,
-        published_at=published_at,
-        page_content=page_content,
-    )
+    prompt = PROMPT
+    prompt = prompt.replace("{source_platform}", source_platform)
+    prompt = prompt.replace("{post_url}", post_url)
+    prompt = prompt.replace("{title}", title)
+    prompt = prompt.replace("{author}", author)
+    prompt = prompt.replace("{published_at}", published_at)
+    prompt = prompt.replace("{page_content}", page_content)
     response = client.responses.create(model=MODEL, input=[{"role":"system","content":prompt},{"role":"user","content":"Return the JSON extraction for the supplied source."}])
     text = response.output_text.strip()
     if text.startswith("```"): text = text.replace("```json", "").replace("```", "").strip()
@@ -110,7 +109,6 @@ def main():
     args = p.parse_args()
     records = load_records(args.input)
     print(f"Loaded {len(records)} records (maximum 5)")
-    print(f"DynamoDB table: {DYNAMODB_TABLE}, region: {AWS_REGION}")
     for i, record in enumerate(records, 1):
         try:
             payload = extract(record)
