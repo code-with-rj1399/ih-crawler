@@ -81,7 +81,13 @@ Rules:
 - difficulty: Easy, Medium, or Hard only when supported.
 - candidateApproach only when explicitly stated.
 - candidateYoE only from candidate content.
-- problemUrl only when confidently identified in supplied content.
+- problemUrl:
+  - Populate this field whenever the supplied source content contains a URL that directly identifies the problem represented by this question.
+  - Inspect visible URLs, markdown links, HTML anchors, and URLs associated with the question title or problem.
+  - Preserve the exact URL from the source when possible.
+  - If multiple URLs are present, select the URL that most directly corresponds to the question.
+  - Never construct, guess, infer, or search for a URL that is not present in the supplied source.
+  - If no matching problem URL is present in the supplied source, use null.
 - postDate should use supplied publication timestamp converted to UTC date when available.
 - confidence must be between 0.0 and 1.0.
 
