@@ -11,7 +11,8 @@ RUN mkdir -p /data
 
 ENV PYTHONUNBUFFERED=1
 ENV OUTPUT_DIR=/data
-ENV LOOKBACK_MONTHS=24
-ENV CHECKPOINT_FILE=/data/checkpoint.txt
+ENV TARGET_RECORDS=20000
+ENV CHUNK_SIZE=100
+ENV CHECKPOINT_FILE=/data/checkpoint.json
 
 CMD ["python", "-u", "-m", "crawler.leetcode.crawler"]
