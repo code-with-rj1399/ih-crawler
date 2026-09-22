@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * LeetCode-only GraphQL reader.
@@ -102,17 +103,32 @@ public class LeetcodeGraphqlClient {
     }
 
     public List<ParsedEntry> fetchRecent(CrawlSource source, Instant cutoff, int maxPosts) {
+        List<ParsedEntry> entries = new ArrayList<>();
+        fetchRecentStreaming(source, cutoff, maxPosts, entries::add);
+        return entries;
+    }
+
+    /**
+     * Processes LeetCode posts strictly sequentially. A post is not emitted
+     * until its listing metadata, detail request, freshness checks and
+     * content construction have all completed.
+     */
+    public void fetchRecentStreaming(
+            CrawlSource source,
+            Instant cutoff,
+            int maxPosts,
+            Consumer<ParsedEntry> consumer) {
         int target = Math.max(1, Math.min(100, maxPosts));
         int pageSize = Math.min(50, target);
         int delayMs = source == null ? 4000 : Math.max(0, source.getCrawlDelayMs());
+        int emitted = 0;
 
         try {
-            List<ParsedEntry> entries = new ArrayList<>();
             int skip = 0;
             boolean hasNextPage = true;
 
-            while (entries.size() < target && hasNextPage) {
-                int requested = Math.min(pageSize, target - entries.size());
+            while (emitted < target && hasNextPage) {
+                int requested = Math.min(pageSize, target - emitted);
                 JsonNode listing = execute(LIST_QUERY, Map.of(
                         "orderBy", "MOST_RECENT",
                         "keywords", List.of(),
@@ -133,7 +149,7 @@ public class LeetcodeGraphqlClient {
                 hasNextPage = container.path("pageInfo").path("hasNextPage").asBoolean(false);
 
                 for (JsonNode edge : edges) {
-                    if (entries.size() >= target) {
+                    if (emitted >= target) {
                         break;
                     }
 
@@ -160,7 +176,10 @@ public class LeetcodeGraphqlClient {
                         continue;
                     }
 
+                    // Per-source sequential pacing: finish this post before
+                    // starting the next post.
                     sleep(delayMs);
+
                     JsonNode detail = execute(DETAIL_QUERY, Map.of("topicId", topicId))
                             .path("data")
                             .path("ugcArticleDiscussionArticle");
@@ -190,7 +209,7 @@ public class LeetcodeGraphqlClient {
                         author = author(node.path("author"));
                     }
 
-                    entries.add(ParsedEntry.builder(url)
+                    ParsedEntry entry = ParsedEntry.builder(url)
                             .canonicalUrl(url)
                             .externalId(topicId)
                             .title(title)
@@ -202,10 +221,15 @@ public class LeetcodeGraphqlClient {
                             .httpStatus(200)
                             .contentHash(Hashing.sha256Hex(body))
                             .robotsAllowed(Boolean.TRUE)
-                            .build());
+                            .build();
 
-                    log.info("LeetCode GraphQL post: topicId={} createdAt={} title={}",
+                    log.info("LeetCode GraphQL post ready: topicId={} createdAt={} title={}",
                             topicId, createdAt, title);
+
+                    // The callback performs AI extraction + dedupe + persistence
+                    // before this source proceeds to the next post.
+                    consumer.accept(entry);
+                    emitted++;
                 }
 
                 skip += edges.size();
@@ -214,14 +238,12 @@ public class LeetcodeGraphqlClient {
                 }
             }
 
-            log.info("LeetCode GraphQL crawl finished: kept={} target={}", entries.size(), target);
-            return entries;
+            log.info("LeetCode GraphQL crawl finished: processed={} target={}", emitted, target);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new IllegalStateException("LeetCode GraphQL crawl interrupted", e);
         } catch (Exception e) {
             log.warn("LeetCode GraphQL crawl failed: {}", e.getMessage());
-            return List.of();
         }
     }
 
