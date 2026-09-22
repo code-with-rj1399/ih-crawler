@@ -27,10 +27,13 @@ public class DynamoDbConfig {
     @Bean
     DynamoDbRepositorySupport dynamoDbRepositorySupport(
             DynamoDbClient client,
-            @Value("${spring.dynamodb.table:${DYNAMODB_TABLE:interviewhq-crawler-dev}}") String tableName) {
+            @Value("${spring.dynamodb.table:${DYNAMODB_TABLE:interviewhq-crawler-dev}}") String tableName,
+            @Value("${spring.dynamodb.auto-create-table:${DYNAMODB_AUTO_CREATE_TABLE:true}}") boolean autoCreateTable) {
 
         var support = new DynamoDbRepositorySupport(client, tableName);
-        support.ensureTable();
+        if (autoCreateTable) {
+            support.ensureTable();
+        }
         return support;
     }
 }
