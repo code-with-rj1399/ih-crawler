@@ -178,7 +178,6 @@ def crawl_interview_experiences(
     chunk_size = chunk_size or int(
         os.getenv("CHUNK_SIZE", "100")
     )
-    lookback_months = int(os.getenv("LOOKBACK_MONTHS", "24"))
 
     if target_records <= 0:
         raise ValueError("TARGET_RECORDS must be greater than zero")
@@ -188,13 +187,11 @@ def crawl_interview_experiences(
     os.makedirs(output_dir, exist_ok=True)
 
     today = datetime.now(timezone.utc).date()
-    cutoff_date = subtract_months(today, lookback_months)
 
     print(
         f"Starting LeetCode interview crawl. "
         f"Target: {target_records} qualifying records; "
-        f"chunk size: {chunk_size}; lookback: {lookback_months} months; "
-        f"cutoff: {cutoff_date}; output: {output_dir}",
+        f"chunk size: {chunk_size}; no date filter; output: {output_dir}",
         flush=True,
     )
 
@@ -297,10 +294,6 @@ def crawl_interview_experiences(
                     page_dates.append(creation_date)
                     if oldest_seen is None or creation_date < oldest_seen:
                         oldest_seen = creation_date
-
-                if creation_date is None or creation_date < cutoff_date:
-                    total_outside_window += 1
-                    continue
 
                 total_in_window += 1
 
