@@ -14,4 +14,4 @@ ENV INPUT_DIR=/data
 ENV OPENAI_MODEL=gpt-5-nano
 ENV HQ_API_URL=http://host.docker.internal:8080/api/v1/interview-experiences
 
-CMD ["python", "-u", "generate_and_ingest.py"]
+ENTRYPOINT ["python", "-u", "generate_and_ingest.py"]
