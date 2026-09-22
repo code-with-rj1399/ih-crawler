@@ -168,6 +168,10 @@ public class ChromiumSiteCrawler {
         }
     }
 
+    private String sourceSlug(PageSnapshot page) {
+        return page == null ? "" : page.requestedUrl();
+    }
+
     private ParsedEntry toEntry(PageSnapshot page, Instant lookback) {
         PageContentExtractor.ExtractedPage extracted =
                 contentExtractor.extract(page.finalUrl(), page.html(), page.text());
@@ -176,6 +180,8 @@ public class ChromiumSiteCrawler {
         }
         Instant published = extracted.publishedAt();
         if (published != null && lookback != null && published.isBefore(lookback)) {
+            log.info("Rejecting article due to freshness: source={} url={} publishedAt={} cutoff={}",
+                    sourceSlug(page), page.finalUrl(), published, lookback);
             return null;
         }
 
