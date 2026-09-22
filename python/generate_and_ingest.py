@@ -47,13 +47,16 @@ QUESTION TEXT:
 - If the source only gives a short topic such as "Design: Calendar", preserve it as a concise question such as "Design a calendar." Do not invent details.
 
 QUESTION DESCRIPTION:
-- questionDescription elaborates the question using ONLY information explicitly supported by the source.
-- Explain the requirements, constraints, context, or expected task that the source actually provides.
+- questionDescription should elaborate the question using ONLY information explicitly supported by the source.
+- Make the description useful to a reader who wants to understand the actual interview problem and the technical context captured in the experience.
+- Include relevant requirements, constraints, edge cases, candidate clarifications, interviewer hints, approaches explicitly discussed, complexity observations, and other concrete technical details when they are present in the source.
 - Start directly with the problem/task.
-- Never mention candidate, interviewer, interview, post, author, or prompt.
+- The description may be substantially more detailed than questionText.
+- Prefer 2-6 concise sentences, but do not force a word limit when the source contains useful technical detail.
+- Never mention candidate, interviewer, interview, post, author, or prompt as subjects of the problem statement unless describing explicitly relevant technical context from the source; keep the wording focused on the question and its technical details.
 - Never invent constraints, examples, algorithms, solutions, scale, APIs, storage, traffic, or other requirements.
-- If the source provides insufficient detail, keep the description short rather than filling gaps with general knowledge.
-- Use roughly 40-80 words only when the source contains enough detail to support that level of description.
+- If the source provides insufficient detail, keep the description concise rather than filling gaps with general knowledge.
+- Preserve useful details from the source instead of collapsing the description into a one-line restatement.
 - The questionText and questionDescription must describe the same actual question; description adds supported detail but does not reinterpret or expand the question.
 
 NORMALIZATION:
