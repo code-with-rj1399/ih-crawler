@@ -1,16 +1,21 @@
+# syntax=docker/dockerfile:1.7
+
 FROM maven:3.9-eclipse-temurin-17 AS build
 WORKDIR /build
 
+# Keep Maven dependencies in a reusable BuildKit cache.
+# This layer is invalidated only when pom.xml changes.
 COPY pom.xml .
+RUN --mount=type=cache,target=/root/.m2     mvn -q -DskipTests dependency:go-offline
+
+# Source changes now only invalidate the compile/package layer.
 COPY src ./src
-RUN mvn -q -DskipTests package
+RUN --mount=type=cache,target=/root/.m2     mvn -q -DskipTests package
 
 FROM mcr.microsoft.com/playwright/java:v1.63.0-noble
 
 USER root
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends curl \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update     && apt-get install -y --no-install-recommends curl     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 COPY --from=build --chown=pwuser:pwuser /build/target/ih-crawler-1.0.0.jar /app/app.jar
