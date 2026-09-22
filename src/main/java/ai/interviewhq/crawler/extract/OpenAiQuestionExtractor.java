@@ -25,6 +25,8 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 
 /**
  * Model is used only to structure questions from page text the crawler already
@@ -92,6 +94,11 @@ public class OpenAiQuestionExtractor {
                     continue;
                 }
 
+                if (!isHighQualityQuestion(item)) {
+                    log.info("Rejecting low-quality extracted question: source={} postUrl={} question={}", source.getSlug(), postUrl, item.questionText());
+                    continue;
+                }
+
                 InterviewQuestion question = new InterviewQuestion();
                 question.setSourcePlatform(firstNonBlank(item.sourcePlatform(), source.getName()));
                 question.setOriginalPostUrl(postUrl);
@@ -125,6 +132,29 @@ public class OpenAiQuestionExtractor {
         }
     }
 
+
+    /** Deterministic quality gate: LLM output is a candidate, not truth. */
+    private boolean isHighQualityQuestion(ExtractedQuestion item) {
+        String text = item.questionText() == null ? "" : item.questionText().trim();
+        if (text.isBlank() || text.length() < 8 || text.length() > 140) return false;
+        float confidence = item.confidence() == null ? 0f : item.confidence();
+        if (confidence < 0.70f) return false;
+        String normalized = text.toLowerCase(Locale.ROOT)
+                .replaceAll("[^a-z0-9\\s]", " ").replaceAll("\\s+", " ").trim();
+        Set<String> weakExact = Set.of(
+                "explain your project", "explain your project architecture",
+                "tell me about your project", "tell me about yourself",
+                "introduce yourself", "what is your project",
+                "what are you working on", "how was your interview",
+                "how did the interview go");
+        if (weakExact.contains(normalized)) return false;
+        String[] weakStarts = {"are you using ", "do you use ", "have you used ",
+                "have you worked with ", "what tools do you use ",
+                "what technology do you use ", "what tech stack ",
+                "what is your experience with "};
+        for (String prefix : weakStarts) if (normalized.startsWith(prefix)) return false;
+        return true;
+    }
     private JsonNode callOpenAi(String prompt, JsonNode schema, CrawlSource source) throws Exception {
         ObjectNode request = objectMapper.createObjectNode();
         request.put("model", settings.extractModel());
