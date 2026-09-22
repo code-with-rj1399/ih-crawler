@@ -37,24 +37,12 @@ public final class SeedCatalog {
                 "leetcode-discuss",
                 "LeetCode Discuss",
                 "https://leetcode.com/discuss/interview-question/",
-                "html",
+                "leetcode_graphql",
                 12,
                 2000,
                 true,
                 "LeetCode interview-question discussions. Keep only genuine candidate interview experiences.",
                 config("browser_first", 26, List.of("leetcode.com"), true, false)
-        ));
-
-        seeds.add(seed(
-                "glassdoor-interviews",
-                "Glassdoor Interview",
-                "https://www.glassdoor.com/Interview/index.htm",
-                "html",
-                12,
-                2000,
-                true,
-                "General Glassdoor interview index. Company-specific pages follow /Interview/[Company-Name]-Interview-Questions-E[ID].htm.",
-                config("browser_first", 26, List.of("glassdoor.com"), true, false)
         ));
 
         seeds.add(seed(
@@ -91,54 +79,6 @@ public final class SeedCatalog {
                 true,
                 "TeamBlind interview-experiences channel.",
                 config("browser_first", 26, List.of("teamblind.com"), true, false)
-        ));
-
-        seeds.add(seed(
-                "1point3acres",
-                "1Point3Acres",
-                "https://www.1point3acres.com/bbs/",
-                "html",
-                12,
-                2000,
-                true,
-                "Interview / 面经 community. Company search pages can be discovered from the forum.",
-                config("browser_first", 26, List.of("1point3acres.com"), true, false)
-        ));
-
-        seeds.add(seed(
-                "reddit-cscareerquestions",
-                "Reddit r/cscareerquestions",
-                "https://www.reddit.com/r/cscareerquestions/",
-                "html",
-                12,
-                2000,
-                true,
-                "Recent software-career interview discussions. Prefer dated posts and candidate-authored experiences.",
-                config("browser_first", 26, List.of("reddit.com"), true, false)
-        ));
-
-        seeds.add(seed(
-                "reddit-leetcode",
-                "Reddit r/leetcode",
-                "https://www.reddit.com/r/leetcode/",
-                "html",
-                12,
-                2000,
-                true,
-                "Recent LeetCode/interview discussions. Keep only genuine candidate interview experiences.",
-                config("browser_first", 26, List.of("reddit.com"), true, false)
-        ));
-
-        seeds.add(seed(
-                "reddit-experienced-devs",
-                "Reddit r/ExperiencedDevs",
-                "https://www.reddit.com/r/ExperiencedDevs/",
-                "html",
-                12,
-                2000,
-                true,
-                "Experienced-developer interview discussions.",
-                config("browser_first", 26, List.of("reddit.com"), true, false)
         ));
 
         return List.copyOf(seeds);
