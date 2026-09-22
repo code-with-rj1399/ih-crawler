@@ -53,6 +53,16 @@ public class DevController {
         return sourceRepository.save(source);
     }
 
+    @PostMapping("/sources/disable-all")
+    public void disableAllSources() {
+        for (CrawlSource source : sourceRepository.findAll()) {
+            if (Boolean.TRUE.equals(source.getEnabled())) {
+                source.setEnabled(false);
+                sourceRepository.save(source);
+            }
+        }
+    }
+
     @PostMapping("/sources")
     public CrawlSource addSource(@RequestBody CreateSourceRequest request) {
         if (request == null || request.name() == null || request.name().isBlank()
