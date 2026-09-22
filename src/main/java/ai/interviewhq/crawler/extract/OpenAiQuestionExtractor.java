@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
@@ -60,128 +61,15 @@ public class OpenAiQuestionExtractor {
         }
 
         try {
-            String prompt = """
-                    You are an advanced technical interview data extraction engine.
+            String prompt = loadPrompt()
+                    .replace("{{source_platform}}", source.getName())
+                    .replace("{{post_url}}", postUrl)
+                    .replace("{{title}}", title == null ? "" : title)
+                    .replace("{{author}}", author == null ? "" : author)
+                    .replace("{{published_at}}", publishedAt == null ? "" : publishedAt.toString())
+                    .replace("{{tags}}", "")
+                    .replace("{{page_content}}", truncate(bodyText));
 
-                    The crawler has already fetched this interview-experience post and supplied its content below.
-                    DO NOT browse the web, search, open URLs, or use tools.
-
-                    SOURCE PLATFORM: %s
-                    POST URL: %s
-                    TITLE: %s
-                    AUTHOR: %s
-                    PUBLISHED AT: %s
-
-                    PAGE CONTENT:
-                    ---
-                    %s
-                    ---
-
-                    STEP 1: AUTHENTICITY & COMPANY GATE
-                    - Determine whether this is a REAL personal interview, assessment, or hiring experience.
-                    - Reject tutorials, preparation articles, generic question lists, study guides, question banks,
-                      practice problems, or generic interview advice unless they clearly contain a separate personal experience.
-                    - A COMPANY MUST be explicitly supported by the supplied content or reliable metadata.
-                    - Never guess a company from the technology, role, author, or question itself.
-                    - Company names may appear in page content, title, tags, source metadata, or explicit company URLs.
-                    - If no reliable company signal exists, return an empty questions list.
-
-                    STEP 2: QUESTION EXTRACTION
-                    Extract ONLY questions that were actually asked, or clearly named/described as an interview task
-                    in the supplied experience.
-
-                    CRITICAL:
-                    - Do NOT create a question from generic statements such as "standard LeetCode tagged questions",
-                      "LeetCode questions", "coding rounds", "technical discussion", or "project discussion".
-                    - Do NOT invent a specific coding problem when the source does not identify one.
-                    - If a round only says "Standard Leetcode tagged questions", extract NOTHING from that statement.
-                    - If the source explicitly names or clearly describes a task, extract it even when details are sparse.
-                      Example: "Design: Calendar" -> "Design a calendar."
-                    - Preserve the source's level of specificity.
-                    - Extract every distinct named/described technical question separately.
-                    - Never merge separate questions.
-                    - Never split one question merely because it has multiple requirements.
-
-                    QUESTION TEXT:
-                    - One concise line, preferably one sentence, <= 140 characters.
-                    - Represent the actual technical task, not interview narrative.
-                    - Remove filler such as "they asked me", "one question was", "the question was", "a variation of".
-                    - Do not add "(Coding)", "(System Design)", "(Product)", "Variant", or similar labels.
-                    - If the source explicitly names the problem, preserve that name.
-                    - If only a descriptive task is provided, use only the information in the source.
-                    - Never infer or substitute a canonical problem name from general knowledge.
-
-                    QUESTION DESCRIPTION:
-                    - Be elaborative and source-grounded.
-                    - Preserve ALL useful technical details explicitly present in the source.
-                    - Include requirements, inputs, outputs, constraints, edge cases, clarifications, follow-ups,
-                      approaches explicitly discussed, complexity observations, and trade-offs when they are relevant.
-                    - Do not force a short word limit.
-                    - Prefer several concise sentences when the source contains useful detail.
-                    - If the source only provides a short task name/topic, keep the description short and faithful.
-                    - Never invent constraints, examples, algorithms, solutions, scale, APIs, storage, traffic,
-                      or other requirements.
-                    - Do not use general knowledge to fill missing details.
-                    - Do not turn a vague topic into a detailed hypothetical problem.
-                    - The description must describe the same actual question as questionText.
-
-                    EVIDENCE REQUIREMENT:
-                    Include an item only when you can point to specific supplied content showing that it was an
-                    actual technical question/problem in the author's experience.
-                    - "Standard Leetcode tagged questions" -> NOT a question.
-                    - "Past project architecture discussion" -> NOT a question unless a concrete technical task is given.
-                    - "Design: Calendar" -> IS a question/task.
-                    - A named coding problem -> IS a question.
-                    - A concrete system design prompt -> IS a question.
-
-                    PROBLEM URL:
-                    - problemUrl is ONLY the URL of the actual problem/question, never the interview-experience post URL.
-                    - Inspect visible URLs, markdown links, HTML anchors, and URLs associated with the specific question.
-                    - Preserve the exact direct problem URL when supplied.
-                    - Never copy POST URL into problemUrl.
-                    - Never construct, guess, infer, or search for a problem URL.
-                    - If no direct problem URL is present, use null.
-
-                    METADATA:
-                    - sourcePlatform comes from the supplied source metadata.
-                    - postDate comes from the supplied publication timestamp when available.
-                    - role, level, location, candidateYoE, outcome, and roundType must be supported by the supplied content.
-                    - difficulty is Easy, Medium, or Hard only when supported; otherwise null.
-                    - topics should contain only topics supported by the source.
-                    - confidence is 0.0-1.0 and reflects extraction confidence, not problem difficulty.
-
-                    STRICT PROHIBITIONS:
-                    - Never invent questions or metadata.
-                    - Never use external knowledge to fill gaps.
-                    - Never turn generic categories into specific questions.
-                    - Never copy interview narrative into questionText.
-                    - Never use the post URL as problemUrl.
-
-                    QUALITY TEST:
-                    Before including each question, ask:
-                    1. Can I point to specific supplied text showing this was an actual technical question/task?
-                    2. Does questionText describe that actual task rather than narrative or a generic category?
-                    3. Is every detail in questionDescription supported by the supplied content?
-                    If any answer is NO, do not include the unsupported question/detail.
-
-                    Return ONLY valid JSON matching the required schema.
-                    """.formatted(
-                    source.getName(),
-                    postUrl,
-                    title,
-                    author,
-                    publishedAt,
-                    truncate(bodyText)
-            );
-
-            log.info("""
-                    ==================== OPENAI EXTRACTION PROMPT ====================
-                    source={}
-                    postUrl={}
-                    {}
-                    ================== END OPENAI EXTRACTION PROMPT ==================
-                    """, source.getSlug(), postUrl, prompt);
-            
             JsonNode root = callOpenAi(prompt, questionExtractionSchema(), source);
             String output = extractOutputText(root);
             if (output == null || output.isBlank()) {
@@ -282,6 +170,15 @@ public class OpenAiQuestionExtractor {
                     + ", usage=" + root.path("usage"));
         }
         return root;
+    }
+
+    private String loadPrompt() {
+        try {
+            return new String(new ClassPathResource("prompts/interview_question_extraction.txt")
+                    .getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            throw new IllegalStateException("Unable to load shared extraction prompt", e);
+        }
     }
 
     private JsonNode questionExtractionSchema() {
