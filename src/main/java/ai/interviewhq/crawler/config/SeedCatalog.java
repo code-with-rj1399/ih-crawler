@@ -40,7 +40,7 @@ public final class SeedCatalog {
                 "leetcode_graphql",
                 12,
                 2000,
-                true,
+                false,
                 "LeetCode interview-question discussions. Keep only genuine candidate interview experiences.",
                 config("browser_first", 26, List.of("leetcode.com"), true, false)
         ));
@@ -52,7 +52,7 @@ public final class SeedCatalog {
                 "html",
                 12,
                 2000,
-                true,
+                false,
                 "Search for recent interview experience and company-specific interview discussions.",
                 config("browser_first", 26, List.of("teamblind.com"), true, false)
         ));
@@ -64,7 +64,7 @@ public final class SeedCatalog {
                 "html",
                 12,
                 2000,
-                true,
+                false,
                 "TeamBlind search results for interview experience discussions.",
                 config("browser_first", 26, List.of("teamblind.com"), true, false)
         ));
@@ -76,7 +76,7 @@ public final class SeedCatalog {
                 "html",
                 6,
                 5000,
-                true,
+                false,
                 "GeeksforGeeks interview experiences category. Crawl recent experience posts and extract only genuine interview questions.",
                 config("browser_first", 26, List.of("geeksforgeeks.org"), true, false)
         ));
@@ -88,7 +88,7 @@ public final class SeedCatalog {
                 "html",
                 12,
                 2000,
-                true,
+                false,
                 "TeamBlind interview-experiences channel.",
                 config("browser_first", 26, List.of("teamblind.com"), true, false)
         ));
