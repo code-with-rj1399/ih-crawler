@@ -97,7 +97,14 @@ QUESTION TEXT
   "Design Postman" -> "Design Postman"
   "Find Second Highest Salary Using SQL" -> "Find second-highest salary using SQL"
 - Do not rewrite a short question into a more sophisticated question.
-- Do not turn a statement into a question.
+- A source may contain a valid interview question as a short fragment or shorthand, such as "next greatest element", "binary search", or "LRU cache".
+- When the source fragment clearly names a concrete technical task/problem, you may make only the minimum grammatical normalization needed to form a natural question/task sentence.
+- Example: "next greatest element" -> "Find the next greater element."
+- Example: "binary search" -> "Implement binary search." ONLY when the surrounding source clearly indicates it was an interview task; otherwise preserve the fragment.
+- Example: "LRU cache" -> "Implement an LRU cache." ONLY when the surrounding source clearly indicates it was an implementation task.
+- Do NOT add algorithmic requirements, input/output details, constraints, examples, data structures, optimization requirements, or solution techniques that are not present in the source.
+- In particular, do NOT turn "next greatest element" into a detailed problem statement or mention a monotonic stack unless the source explicitly does so.
+- Do not turn a source statement into a question unless the source clearly indicates that the item was asked/presented as an interview task.
 
 QUESTION DESCRIPTION
 
