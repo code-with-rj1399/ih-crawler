@@ -61,10 +61,7 @@ Classify each accepted question using one clear canonical type. Prefer these val
 - SYSTEM_DESIGN
 - LLD
 - DATABASE
-- JAVA
-- SPRING
-- BACKEND
-- AWS
+- CLOUD
 - SECURITY
 - DEVOPS
 - AI_ML
@@ -75,6 +72,7 @@ Classify each accepted question using one clear canonical type. Prefer these val
 - OPERATING_SYSTEMS
 - DISTRIBUTED_SYSTEMS
 - BEHAVIORAL
+- TECHNICAL_CONCEPT
 - OTHER_TECHNICAL
 
 Use PROJECT_DISCUSSION, TOOLING_CHECK, INTERVIEW_PROCESS, or NOISE only internally to decide whether to reject an item; do not return rejected items.
