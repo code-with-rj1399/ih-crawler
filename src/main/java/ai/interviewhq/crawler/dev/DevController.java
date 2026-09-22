@@ -45,6 +45,14 @@ public class DevController {
         return sourceRepository.findAll();
     }
 
+    @PatchMapping("/sources/{id}/enabled")
+    public CrawlSource setSourceEnabled(@PathVariable Integer id, @RequestParam boolean enabled) {
+        CrawlSource source = sourceRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Source not found: " + id));
+        source.setEnabled(enabled);
+        return sourceRepository.save(source);
+    }
+
     @GetMapping("/questions")
     public List<InterviewQuestion> questions() {
         return questionRepository.findAll().stream()
