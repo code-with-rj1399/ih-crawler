@@ -56,7 +56,7 @@ public class DevController {
     @PostMapping("/sources/disable-all")
     public void disableAllSources() {
         for (CrawlSource source : sourceRepository.findAll()) {
-            if (Boolean.TRUE.equals(source.getEnabled())) {
+            if (source.isEnabled()) {
                 source.setEnabled(false);
                 sourceRepository.save(source);
             }
