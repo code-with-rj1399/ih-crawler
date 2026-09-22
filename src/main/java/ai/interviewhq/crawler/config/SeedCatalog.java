@@ -34,6 +34,18 @@ public final class SeedCatalog {
         List<Seed> seeds = new ArrayList<>();
 
         seeds.add(seed(
+                "leetcode-discuss",
+                "LeetCode Discuss",
+                "https://leetcode.com/discuss/interview-question/",
+                "html",
+                6,
+                10000,
+                true,
+                "LeetCode interview-question discussions. Keep only genuine candidate interview experiences.",
+                config("browser_first", 48, List.of("leetcode.com"), true, false)
+        ));
+
+        seeds.add(seed(
                 "glassdoor-interviews",
                 "Glassdoor Interview",
                 "https://www.glassdoor.com/Interview/index.htm",
