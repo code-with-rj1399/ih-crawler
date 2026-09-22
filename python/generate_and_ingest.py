@@ -41,7 +41,7 @@ def push_to_dynamodb(payload):
         return True
     except ClientError as e:
         if e.response.get("Error", {}).get("Code") == "ConditionalCheckFailedException":
-            print(f"[SKIP] Already exists: {item["experienceId"]}")
+            print(f"[SKIP] Already exists: {item['experienceId']}")
             return False
         raise
 def main():
@@ -55,6 +55,6 @@ def main():
         try:
             payload = extract(record)
             inserted = push_to_dynamodb(payload)
-            print(f"[OK] {i}/{len(records)} {"pushed" if inserted else "already exists"}: {len(payload.get("questions", []))} questions")
+            status = "pushed" if inserted else "already exists"\n            print(f"[OK] {i}/{len(records)} {status}: {len(payload.get('questions', []))} questions")
         except Exception as e: print(f"[ERROR] {i}/{len(records)}: {e}")
 if __name__ == "__main__": main()
