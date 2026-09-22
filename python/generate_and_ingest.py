@@ -21,9 +21,9 @@ You are InterviewHQ's QUESTION EXTRACTION engine.
 Your ONLY job is to extract the actual interview questions/problems from the
 supplied interview-experience source and write a faithful questionDescription.
 
-Stage 1 MUST NOT extract company, role, level, location, candidate experience,
-outcome, round type, question type, difficulty, topics, candidate approach,
-URLs, dates, confidence, or any other metadata.
+Stage 1 output is intentionally limited to questionText and questionDescription. However, use the ENTIRE source and all surrounding context to understand each question correctly. Company, round, role, interviewer wording, and other contextual information may be used as evidence while extracting the two output fields.
+
+Do not produce metadata fields in the Stage 1 output.
 
 SOURCE
 ------
@@ -126,9 +126,12 @@ OUTPUT
 ------
 Return ONLY JSON matching the supplied schema.
 
-The ONLY fields allowed are:
+The ONLY output fields are:
+- questionId
 - questionText
 - questionDescription
+
+questionId must be a deterministic sequential identifier in source order: q1, q2, q3, etc. Do not skip or reuse IDs.
 
 If the source is not an interview experience or contains no actual questions,
 return an empty questions array.
@@ -141,11 +144,13 @@ You are InterviewHQ's METADATA EXTRACTION engine.
 Stage 1 has already extracted the interview questions and their
 source-grounded descriptions.
 
-Your ONLY job is to extract metadata for those questions from the ORIGINAL
-SOURCE.
+Your ONLY job is to extract the OTHER metadata fields for each Stage 1
+question from the ORIGINAL SOURCE.
+
+Use the original source plus the Stage 1 question and description as context.
 
 Do NOT rewrite, improve, expand, classify, or generate questionText or
-questionDescription.
+questionDescription. Stage 1 owns those two fields.
 
 Do NOT invent information.
 
@@ -167,8 +172,8 @@ STAGE 1 QUESTIONS
 
 METADATA
 --------
-For each Stage 1 question, in EXACTLY the same order, extract only:
-company, role, level, location, candidateYoE, outcome, roundType,
+For each Stage 1 question, extract metadata only:
+questionId, company, role, level, location, candidateYoE, outcome, roundType,
 questionType, difficulty, candidateApproach, problemUrl, postDate, topics.
 
 Rules:
@@ -190,8 +195,7 @@ questionType must be one of:
 CODING, SYSTEM_DESIGN, LOW_LEVEL_DESIGN, BEHAVIORAL, TECHNICAL, DATABASE,
 DEVOPS, AI_ML, OTHER
 
-The output array MUST have the same number and order as the Stage 1 questions.
-Do not drop or add questions in Stage 2.
+Every Stage 1 question must have exactly one corresponding Stage 2 metadata object. Preserve the Stage 1 questionId exactly. Do not invent, drop, merge, or duplicate question IDs.
 
 OUTPUT
 ------
@@ -209,10 +213,11 @@ STAGE1_SCHEMA = {
                 "type": "object",
                 "additionalProperties": False,
                 "properties": {
+                    "questionId": {"type": "string"},
                     "questionText": {"type": "string"},
                     "questionDescription": {"type": "string"},
                 },
-                "required": ["questionText", "questionDescription"],
+                "required": ["questionId", "questionText", "questionDescription"],
             },
         }
     },
@@ -229,6 +234,7 @@ STAGE2_SCHEMA = {
                 "type": "object",
                 "additionalProperties": False,
                 "properties": {
+                    "questionId": {"type": "string"},
                     "company": {"type": ["string", "null"]},
                     "role": {"type": ["string", "null"]},
                     "level": {"type": ["string", "null"]},
@@ -244,7 +250,7 @@ STAGE2_SCHEMA = {
                     "topics": {"type": "array", "items": {"type": "string"}},
                 },
                 "required": [
-                    "company", "role", "level", "location", "candidateYoE",
+                    "questionId", "company", "role", "level", "location", "candidateYoE",
                     "outcome", "roundType", "questionType", "difficulty",
                     "candidateApproach", "problemUrl", "postDate", "topics",
                 ],
@@ -356,16 +362,26 @@ def normalize_payload(
             f"{len(questions1)} Stage 1 questions"
         )
 
+    stage1_ids = [q.get("questionId") for q in questions1]
+    stage2_ids = [q.get("questionId") for q in questions2]
+    if stage1_ids != stage2_ids:
+        raise ValueError(
+            f"Stage 1/Stage 2 questionId mismatch: "
+            f"stage1={stage1_ids}, stage2={stage2_ids}"
+        )
+
     clean_questions: list[dict[str, Any]] = []
     for q1, q2 in zip(questions1, questions2):
+        question_id = (q1.get("questionId") or "").strip()
         question_text = (q1.get("questionText") or "").strip()
         question_description = (q1.get("questionDescription") or "").strip()
         company = (q2.get("company") or "").strip()
 
-        if not question_text or not question_description or not company:
+        if not question_id or not question_text or not question_description or not company:
             continue
 
         clean_questions.append({
+            "questionId": question_id,
             "company": company,
             "questionText": question_text,
             "questionDescription": question_description,
