@@ -126,7 +126,7 @@ Resources:
                   - dynamodb:Query
                   - dynamodb:Scan
                   - dynamodb:DescribeTable
-                Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDbTableName}
+                Resource: !GetAtt DynamoDbTable.Arn
 
   TaskDefinition:
     Type: AWS::ECS::TaskDefinition
