@@ -105,15 +105,17 @@ Write a useful technical description of the question using ONLY information expl
 
 - The description may be 3-7 short lines when the source provides enough detail.
 - Include the actual task, stated requirements, constraints, inputs/outputs, expected behavior, follow-ups, examples, or edge cases only when the source explicitly mentions them.
-- For system-design questions, describe the system/problem and explicitly reported requirements or components, but do not invent architecture.
-- For DSA/coding questions, describe the problem, input/output expectations, constraints, and examples only when reported.
-- For database questions, include the table/query requirement and relevant conditions only when reported.
-- For technical concept questions, briefly explain what the source says was asked; do not provide an external textbook answer.
+- For system-design questions, describe ONLY the system/problem and requirements explicitly stated in the source. Do not add architecture, components, scale, users, APIs, storage, availability, or product features unless explicitly reported.
+- For DSA/coding questions, describe ONLY the problem, input/output expectations, constraints, examples, or follow-ups explicitly reported.
+- For database questions, include ONLY the table/query requirement and conditions explicitly reported.
+- For technical concept questions, describe ONLY what the source says was asked; do not provide an external textbook answer.
 - Do NOT mention "Round 1", "Round 2", HLD, LLD, interviewer comments, candidate reactions, or interview narrative unless they are part of the actual technical requirement.
-- Do NOT answer the question yourself.
-- Do NOT expand a sparse question using general knowledge.
-- If the source only says "Design Postman itself", the description must remain sparse and faithful; never invent features such as collections, runners, collaboration, authentication, or distributed architecture.
-- If the source provides enough detail, prefer a useful 3-7 line description over a one-line restatement.
+- Do NOT answer, solve, explain, or elaborate on the question.
+- Do NOT expand a sparse question using general knowledge, even when the question is a well-known interview prompt.
+- The description is NOT a place to explain what the question "means", what a typical interviewer expects, or what requirements are missing.
+- If the source only says "Design Postman itself", use a sparse description such as "Design Postman itself." Do NOT write descriptions such as "System design prompt: design the Postman product itself" or "No additional requirements beyond the stated goal".
+- If the source provides enough detail, prefer a useful 3-7 line description. Otherwise, use a concise source-faithful description or repeat the question text.
+- Every sentence in questionDescription must be directly traceable to the source evidence for that question.
 
 TOPICS
 
