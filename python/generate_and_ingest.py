@@ -23,6 +23,8 @@ POST URL: {post_url}
 TITLE: {title}
 AUTHOR: {author}
 PUBLISHED AT: {published_at}
+TAGS: {tags}
+TAGS: {tags}
 
 PAGE CONTENT:
 ---
@@ -34,13 +36,18 @@ Follow these strictly ordered steps to extract data:
 STEP 1: AUTHENTICITY & COMPANY GATE
 - Evaluate if this is a REAL, personal interview experience (e.g., "I interviewed at...").
 - If it is a tutorial, generic list ("Top 50 questions"), or study guide, STOP. Return an empty questions list.
-- A COMPANY MUST BE IDENTIFIED in the text. NEVER guess or infer the company. If missing, return an empty questions list.
+- A COMPANY MUST BE IDENTIFIED from the supplied source material or metadata.
+- Company identification may come from the page content, title, tags, source metadata, or explicit company URL/path.
+- Treat company-specific tags (for example, "facebook", "linkedin", "google") as explicit source metadata when supplied.
+- Normalize obvious company-name capitalization (for example, "facebook" -> "Facebook").
+- NEVER infer a company from the question itself or from general knowledge.
+- If the supplied content and metadata contain no reliable company signal, return an empty questions list.
 
 STEP 2: QUESTION EXTRACTION
 Extract only the actual technical questions/problems given to the candidate.
 For each question, formulate:
 - questionText: A 1-line, concise core problem statement (<= 140 chars).
-- questionDescription: A 3-4 sentence "LeetCode-style" problem statement containing only the task, inputs, outputs, and explicit constraints.
+- questionDescription: An elaborative, source-grounded description. Preserve useful technical details explicitly present in the source, including requirements, inputs, outputs, constraints, edge cases, clarifications, follow-ups, approaches discussed, complexity observations, and trade-offs. Do not force a short word limit or omit useful details merely for brevity.
 
 STEP 3: APPLY STRICT PROHIBITIONS (CRITICAL)
 - NEVER include interview narrative (Remove: "The interviewer asked me...", "A variation of...", etc.).
@@ -150,6 +157,7 @@ def get_source_fields(record: dict[str, Any]) -> dict[str, str]:
     title = record.get("title") or ""
     author = record.get("author") or record.get("postedBy") or ""
     published_at = record.get("publishedAt") or record.get("postDate") or record.get("postedAt") or ""
+    tags = record.get("tags") or record.get("tag") or []
     page_content = (
         record.get("pageContent")
         or record.get("content")
@@ -165,6 +173,7 @@ def get_source_fields(record: dict[str, Any]) -> dict[str, str]:
         "title": str(title),
         "author": str(author),
         "published_at": str(published_at),
+        "tags": json.dumps(tags, ensure_ascii=False) if isinstance(tags, (list, dict)) else str(tags),
         "page_content": page_content,
     }
 
@@ -203,7 +212,7 @@ def call_json(prompt: str, schema: dict[str, Any], schema_name: str, max_output_
 def extract(record: dict[str, Any]) -> dict[str, Any]:
     fields = get_source_fields(record)
     return call_json(
-        EXTRACTION_PROMPT.replace("{source_platform}", fields["source_platform"]).replace("{post_url}", fields["post_url"]).replace("{title}", fields["title"]).replace("{author}", fields["author"]).replace("{published_at}", fields["published_at"]).replace("{page_content}", fields["page_content"]),
+        EXTRACTION_PROMPT.replace("{source_platform}", fields["source_platform"]).replace("{post_url}", fields["post_url"]).replace("{title}", fields["title"]).replace("{author}", fields["author"]).replace("{published_at}", fields["published_at"]).replace("{tags}", fields["tags"]).replace("{page_content}", fields["page_content"]),
         EXTRACTION_SCHEMA,
         "interview_question_extraction",
         None,
