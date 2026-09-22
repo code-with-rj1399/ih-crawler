@@ -220,7 +220,7 @@ def crawl_interview_experiences(
         payload = {
             "query": TOPIC_LIST_QUERY,
             "variables": {
-                "categories": ["interview-experience", "interview"],
+                "categories": ["interview-experience"],
                 "first": 50,
                 "after": after_cursor or None,
                 "query": "",
