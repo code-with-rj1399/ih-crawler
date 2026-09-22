@@ -317,7 +317,7 @@ def extract_metadata(
     stage1: dict[str, Any],
 ) -> dict[str, Any]:
     questions = json.dumps(stage1.get("questions") or [], ensure_ascii=False, indent=2)
-    prompt = STAGE2_PROMPT.format(**fields, questions=questions)
+    prompt = STAGE2_PROMPT.format(**fields, questions_json=questions)
     return call_json(
         prompt,
         STAGE2_SCHEMA,
