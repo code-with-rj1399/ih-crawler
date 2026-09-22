@@ -126,6 +126,79 @@ EXTRACTION_SCHEMA = {
 
 
 
+def load_records(directory: str, limit: int) -> list[dict[str, Any]]:
+    records: list[dict[str, Any]] = []
+    for path in sorted(glob.glob(os.path.join(directory, "*.json"))):
+        try:
+            with open(path, encoding="utf-8") as f:
+                data = json.load(f)
+            items = data if isinstance(data, list) else [data]
+            for item in items:
+                if isinstance(item, dict):
+                    records.append(item)
+                    if len(records) >= limit:
+                        return records
+        except Exception as e:
+            print(f"[WARN] {path}: {e}")
+    return records
+
+
+def get_source_fields(record: dict[str, Any]) -> dict[str, str]:
+    source_platform = record.get("platform") or record.get("source") or record.get("sourcePlatform") or ""
+    post_url = record.get("url") or record.get("sourceUrl") or record.get("originalPostUrl") or ""
+    title = record.get("title") or ""
+    author = record.get("author") or record.get("postedBy") or ""
+    published_at = record.get("publishedAt") or record.get("postDate") or record.get("postedAt") or ""
+    page_content = (
+        record.get("pageContent")
+        or record.get("content")
+        or record.get("text")
+        or json.dumps(record, ensure_ascii=False)
+    )
+    page_content = str(page_content)
+    if len(page_content) > MAX_CONTENT_CHARS:
+        page_content = page_content[:MAX_CONTENT_CHARS]
+    return {
+        "source_platform": str(source_platform),
+        "post_url": str(post_url),
+        "title": str(title),
+        "author": str(author),
+        "published_at": str(published_at),
+        "page_content": page_content,
+    }
+
+
+def call_json(prompt: str, schema: dict[str, Any], schema_name: str, max_output_tokens: int) -> dict[str, Any]:
+    response = client.responses.create(
+        model=MODEL,
+        input=prompt,
+        max_output_tokens=max_output_tokens,
+        text={
+            "format": {
+                "type": "json_schema",
+                "name": schema_name,
+                "strict": True,
+                "schema": schema,
+            }
+        },
+    )
+    text = (response.output_text or "").strip()
+    if not text:
+        details = []
+        incomplete = getattr(response, "incomplete_details", None)
+        if incomplete:
+            details.append(f"incomplete_details={incomplete}")
+        usage = getattr(response, "usage", None)
+        if usage:
+            details.append(f"usage={usage}")
+        raise ValueError("OpenAI returned an empty output" + (f" ({'; '.join(details)})" if details else ""))
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"Invalid JSON from OpenAI: {text[:2000]}") from exc
+
+
+
 def extract(record: dict[str, Any]) -> dict[str, Any]:
     fields = get_source_fields(record)
     return call_json(
