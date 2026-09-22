@@ -6,14 +6,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Verified crawl seeds. URLs were live-checked on 2026-09-21 (HTTP, no JS).
+ * Development crawl seeds for interview-experience discovery.
  *
- * <p>LeetCode uses its GraphQL API for the Interview Discuss feed; the
- * crawler has a LeetCode-specific GraphQL path and does not depend on this
- * page being rendered into HTML links.
- *
- * <p>Retired: problem catalogs / prep kits / Cloudflare-only low-signal pages
- * that are not interview experiences.
+ * <p>These seeds intentionally cover multiple public communities rather than
+ * relying on a single source. Company-specific URL templates are represented
+ * in notes because the crawler needs concrete URLs before it can crawl them.
  */
 public final class SeedCatalog {
 
@@ -37,171 +34,94 @@ public final class SeedCatalog {
         List<Seed> seeds = new ArrayList<>();
 
         seeds.add(seed(
-                "leetcode-interviews",
-                "LeetCode Interview Experience",
-                "https://leetcode.com/discuss/topic/interview/",
-                "leetcode_discuss",
-                20,
-                4000,
+                "glassdoor-interviews",
+                "Glassdoor Interview",
+                "https://www.glassdoor.com/Interview/index.htm",
+                "html",
+                6,
+                10000,
                 true,
-                "LeetCode Interview Discuss feed. Discovery uses the GraphQL API, not HTML/Chromium.",
-                config("graphql", 48, List.of("leetcode.com"), false, false)
+                "General Glassdoor interview index. Company-specific pages follow /Interview/[Company-Name]-Interview-Questions-E[ID].htm.",
+                config("browser_first", 48, List.of("glassdoor.com"), true, false)
         ));
 
-        /*
-        // Temporarily disabled: work only on LeetCode until its discovery/extraction flow is fixed.
-                seeds.add(seed(
-                        "hacker-news-interviews",
-                        "Hacker News Interview Discussions",
-                        "https://hn.algolia.com/api/v1/search_by_date?query=interview%20experience&tags=story&hitsPerPage=30",
-                        "hn_algolia",
-                        30,
-                        2000,
-                        true,
-                        "HTTP 200 JSON. search_by_date is fresher than popularity search.",
-                        config("http_first", 48, List.of("news.ycombinator.com", "hn.algolia.com"), false, false)
-                ));
-        
-                seeds.add(seed(
-                        "reddit-cscareerquestions",
-                        "Reddit cscareerquestions",
-                        "https://www.reddit.com/r/cscareerquestions/.rss",
-                        "rss",
-                        8,
-                        8000,
-                        true,
-                        "JSON endpoints 403. Official Atom feed returns 200 with dated items.",
-                        config("http_first", 48, List.of("reddit.com"), false, true)
-                ));
-        
-                seeds.add(seed(
-                        "reddit-experienced-devs",
-                        "Reddit ExperiencedDevs",
-                        "https://www.reddit.com/r/ExperiencedDevs/.rss",
-                        "rss",
-                        8,
-                        8000,
-                        true,
-                        "Replaced new.json (403) with Atom feed. Reddit rate-limits bursts; keep delay high.",
-                        config("http_first", 48, List.of("reddit.com"), false, true)
-                ));
-        
-                seeds.add(seed(
-                        "geeksforgeeks-interviews",
-                        "GeeksforGeeks Interview Experiences",
-                        "https://www.geeksforgeeks.org/category/experiences/interview-experiences/",
-                        "html",
-                        12,
-                        4000,
-                        true,
-                        "HTTP 200 listing with live /interview-experiences/{slug} articles. GFG RSS 404.",
-                        config("http_first", 48, List.of("geeksforgeeks.org"), false, false)
-                ));
-        
-                seeds.add(seed(
-                        "devto-interview",
-                        "DEV Community Interview",
-                        "https://dev.to/t/interview",
-                        "html",
-                        12,
-                        3000,
-                        true,
-                        "Canonical tag URL is /t/interview (old /tag/interview redirects). HTTP 200.",
-                        config("http_first", 48, List.of("dev.to"), false, false)
-                ));
-        
-                seeds.add(seed(
-                        "devto-interview-feed",
-                        "DEV Community Interview RSS",
-                        "https://dev.to/feed/tag/interview",
-                        "rss",
-                        12,
-                        3000,
-                        true,
-                        "HTTP 200 RSS with full article bodies and pubDate — cheaper than HTML discovery.",
-                        config("http_first", 48, List.of("dev.to"), false, true)
-                ));
-        
-                seeds.add(seed(
-                        "devto-interview-experience",
-                        "DEV Community Interview Experience RSS",
-                        "https://dev.to/feed/tag/interviewexperience",
-                        "rss",
-                        12,
-                        3000,
-                        true,
-                        "HTTP 200 RSS of candidate write-ups. Lower volume, higher signal than #interview.",
-                        config("http_first", 72, List.of("dev.to"), false, true)
-                ));
-        
-                seeds.add(seed(
-                        "medium-software-interviews",
-                        "Medium Coding Interview RSS",
-                        "https://medium.com/feed/tag/coding-interview",
-                        "rss",
-                        10,
-                        5000,
-                        true,
-                        "HTML tag page is Cloudflare 403. coding-interview RSS is 200 with dated items. "
-                                + "Generic /tag/interview RSS is noisy (non-SWE content).",
-                        config("http_first", 48, List.of("medium.com"), false, true)
-                ));
-        
-                seeds.add(seed(
-                        "hashnode-interview",
-                        "Hashnode Interview",
-                        "https://hashnode.com/tag/interview",
-                        "html",
-                        10,
-                        4000,
-                        true,
-                        "HTTP 200 tag page but article links are JS-rendered; Chromium first. "
-                                + "hashnode.com/n/interview redirects here. Public tag RSS 404.",
-                        config("browser_first", 48, List.of("hashnode.com", "hashnode.dev"), true, false)
-                ));
-        
-                // Retired: verified as the wrong kind of page, not a broken crawl of good sources.
-                seeds.add(retired(
-                        "interviewbit-questions",
-                        "InterviewBit Coding Interview Questions",
-                        "https://www.interviewbit.com/coding-interview-questions/",
-                        "html",
-                        "HTTP 200 but this is a practice-problem catalog, not interview experiences."
-                ));
-                seeds.add(retired(
-                        "codeforces-problems",
-                        "Codeforces Problemset",
-                        "https://codeforces.com/problemset",
-                        "html",
-                        "Cloudflare 403 and not interview content (contest problemset)."
-                ));
-                seeds.add(retired(
-                        "stackoverflow-interview-questions",
-                        "Stack Overflow Interview Questions",
-                        "https://stackoverflow.com/questions/tagged/interview-questions",
-                        "html",
-                        "Cloudflare 403; tag is mostly meta Q&A, not company interview write-ups. RSS also 403."
-                ));
-                seeds.add(retired(
-                        "hackerrank-interview-prep",
-                        "HackerRank Interview Preparation Kit",
-                        "https://www.hackerrank.com/interview/interview-preparation-kit",
-                        "html",
-                        "HTTP 200 but this is a prep kit / skill track, not recent interview experiences."
-                ));
-        
-        
-        */
+        seeds.add(seed(
+                "teamblind",
+                "TeamBlind",
+                "https://www.teamblind.com/",
+                "html",
+                6,
+                10000,
+                true,
+                "Search for recent interview experience and company-specific interview discussions.",
+                config("browser_first", 48, List.of("teamblind.com"), true, false)
+        ));
+
+        seeds.add(seed(
+                "teamblind-interview-experiences",
+                "TeamBlind Interview Experiences",
+                "https://www.teamblind.com/channels/interview-experiences",
+                "html",
+                6,
+                10000,
+                true,
+                "TeamBlind interview-experiences channel.",
+                config("browser_first", 48, List.of("teamblind.com"), true, false)
+        ));
+
+        seeds.add(seed(
+                "1point3acres",
+                "1Point3Acres",
+                "https://www.1point3acres.com/bbs/",
+                "html",
+                6,
+                10000,
+                true,
+                "Interview / 面经 community. Company search pages can be discovered from the forum.",
+                config("browser_first", 48, List.of("1point3acres.com"), true, false)
+        ));
+
+        seeds.add(seed(
+                "reddit-cscareerquestions",
+                "Reddit r/cscareerquestions",
+                "https://www.reddit.com/r/cscareerquestions/",
+                "html",
+                6,
+                10000,
+                true,
+                "Recent software-career interview discussions. Prefer dated posts and candidate-authored experiences.",
+                config("browser_first", 48, List.of("reddit.com"), true, false)
+        ));
+
+        seeds.add(seed(
+                "reddit-leetcode",
+                "Reddit r/leetcode",
+                "https://www.reddit.com/r/leetcode/",
+                "html",
+                6,
+                10000,
+                true,
+                "Recent LeetCode/interview discussions. Keep only genuine candidate interview experiences.",
+                config("browser_first", 48, List.of("reddit.com"), true, false)
+        ));
+
+        seeds.add(seed(
+                "reddit-experienced-devs",
+                "Reddit r/ExperiencedDevs",
+                "https://www.reddit.com/r/ExperiencedDevs/",
+                "html",
+                6,
+                10000,
+                true,
+                "Experienced-developer interview discussions.",
+                config("browser_first", 48, List.of("reddit.com"), true, false)
+        ));
+
         return List.copyOf(seeds);
     }
 
     public static List<Seed> enabled() {
         return all().stream().filter(Seed::enabled).toList();
-    }
-
-    private static Seed retired(String slug, String name, String url, String kind, String notes) {
-        return seed(slug, name, url, kind, 4, 8000, false, notes,
-                config("http_first", 48, List.of(), false, false));
     }
 
     private static Seed seed(
