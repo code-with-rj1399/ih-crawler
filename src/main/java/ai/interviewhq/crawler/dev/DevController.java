@@ -53,6 +53,41 @@ public class DevController {
         return sourceRepository.save(source);
     }
 
+    @PostMapping("/sources")
+    public CrawlSource addSource(@RequestBody CreateSourceRequest request) {
+        if (request == null || request.name() == null || request.name().isBlank()
+                || request.url() == null || request.url().isBlank()) {
+            throw new IllegalArgumentException("Name and URL are required");
+        }
+        String slug = request.name().toLowerCase(java.util.Locale.ROOT)
+                .replaceAll("[^a-z0-9]+", "-").replaceAll("^-+|-+$", "");
+        if (slug.isBlank()) slug = "seed-" + System.currentTimeMillis();
+        if (sourceRepository.findBySlug(slug).isPresent()) {
+            throw new IllegalArgumentException("A seed with slug already exists: " + slug);
+        }
+        CrawlSource source = new CrawlSource();
+        source.setSlug(slug);
+        source.setName(request.name().trim());
+        source.setUrl(request.url().trim());
+        source.setSourceKind(request.sourceKind() == null || request.sourceKind().isBlank() ? "html" : request.sourceKind().trim());
+        source.setEnabled(request.enabled() == null || request.enabled());
+        source.setRateLimitRpm(12);
+        source.setCrawlDelayMs(2000);
+        source.setPerHostConcurrency(1);
+        source.setRobotsMode("honor");
+        source.setNotes("Added from dev dashboard.");
+        return sourceRepository.save(source);
+    }
+
+    @DeleteMapping("/questions")
+    public void deleteAllQuestions() {
+        for (InterviewQuestion question : questionRepository.findAll()) {
+            if (question.getId() != null) questionRepository.deleteById(question.getId());
+        }
+    }
+
+    public record CreateSourceRequest(String name, String url, String sourceKind, Boolean enabled) {}
+
     @GetMapping("/questions")
     public List<InterviewQuestion> questions() {
         return questionRepository.findAll().stream()
