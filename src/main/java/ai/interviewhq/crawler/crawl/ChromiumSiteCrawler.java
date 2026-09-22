@@ -68,7 +68,7 @@ public class ChromiumSiteCrawler {
             int maxListingPages,
             Consumer<ParsedEntry> consumer) {
         if (source == null || source.getUrl() == null || source.getUrl().isBlank()) {
-            return List.of();
+            return;
         }
 
         int urlCap = Math.max(1, maxUrls);
@@ -79,7 +79,8 @@ public class ChromiumSiteCrawler {
         if ("leetcode-interviews".equals(source.getSlug())) {
             log.info("Using LeetCode GraphQL discovery: source={} cap={} cutoff={}",
                     source.getSlug(), urlCap, lookback);
-            return leetcodeGraphql.fetchRecent(source, lookback, urlCap);
+            leetcodeGraphql.fetchRecentStreaming(source, lookback, urlCap, consumer);
+            return;
         }
 
         int listingCap = Math.max(1, maxListingPages);
