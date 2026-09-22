@@ -81,16 +81,18 @@ EXTRACTION_SCHEMA = {
     "type": "object",
     "additionalProperties": False,
     "properties": {
+        "is_authentic_experience": {"type": "boolean"},
+        "company": {"type": ["string", "null"]},
         "questions": {
             "type": "array",
             "items": {
                 "type": "object",
                 "additionalProperties": False,
                 "properties": {
+                    "company": {"type": ["string", "null"]},
                     "sourcePlatform": {"type": ["string", "null"]},
                     "problemUrl": {"type": ["string", "null"]},
                     "postDate": {"type": ["string", "null"]},
-                    "company": {"type": ["string", "null"]},
                     "role": {"type": ["string", "null"]},
                     "level": {"type": ["string", "null"]},
                     "location": {"type": ["string", "null"]},
@@ -113,17 +115,16 @@ EXTRACTION_SCHEMA = {
                     "confidence": {"type": "number"},
                 },
                 "required": [
-                    "sourcePlatform", "problemUrl", "postDate", "company", "role", "level",
+                    "company", "sourcePlatform", "problemUrl", "postDate", "role", "level",
                     "location", "candidateYoE", "outcome", "roundType", "questionType",
                     "questionText", "questionDescription", "candidateApproach", "difficulty",
                     "topics", "confidence",
                 ],
             },
-        }
+        },
     },
-    "required": ["questions"],
+    "required": ["is_authentic_experience", "company", "questions"],
 }
-
 
 
 def load_records(directory: str, limit: int) -> list[dict[str, Any]]:
@@ -173,6 +174,7 @@ def call_json(prompt: str, schema: dict[str, Any], schema_name: str, max_output_
         model=MODEL,
         input=prompt,
         max_output_tokens=max_output_tokens,
+        reasoning={"effort": "minimal"},
         text={
             "format": {
                 "type": "json_schema",
