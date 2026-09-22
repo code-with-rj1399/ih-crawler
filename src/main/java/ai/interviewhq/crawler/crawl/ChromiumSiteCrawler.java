@@ -21,6 +21,7 @@ import java.util.Deque;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * For one site: discover interview article URLs from listing pages, then fetch
@@ -51,8 +52,23 @@ public class ChromiumSiteCrawler {
     }
 
     public List<ParsedEntry> crawl(CrawlSource source, Instant lookback, int maxUrls, int maxListingPages) {
+        List<ParsedEntry> entries = new ArrayList<>();
+        crawlStreaming(source, lookback, maxUrls, maxListingPages, entries::add);
+        return entries;
+    }
+
+    /**
+     * Crawls one source sequentially. Each discovered article is fully fetched
+     * and parsed, then emitted to the caller before the next article starts.
+     */
+    public void crawlStreaming(
+            CrawlSource source,
+            Instant lookback,
+            int maxUrls,
+            int maxListingPages,
+            Consumer<ParsedEntry> consumer) {
         if (source == null || source.getUrl() == null || source.getUrl().isBlank()) {
-            return List.of();
+            return;
         }
 
         int urlCap = Math.max(1, maxUrls);
@@ -63,7 +79,8 @@ public class ChromiumSiteCrawler {
         if ("leetcode-interviews".equals(source.getSlug())) {
             log.info("Using LeetCode GraphQL discovery: source={} cap={} cutoff={}",
                     source.getSlug(), urlCap, lookback);
-            return leetcodeGraphql.fetchRecent(source, lookback, urlCap);
+            leetcodeGraphql.fetchRecentStreaming(source, lookback, urlCap, consumer);
+            return;
         }
 
         int listingCap = Math.max(1, maxListingPages);
@@ -124,12 +141,12 @@ public class ChromiumSiteCrawler {
                 }
             }
 
-            List<ParsedEntry> entries = new ArrayList<>();
+            int emitted = 0;
             int fetched = 0;
             int httpHits = 0;
             int browserHits = 0;
             for (String articleUrl : articleUrls) {
-                if (entries.size() >= urlCap) {
+                if (emitted >= urlCap) {
                     break;
                 }
                 fetched++;
@@ -154,7 +171,8 @@ public class ChromiumSiteCrawler {
 
                     ParsedEntry entry = toEntry(page, lookback, source.getSlug());
                     if (entry != null) {
-                        entries.add(entry);
+                        consumer.accept(entry);
+                        emitted++;
                     }
                 } catch (RuntimeException ex) {
                     log.warn("Article fetch failed: source={} url={}: {}",
@@ -163,8 +181,7 @@ public class ChromiumSiteCrawler {
             }
 
             log.info("Site crawl finished: source={} listings={} discovered={} fetched={} kept={} httpHits={} browserHits={}",
-                    source.getSlug(), listingCount, articleUrls.size(), fetched, entries.size(), httpHits, browserHits);
-            return entries;
+                    source.getSlug(), listingCount, articleUrls.size(), fetched, emitted, httpHits, browserHits);
         }
     }
 

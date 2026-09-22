@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.function.Consumer;
 
 @Component
 public class GlassdoorAdapter implements SourceAdapter {
@@ -35,6 +36,16 @@ public class GlassdoorAdapter implements SourceAdapter {
     @Override
     public String kind() {
         return "glassdoor";
+    }
+
+    @Override
+    public void crawlStreaming(
+            CrawlSource source,
+            Instant lookback,
+            PoliteFetcher fetcher,
+            Consumer<ParsedEntry> consumer) {
+        int maxUrls = Math.max(1, settings.extractMaxPostsPerSource());
+        siteCrawler.crawlStreaming(source, lookback, maxUrls, maxListingPages, consumer);
     }
 
     @Override
