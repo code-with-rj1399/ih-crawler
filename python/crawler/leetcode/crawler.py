@@ -79,13 +79,16 @@ def subtract_months(value: date, months: int) -> date:
     return date(year, month, day)
 
 
-def parse_creation_date(value: str):
-    if not value:
+def parse_creation_date(value):
+    if value is None:
         return None
     try:
-        normalized = value.replace("Z", "+00:00")
+        # LeetCode may return creationDate as either an ISO string or a Unix timestamp.
+        if isinstance(value, (int, float)):
+            return datetime.fromtimestamp(value, tz=timezone.utc).date()
+        normalized = str(value).replace("Z", "+00:00")
         return datetime.fromisoformat(normalized).date()
-    except ValueError:
+    except (TypeError, ValueError, OverflowError):
         return None
 
 
