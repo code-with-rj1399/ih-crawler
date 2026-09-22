@@ -9,7 +9,8 @@ COPY crawler ./crawler
 
 RUN mkdir -p /data
 
+ENV PYTHONUNBUFFERED=1
 ENV OUTPUT_FILE=/data/leetcode_interviews.jsonl
 ENV CHECKPOINT_FILE=/data/checkpoint.txt
 
-CMD ["python", "-m", "crawler.leetcode.crawler"]
+CMD ["python", "-u", "-m", "crawler.leetcode.crawler"]
