@@ -70,6 +70,18 @@ public final class SeedCatalog {
         ));
 
         seeds.add(seed(
+                "teamblind-search-interview-experience",
+                "TeamBlind Interview Experience Search",
+                "https://www.teamblind.com/search/interview%20experience",
+                "html",
+                12,
+                2000,
+                true,
+                "TeamBlind search results for interview experience discussions.",
+                config("browser_first", 26, List.of("teamblind.com"), true, false)
+        ));
+
+        seeds.add(seed(
                 "teamblind-interview-experiences",
                 "TeamBlind Interview Experiences",
                 "https://www.teamblind.com/channels/interview-experiences",
