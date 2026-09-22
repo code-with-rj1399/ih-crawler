@@ -8,7 +8,7 @@
 body{font-family:system-ui,sans-serif;max-width:1100px;margin:32px auto;padding:0 20px;background:#f7f7f8;color:#222}
 h1{margin-bottom:4px}.muted{color:#777}.bar{display:flex;gap:12px;align-items:center;margin:22px 0}
 button{padding:9px 16px;border:0;border-radius:7px;background:#111;color:#fff;cursor:pointer}
-button:disabled{opacity:.5}.details-btn{padding:6px 10px;font-size:12px}.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);align-items:center;justify-content:center;padding:20px;z-index:10}.modal.open{display:flex}.modal-card{background:#fff;border-radius:12px;max-width:720px;width:100%;max-height:80vh;overflow:auto;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.2)}.modal-card h3{margin-top:0}.modal-close{float:right;background:#eee;color:#222;padding:5px 9px}.details-label{font-size:12px;color:#777;text-transform:uppercase;margin-top:16px}.details-description{line-height:1.55}section{background:#fff;border:1px solid #ddd;border-radius:10px;padding:18px;margin:18px 0}
+button:disabled{opacity:.5}.toggle{display:flex;align-items:center;gap:8px;white-space:nowrap}.toggle input{width:18px;height:18px;cursor:pointer}.details-btn{padding:6px 10px;font-size:12px}.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);align-items:center;justify-content:center;padding:20px;z-index:10}.modal.open{display:flex}.modal-card{background:#fff;border-radius:12px;max-width:720px;width:100%;max-height:80vh;overflow:auto;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.2)}.modal-card h3{margin-top:0}.modal-close{float:right;background:#eee;color:#222;padding:5px 9px}.details-label{font-size:12px;color:#777;text-transform:uppercase;margin-top:16px}.details-description{line-height:1.55}section{background:#fff;border:1px solid #ddd;border-radius:10px;padding:18px;margin:18px 0}
 table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:9px;border-bottom:1px solid #eee;vertical-align:top}
 th{font-size:13px;color:#666}.q{font-weight:600}.pill{font-size:12px;background:#eee;padding:3px 7px;border-radius:10px;margin:2px}
 a{color:#2563eb}
@@ -27,7 +27,21 @@ async function load(){
 }
 function renderSources(rows){
  document.getElementById('sources').innerHTML=rows.length?'<table><tr><th>Name</th><th>Kind</th><th>URL</th><th>Enabled</th></tr>'+rows.map(x=>
- '<tr><td>'+esc(x.name||x.slug)+'</td><td>'+esc(x.sourceKind)+'</td><td><a href="'+esc(x.url)+'" target="_blank">'+esc(x.url)+'</a></td><td>'+(x.enabled?'✓':'—')+'</td></tr>').join('')+'</table>':'No seeds';
+ '<tr><td>'+esc(x.name||x.slug)+'</td><td>'+esc(x.sourceKind)+'</td><td><a href="'+esc(x.url)+'" target="_blank" rel="noopener">'+esc(x.url)+'</a></td><td><label class="toggle"><input type="checkbox" '+(x.enabled?'checked':'')+' onchange="toggleSource('+x.id+',this.checked,this)"> <span>'+ (x.enabled?'Enabled':'Disabled') +'</span></label></td></tr>').join('')+'</table>':'No seeds';
+}
+async function toggleSource(id,enabled,input){
+ input.disabled=true;
+ try{
+   const r=await fetch('/dev/api/sources/'+id+'/enabled?enabled='+enabled,{method:'PATCH'});
+   if(!r.ok) throw new Error('HTTP '+r.status);
+   const label=input.parentElement.querySelector('span');
+   label.textContent=enabled?'Enabled':'Disabled';
+   document.getElementById('status').textContent=enabled?'Seed enabled':'Seed disabled';
+ }catch(e){
+   input.checked=!enabled;
+   input.parentElement.querySelector('span').textContent=!enabled?'Enabled':'Disabled';
+   document.getElementById('status').textContent='Failed to update seed';
+ }finally{input.disabled=false;}
 }
 let questionRows=[];
 function showDetails(i){const x=questionRows[i]||{};document.getElementById("detailsQuestion").textContent=x.questionText||"Question";document.getElementById("detailsDescription").textContent=x.questionDescription||"No description available.";document.getElementById("detailsModal").classList.add("open");}
