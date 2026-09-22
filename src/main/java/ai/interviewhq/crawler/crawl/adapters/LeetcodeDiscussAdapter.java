@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.function.Consumer;
 
 @Component
 public class LeetcodeDiscussAdapter implements SourceAdapter {
@@ -22,6 +23,15 @@ public class LeetcodeDiscussAdapter implements SourceAdapter {
     @Override
     public String kind() {
         return "leetcode_graphql";
+    }
+
+    @Override
+    public void crawlStreaming(
+            CrawlSource source,
+            Instant lookback,
+            PoliteFetcher fetcher,
+            Consumer<ParsedEntry> consumer) {
+        client.fetchRecentStreaming(source, lookback, 100, consumer);
     }
 
     @Override
