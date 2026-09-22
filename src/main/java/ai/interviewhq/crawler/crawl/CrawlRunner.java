@@ -53,7 +53,7 @@ public class CrawlRunner {
         this.chromiumSiteCrawler = chromiumSiteCrawler;
     }
 
-    @Scheduled(fixedDelayString = "${crawler.interval-ms:3600000}")
+    @Scheduled(cron = "${crawler.cron:0 0 * * * *}", zone = "${crawler.cron-zone:UTC}")
     public void scheduledRun() {
         runOnce();
     }
