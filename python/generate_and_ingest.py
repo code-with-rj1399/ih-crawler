@@ -2,14 +2,11 @@
 import argparse, glob, hashlib, json, os
 from datetime import datetime, timezone
 from typing import Any
-import boto3
-from botocore.exceptions import ClientError
 from openai import OpenAI
 MODEL = os.getenv("OPENAI_MODEL", "gpt-5-nano")
 DYNAMODB_TABLE = os.getenv("DYNAMODB_TABLE", "InterviewExperiences")
 AWS_REGION = os.getenv("AWS_REGION", "ap-south-1")
 client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
-table = boto3.resource("dynamodb", region_name=AWS_REGION).Table(DYNAMODB_TABLE)
 PROMPT = """You are an advanced technical interview question and problem listing engine.
 
 The crawler has already fetched this interview-experience post and supplied its content below.
@@ -82,7 +79,21 @@ def load_records(directory: str) -> list[dict[str, Any]]:
         except Exception as e: print(f"[WARN] {path}: {e}")
     return records
 def extract(record):
-    response = client.responses.create(model=MODEL, input=[{"role":"system","content":PROMPT},{"role":"user","content":json.dumps(record, ensure_ascii=False)}])
+    source_platform = record.get("platform") or record.get("source") or record.get("sourcePlatform") or ""
+    post_url = record.get("url") or record.get("sourceUrl") or record.get("originalPostUrl") or ""
+    title = record.get("title") or ""
+    author = record.get("author") or record.get("postedBy") or ""
+    published_at = record.get("publishedAt") or record.get("postDate") or record.get("postedAt") or ""
+    page_content = record.get("pageContent") or record.get("content") or record.get("text") or json.dumps(record, ensure_ascii=False)
+    prompt = PROMPT.format(
+        source_platform=source_platform,
+        post_url=post_url,
+        title=title,
+        author=author,
+        published_at=published_at,
+        page_content=page_content,
+    )
+    response = client.responses.create(model=MODEL, input=[{"role":"system","content":prompt},{"role":"user","content":"Return the JSON extraction for the supplied source."}])
     text = response.output_text.strip()
     if text.startswith("```"): text = text.replace("```json", "").replace("```", "").strip()
     return json.loads(text)
@@ -92,6 +103,7 @@ def experience_id(payload):
 def print_payload(payload):
     print(json.dumps(payload, ensure_ascii=False, indent=2))
     return True
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--input", default=os.getenv("INPUT_DIR", "/data"))
