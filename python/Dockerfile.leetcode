@@ -1,0 +1,18 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY crawler ./crawler
+
+RUN mkdir -p /data
+
+ENV PYTHONUNBUFFERED=1
+ENV OUTPUT_DIR=/data
+ENV TARGET_RECORDS=20000
+ENV CHUNK_SIZE=100
+ENV CHECKPOINT_FILE=/data/checkpoint.json
+
+CMD ["python", "-u", "-m", "crawler.leetcode.crawler"]
