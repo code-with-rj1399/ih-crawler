@@ -146,6 +146,8 @@ def crawl_interview_experiences(output_dir=None, checkpoint_file=None, lookback_
     total_saved = 0
     total_seen = 0
     oldest_seen = None
+    total_in_window = 0
+    total_outside_window = 0
 
     while has_next:
         payload = {
@@ -205,7 +207,9 @@ def crawl_interview_experiences(output_dir=None, checkpoint_file=None, lookback_
 
                 # Freshness is a hard gate. Undated posts are excluded.
                 if creation_date is None or creation_date < cutoff_date:
+                    total_outside_window += 1
                     continue
+                total_in_window += 1
 
                 title = node.get("title", "")
                 content = post.get("content", "")
@@ -254,20 +258,14 @@ def crawl_interview_experiences(output_dir=None, checkpoint_file=None, lookback_
             print(
                 f"Page {page} processed. "
                 f"Page saved: {page_saved}. Total saved: {total_saved}. "
+                f"In window: {total_in_window}. Outside window: {total_outside_window}. "
                 f"Oldest on page: {oldest_page}. Cutoff: {cutoff_date}.",
                 flush=True,
             )
 
-            # The API currently returns the connection in descending creation order.
-            # Stop once the page has crossed the six-month boundary.
-            if oldest_page and oldest_page < cutoff_date:
-                print(
-                    f"Reached lookback boundary ({oldest_page} < {cutoff_date}). "
-                    f"Stopping crawl.",
-                    flush=True,
-                )
-                break
-
+            # Do not stop based on page dates. LeetCode's current connection is not
+            # guaranteed to be ordered by creationDate; a page can contain both recent
+            # and very old posts. Continue until GraphQL reports no next page.
             page += 1
             time.sleep(1.5)
 
@@ -287,6 +285,7 @@ def crawl_interview_experiences(output_dir=None, checkpoint_file=None, lookback_
 
     print(
         f"Crawl completed. Seen: {total_seen}; saved: {total_saved}; "
+        f"in window: {total_in_window}; outside window: {total_outside_window}; "
         f"oldest seen: {oldest_seen}; cutoff: {cutoff_date}.",
         flush=True,
     )
