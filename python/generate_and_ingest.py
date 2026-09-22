@@ -15,9 +15,12 @@ MAX_CONTENT_CHARS = int(os.getenv("MAX_CONTENT_CHARS", "30000"))
 client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
 
-PROMPT_PATH = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-    "src", "main", "resources", "prompts", "interview_question_extraction.txt",
+PROMPT_PATH = os.getenv(
+    "PROMPT_PATH",
+    os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "src", "main", "resources", "prompts", "interview_question_extraction.txt",
+    ),
 )
 with open(PROMPT_PATH, encoding="utf-8") as _prompt_file:
     EXTRACTION_PROMPT = _prompt_file.read()
