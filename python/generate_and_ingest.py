@@ -202,7 +202,7 @@ def call_json(prompt: str, schema: dict[str, Any], schema_name: str, max_output_
 def extract(record: dict[str, Any]) -> dict[str, Any]:
     fields = get_source_fields(record)
     return call_json(
-        EXTRACTION_PROMPT.format(**fields),
+        EXTRACTION_PROMPT.replace("{source_platform}", fields["source_platform"]).replace("{post_url}", fields["post_url"]).replace("{title}", fields["title"]).replace("{author}", fields["author"]).replace("{published_at}", fields["published_at"]).replace("{page_content}", fields["page_content"]),
         EXTRACTION_SCHEMA,
         "interview_question_extraction",
         6000,
