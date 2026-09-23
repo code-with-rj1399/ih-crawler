@@ -13,6 +13,9 @@ public class InterviewQuestion {
     private Integer postId;
 
     private String sourcePlatform;
+    private String experienceTitle;
+    private String experienceAuthor;
+    private Instant experiencePostedAt;
     private String originalPostUrl;
     private String problemUrl;
     private LocalDate postDate;
@@ -52,6 +55,12 @@ public class InterviewQuestion {
     public void setPostId(Integer postId) { this.postId = postId; }
 
     public String getSourcePlatform() { return sourcePlatform; }
+    public String getExperienceTitle() { return experienceTitle; }
+    public void setExperienceTitle(String experienceTitle) { this.experienceTitle = experienceTitle; }
+    public String getExperienceAuthor() { return experienceAuthor; }
+    public void setExperienceAuthor(String experienceAuthor) { this.experienceAuthor = experienceAuthor; }
+    public Instant getExperiencePostedAt() { return experiencePostedAt; }
+    public void setExperiencePostedAt(Instant experiencePostedAt) { this.experiencePostedAt = experiencePostedAt; }
     public void setSourcePlatform(String sourcePlatform) { this.sourcePlatform = sourcePlatform; }
 
     public String getOriginalPostUrl() { return originalPostUrl; }
