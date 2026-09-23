@@ -583,6 +583,79 @@ The additional requirements are invented and MUST NOT be added.
 
 
 <description_rules>
+The questionDescription is an ELABORATED VERSION OF questionText.
+
+Its purpose is to explain the SAME question more clearly and completely,
+so that a developer can understand what the question is asking without
+needing to read the surrounding interview experience.
+
+Think of the fields this way:
+
+questionText:
+A concise, faithful statement of the technical question.
+
+questionDescription:
+A clearer and more detailed explanation of that SAME technical question,
+using only information supported by the source.
+
+The description MUST NOT become a second question, a solution, a related
+topic, or a summary of the surrounding interview experience.
+
+<description_scope_rules>
+The description MUST stay strictly within the scope of the CURRENT question.
+
+For each extracted question:
+1. Identify the exact technical problem represented by questionText.
+2. Elaborate only that problem.
+3. Use only technical details that belong to that question.
+4. Do NOT copy requirements, constraints, examples, inputs, outputs,
+   technologies, or details from another question.
+5. Do NOT merge neighboring questions into the current question.
+6. Do NOT make the current question broader because another question
+   appears nearby in the source.
+7. Do NOT make the current question more specific using details from
+   another question.
+
+Each questionDescription has its own evidence boundary.
+
+Question A must be described from Question A's evidence.
+Question B must be described from Question B's evidence.
+
+Do not let Question A's inputs, constraints, examples, or solution
+details leak into Question B, and do not let Question B's details leak
+into Question A.
+
+The only exception is an explicit cross-reference where the CURRENT
+question clearly depends on an earlier part of the SAME supplied source.
+In that case, use the standalone cross-reference rules below.
+</description_scope_rules>
+
+<description_elaboration_rules>
+Elaborate the question naturally.
+
+A good description can clarify:
+- What the input/problem is
+- What needs to be determined, computed, designed, implemented, or explained
+- Important requirements explicitly stated in the source
+- Explicit constraints
+- Explicit input/output behavior
+- Explicit examples
+- Explicit edge cases
+- Explicit follow-up requirements belonging to the same question
+
+The description should make the question easier to understand, not change
+what the question means.
+
+If the source contains a useful example, preserve that source-backed
+example when it improves understanding.
+
+If the source does NOT contain an example, do NOT invent one.
+
+"Best examples" means the clearest examples that are actually present in
+the supplied source, NOT examples created from general knowledge.
+</description_elaboration_rules>
+
+<description_rules_core>
 The questionDescription MUST ALWAYS be present.
 
 NEVER return:
@@ -592,36 +665,35 @@ NEVER return:
 
 The description must describe the TECHNICAL QUESTION OR PROBLEM ITSELF.
 
-It must be written as a standalone problem description that can be
-shown directly to a developer or interview candidate without requiring
-the surrounding interview experience.
+It must be written as a standalone problem description that can be shown
+directly to a developer or interview candidate without requiring the
+surrounding interview experience.
+
+The description should normally be more explanatory than questionText,
+but it must remain faithful to the source.
+
+Do NOT artificially add length. A short source question may have a short
+description. A detailed source question should have a correspondingly
+detailed description.
+
+SOURCE FIDELITY is more important than length.
 
 The description may contain:
-
 - One paragraph
 - Multiple paragraphs
 - Short sentences
 - Multiple related sections when the question has multiple parts
-- Follow-up variants
-- Constraints
-- Examples
-- Input/output details
-- Edge cases
+- Explicit follow-up variants
+- Explicit constraints
+- Explicit examples
+- Explicit input/output details
+- Explicit edge cases
 
-Choose the structure that best represents the source.
-
-Do NOT artificially force the description into a fixed number of
-sentences, lines, or paragraphs.
-
-The description should be detailed enough to clearly explain the
-question, but SOURCE FIDELITY is more important than length.
-
-IMPORTANT:
+Choose the structure that best explains the CURRENT question.
 
 Describe the PROBLEM, not the INTERVIEW.
 
 Do NOT describe:
-
 - the candidate
 - the interviewer
 - the interview process
@@ -629,212 +701,116 @@ Do NOT describe:
 - candidate performance
 - what the candidate should do
 - what the candidate is expected to know
+- why the company asks the question
 
 Avoid phrases such as:
-
 "The candidate is asked..."
-"The candidate is told..."
 "The interviewer asks..."
 "The candidate should..."
-"The candidate needs to..."
-"The candidate is expected to..."
-"This was presented as..."
 "This tests..."
 "This evaluates..."
-"The interviewer wants..."
 
 Instead, directly describe the technical problem.
 
-BAD:
+The description MAY restate questionText in clearer and more descriptive
+language. Restating or clarifying the question is allowed.
 
-"The candidate is told they start at coordinates (0,0) on a grid
-with width w and height h. The candidate should find the number
-of paths..."
-
-GOOD:
-
-"Given a grid with width w and height h, the starting position is
-(0,0) and the destination is (w-1,0).
-
-From any cell, three moves are allowed:
-(x+1,y), (x+1,y+1), and (x+1,y-1).
-
-The task is to determine the total number of distinct paths from
-the starting position to the destination using these movement rules.
-
-A secondary variant asks for the number of paths that pass through
-a specific point (a,b)."
-
-The GOOD version describes the problem directly.
-
-The description MAY restate questionText in more descriptive language.
-
-Restating or clarifying the question is allowed and is NOT considered
-invention.
+However, clarification MUST NOT introduce new technical facts.
 
 The description MUST preserve important technical details explicitly
-present in the source, including:
+present in the source, including requirements, constraints, inputs, outputs,
+examples, edge cases, follow-ups, and multiple parts of the SAME question.
 
-- Requirements
-- Constraints
-- Inputs
-- Outputs
-- Examples
-- Edge cases
-- Follow-up questions
-- Follow-up variants
-- Multiple parts of the problem
+ONLY include these when they belong to the CURRENT question and are
+explicitly supported by the source.
 
-ONLY include these when explicitly supported by the source.
-
-Do NOT invent any of these.
+Do NOT import them from another question.
+Do NOT invent them.
 
 If the source provides only a short question, keep the description
 appropriately short.
 
-If the source provides a detailed problem, provide a detailed
-description.
+If the source provides a detailed problem, provide a detailed description.
 
-If the source contains multiple related parts of the same question,
-describe them together in a logical structure.
+If the source provides examples, include the most useful source-backed
+examples when they improve understanding.
 
-Do NOT split follow-ups into separate questions unless the source
-clearly presents them as independent interview questions.
+If the source does not provide examples, do not manufacture examples.
+
+If the source contains multiple related parts of the SAME question,
+describe them together logically.
+
+Do NOT split follow-ups into separate questions unless the source clearly
+presents them as independent interview questions.
 
 Do NOT provide the solution.
 
-Do NOT add:
+Do NOT add algorithm recommendations, implementation recommendations,
+architecture recommendations, code, complexity analysis, or solution
+approaches unless those details are explicitly part of the source and
+belong to the current question.
 
-- algorithm recommendations
-- implementation recommendations
-- architecture recommendations
-- code
-- complexity analysis
-- solution approaches
-
-unless those details are explicitly part of the source.
-
-The description is a SOURCE-GROUNDED DESCRIPTION OF THE PROBLEM,
-not a DESCRIPTION OF THE INTERVIEW.
-
+The description is a SOURCE-GROUNDED ELABORATION OF THE CURRENT QUESTION,
+not a description of the interview and not a synthesis of nearby questions.
 
 <standalone_cross_reference_rules>
 A source may describe a technical question as an extension, follow-up,
 variant, or continuation of an earlier problem.
 
 The final questionDescription MUST still be understandable on its own.
-Do NOT preserve interview-context references such as:
 
-- "Extending the previous problem"
-- "As discussed earlier"
-- "Continuing from the previous question"
-- "Same as above, but..."
-- "In the next round"
-- "For the follow-up"
-
-Instead, directly describe the technical problem represented by the
-current question.
-
-IMPORTANT:
-
-A cross-reference may contain technical information that is necessary
-to understand the current problem. When the referenced technical details
-are explicitly available anywhere in the SAME supplied source content,
-restate those details directly in the standalone description instead of
-preserving the cross-reference.
-
-IMPORTANT:
-
-Phrases such as:
+Remove contextual phrases such as:
 - "Using the same grid and moves as the previous problem"
 - "Using the same assumptions as above"
 - "As in the previous question"
 - "With the same input and constraints"
 - "Continuing from the earlier problem"
-- "Using the approach described above"
+- "Extending the previous problem"
 
-are contextual cross-references and MUST NOT appear in the final
-questionDescription when their referenced technical information can be
-stated directly from the supplied source.
+If the CURRENT question explicitly depends on the earlier technical
+definition AND that definition is explicitly available in the SAME source,
+restate those technical details directly.
 
-For example, if the supplied source contains:
+If the earlier question is merely another question on the page, do NOT
+copy any of its details.
 
+If the referenced earlier problem is not explicitly described in the
+supplied source, do not reconstruct it from general knowledge.
+
+Example:
+
+Source:
 "The first problem uses a grid with start (0,0), destination (w-1,0),
 and allowed moves (x+1,y), (x+1,y+1), and (x+1,y-1). The next problem,
 using the same grid and moves, asks for the number of paths that pass
 through (a,b)."
 
-produce a standalone description such as:
-
+Description:
 "Determine the number of distinct paths from (0,0) to (w-1,0) using
 only the moves (x+1,y), (x+1,y+1), and (x+1,y-1). The path must pass
 through the intermediate point (a,b)."
 
 Do NOT output:
-
 "Using the same grid and moves as the previous problem, ..."
 
-because the technical information is available in the supplied source
-and can be restated directly.
-
-For example, if the source explicitly contains:
-
-"Find the number of paths from (0,0) to (W-1,0) using the moves
-(x+1,y), (x+1,y+1), and (x+1,y-1). Extending the previous problem,
-count the paths that pass through (A,B)."
-
-the description may be normalized to:
-
-"Count the number of distinct paths from (0,0) to the destination
-(W-1,0) on a W × H grid using only the moves (x+1,y), (x+1,y+1),
-and (x+1,y-1).
-
-The path must pass through the specified intermediate point (A,B)."
-
-The phrase "Extending the previous problem" is removed because it is
-interview context, while the explicitly stated grid, destination,
-allowed moves, and intermediate point are preserved.
-
-If the referenced earlier problem is NOT explicitly described in the
-supplied source, do NOT reconstruct it from general knowledge or from
-the model's knowledge of a common interview problem.
-
-In that case:
-- describe only the technical information explicitly available for the
-  current question;
-- do not invent missing constraints or movement rules;
-- do not claim details from an unavailable "previous problem";
-- remove the cross-reference itself from the final description when it
-  does not add technical information that can be independently stated.
-
-A standalone description may use technical details from an earlier
-part of the SAME supplied source when those details are clearly part
-of the current question's definition. This is source-supported
-normalization, not invention.
-
-Do NOT use information from another webpage, another question, external
-knowledge, or an assumed earlier interview question to resolve a
-cross-reference.
 </standalone_cross_reference_rules>
 
 QUALITY REQUIREMENT:
 
 Before returning the description, verify:
-
-1. It describes the technical problem itself.
-2. It can be read independently of the interview context.
-3. It does not refer to "the candidate".
-4. It does not refer to "the interviewer".
-5. It does not describe the interview process.
-6. It does not describe candidate performance.
-7. It does not answer or solve the question.
-8. Every technical detail is supported by the source.
-9. It does not invent requirements or constraints.
-10. It preserves important requirements and follow-ups.
-11. The structure is natural and readable.
-12. Multiple paragraphs may be used when they improve clarity.
-</description_rules>
-
+1. It describes the CURRENT technical problem.
+2. It elaborates questionText rather than changing it.
+3. It is independently understandable.
+4. It contains no details belonging only to another question.
+5. It contains no candidate/interviewer/interview-process language.
+6. Every technical detail is source-supported.
+7. It does not invent requirements, constraints, or examples.
+8. It preserves important source-backed requirements and follow-ups.
+9. It does not solve the question.
+10. It uses useful source-provided examples when available.
+11. It does not accidentally merge this question with another question.
+12. The structure is natural and readable.
+</description_rules_core>
 
 <topics_rules>
 Return 1-5 concise technical topics.
