@@ -42,12 +42,15 @@ public class OpenAiQuestionExtractor {
     private final ObjectMapper objectMapper;
     private final CrawlerSettings settings;
     private final String apiKey;
+    private final ExtractionPromptService promptService;
 
     public OpenAiQuestionExtractor(ObjectMapper objectMapper, CrawlerSettings settings,
+                                   ExtractionPromptService promptService,
                                    @Value("${OPENAI_API_KEY:}") String apiKey) {
         this.httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(15)).build();
         this.objectMapper = objectMapper;
         this.settings = settings;
+        this.promptService = promptService;
         this.apiKey = apiKey;
     }
 
@@ -63,7 +66,7 @@ public class OpenAiQuestionExtractor {
         }
 
         try {
-            String prompt = loadPrompt()
+            String prompt = promptService.getPrompt()
                     .replace("{{source_platform}}", source.getName())
                     .replace("{{post_url}}", postUrl)
                     .replace("{{title}}", title == null ? "" : title)
@@ -199,15 +202,6 @@ public class OpenAiQuestionExtractor {
                     + ", usage=" + root.path("usage"));
         }
         return root;
-    }
-
-    private String loadPrompt() {
-        try {
-            return new String(new ClassPathResource("prompts/interview_question_extraction.txt")
-                    .getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
-        } catch (Exception e) {
-            throw new IllegalStateException("Unable to load shared extraction prompt", e);
-        }
     }
 
     private JsonNode questionExtractionSchema() {
