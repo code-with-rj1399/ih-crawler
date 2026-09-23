@@ -83,9 +83,10 @@ public class OpenAiQuestionExtractor {
 
             JsonNode extracted = objectMapper.readTree(cleanJson(output));
             JsonNode experience = extracted.path("experience");
-            String experienceTitle = nullableText(experience, "title");
-            String experienceAuthor = nullableText(experience, "author");
+            String experienceTitle = firstNonBlank(nullableText(experience, "title"), title);
+            String experienceAuthor = firstNonBlank(nullableText(experience, "author"), author);
             Instant experiencePostedAt = nullableInstant(experience, "postedAt");
+            if (experiencePostedAt == null) experiencePostedAt = publishedAt;
 
             JsonNode questionsNode = extracted.path("questions");
             if (!questionsNode.isArray()) {
