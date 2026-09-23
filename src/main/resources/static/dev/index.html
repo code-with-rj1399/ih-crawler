@@ -14,18 +14,50 @@ button{border:0;border-radius:8px;padding:10px 15px;font-weight:600;font-size:13
 table{width:100%;border-collapse:collapse}.table-wrap{overflow:auto}th,td{text-align:left;padding:13px 14px;border-bottom:1px solid var(--border);vertical-align:middle;white-space:nowrap}th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);background:#fafbfc}tbody tr:hover{background:#fafcff}td.question{font-weight:600;white-space:normal;min-width:280px;max-width:460px}a{color:var(--primary);text-decoration:none}a:hover{text-decoration:underline}
 .badge{display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:700;background:#f2f4f7;color:#475467}.badge.kind{background:#eef4ff;color:#1d4ed8}.badge.on{background:#ecfdf3;color:var(--success)}.badge.off{background:#f2f4f7;color:#667085}.pill{display:inline-block;font-size:11px;background:#f2f4f7;color:#475467;padding:4px 7px;border-radius:999px;margin:2px}
 .switch{position:relative;display:inline-flex;align-items:center;gap:8px;cursor:pointer}.switch input{position:absolute;opacity:0}.slider{width:36px;height:20px;border-radius:999px;background:#d0d5dd;position:relative;transition:.15s}.slider:after{content:"";position:absolute;width:16px;height:16px;left:2px;top:2px;background:white;border-radius:50%;box-shadow:0 1px 2px #0002;transition:.15s}.switch input:checked+.slider{background:var(--primary)}.switch input:checked+.slider:after{transform:translateX(16px)}.empty{padding:44px;text-align:center;color:var(--muted)}
-.modal{display:none;position:fixed;inset:0;background:rgba(16,24,40,.5);align-items:center;justify-content:center;padding:20px;z-index:10}.modal.open{display:flex}.modal-card{background:#fff;border-radius:14px;max-width:760px;width:100%;max-height:82vh;overflow:auto;padding:26px;box-shadow:0 24px 80px #0003}.modal-card h3{margin:0 40px 18px 0;font-size:20px}.modal-close{float:right;background:#f2f4f7;color:#344054;padding:7px 10px}.details-label{font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.05em;margin-top:20px}.details-description{line-height:1.65;margin-top:7px}
+.modal{display:none;position:fixed;inset:0;background:rgba(16,24,40,.5);align-items:center;justify-content:center;padding:20px;z-index:10}.modal.open{display:flex}.modal-card{background:#fff;border-radius:14px;max-width:760px;width:100%;max-height:82vh;overflow:auto;padding:26px;box-shadow:0 24px 80px #0003}.modal-card h3{margin:0 40px 18px 0;font-size:20px}.modal-close{float:right;background:#f2f4f7;color:#344054;padding:7px 10px}.details-label{font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.05em;margin-top:20px}.details-description{line-height:1.65;margin-top:7px}.prompt-editor{width:100%;min-height:420px;border:1px solid var(--border);border-radius:8px;padding:14px;font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;resize:vertical;outline:none}.prompt-editor:focus{border-color:#84adff;box-shadow:0 0 0 3px #dbeafe}.prompt-actions{display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap}
 @media(max-width:760px){.container{padding:20px 14px}header{align-items:flex-start;flex-direction:column}.card-head{align-items:flex-start;flex-direction:column}.actions{width:100%}.actions button{flex:1}.toolbar input,.toolbar select{width:100%}.toolbar .url{min-width:0}.card-body{padding:16px}.table-wrap{margin:0 -16px}}
 </style>
 </head>
 <body><div class="container">
 <header><div><h1>InterviewHQ Crawler</h1><div class="subtitle">Manage crawl sources, run ingestion, and inspect extracted interview questions.</div></div><div class="actions"><button id="crawl" onclick="runCrawl()">▶ Run Crawl</button><a href="/dev/api/download" download><button class="secondary" type="button">↓ Export Data</button></a></div></header>
 <div class="status" id="status"></div>
+<section class="card"><div class="card-head"><div><h2 class="card-title">Extraction Prompt</h2><p class="card-subtitle">Edit the LLM extraction prompt at runtime. Changes stay in memory until the crawler restarts.</p></div></div><div class="card-body"><textarea id="extractionPrompt" class="prompt-editor" spellcheck="false" placeholder="Loading extraction prompt..."></textarea><div class="prompt-actions"><button onclick="savePrompt()">Save Prompt</button><button class="secondary" onclick="resetPrompt()">Reset to Default</button><span class="status" id="promptStatus"></span></div></div></section>
 <section class="card"><div class="card-head"><div><h2 class="card-title">Crawl Sources</h2><p class="card-subtitle">Enable or disable individual sources. Disabled sources are skipped by scheduled and manual crawls.</p></div><button class="danger" onclick="disableAllSeeds()">Disable All</button></div><div class="card-body"><div class="toolbar"><input id="seedName" placeholder="Source name"><input id="seedUrl" class="url" placeholder="https://example.com/interviews"><select id="seedKind"><option value="html">HTML</option><option value="leetcode_graphql">LeetCode GraphQL</option></select><button onclick="addSeed()">+ Add Source</button></div></div><div class="table-wrap" id="sources">Loading...</div></section>
 <section class="card"><div class="card-head"><div><h2 class="card-title">Interview Questions</h2><p class="card-subtitle">Extracted questions from crawled interview experiences.</p></div><button class="danger" onclick="deleteAllQuestions()">Delete All</button></div><div class="table-wrap" id="questions">Loading...</div></section>
 </div><div id="detailsModal" class="modal" onclick="if(event.target===this)closeDetails()"><div class="modal-card"><button class="modal-close" onclick="closeDetails()">✕</button><h3 id="detailsQuestion"></h3><div class="details-label">Description</div><div id="detailsDescription" class="details-description"></div></div></div>
 <script>
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+async function loadPrompt(){
+ try{
+   const r=await fetch('/dev/api/prompt');
+   if(!r.ok) throw new Error('HTTP '+r.status);
+   const data=await r.json();
+   document.getElementById('extractionPrompt').value=data.prompt||'';
+ }catch(e){document.getElementById('promptStatus').textContent='Failed to load prompt';}
+}
+async function savePrompt(){
+ const prompt=document.getElementById('extractionPrompt').value;
+ if(!prompt.trim()){document.getElementById('promptStatus').textContent='Prompt cannot be empty';return;}
+ const b=event?.target;b&&(b.disabled=true);
+ try{
+   const r=await fetch('/dev/api/prompt',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt})});
+   const data=await r.json().catch(()=>({}));
+   if(!r.ok) throw new Error(data.message||'HTTP '+r.status);
+   document.getElementById('extractionPrompt').value=data.prompt||prompt;
+   document.getElementById('promptStatus').textContent='Prompt saved for current runtime';
+ }catch(e){document.getElementById('promptStatus').textContent='Failed to save prompt: '+e.message;}
+ finally{b&&(b.disabled=false);}
+}
+async function resetPrompt(){
+ if(!confirm('Reset the runtime prompt to the bundled default?'))return;
+ try{
+   const r=await fetch('/dev/api/prompt/reset',{method:'POST'});
+   if(!r.ok) throw new Error('HTTP '+r.status);
+   const data=await r.json();
+   document.getElementById('extractionPrompt').value=data.prompt||'';
+   document.getElementById('promptStatus').textContent='Prompt reset to default';
+ }catch(e){document.getElementById('promptStatus').textContent='Failed to reset prompt';}
+}
 async function load(){
  const [s,q]=await Promise.all([fetch('/dev/api/sources'),fetch('/dev/api/questions')]);
  renderSources(await s.json()); renderQuestions(await q.json());
@@ -64,6 +96,7 @@ async function runCrawl(){
  catch(e){s.textContent='Crawl failed';} finally{b.disabled=false;}
 }
 load();
+loadPrompt();
 </script>
 </body>
 </html>
