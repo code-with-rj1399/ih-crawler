@@ -93,32 +93,6 @@ public class DynamoDbRepositorySupport {
                 .map(i -> fromItem(type, i)).collect(Collectors.toList());
     }
 
-    /** Removes legacy role/difficulty fields from persisted InterviewQuestion data maps. */
-    public int removeLegacyInterviewQuestionFields() {
-        int updated = 0;
-        Map<String, AttributeValue> start = null;
-        do {
-            var request = ScanRequest.builder().tableName(tableName).consistentRead(true);
-            if (start != null) request.exclusiveStartKey(start);
-            var response = client.scan(request.build());
-            for (var item : response.items()) {
-                if (!"InterviewQuestion".equals(item.getOrDefault("entityType", AttributeValue.builder().s("").build()).s())) continue;
-                AttributeValue data = item.get("data");
-                if (data == null || data.m() == null) continue;
-                Map<String, AttributeValue> cleaned = new HashMap<>(data.m());
-                boolean changed = cleaned.remove("role") != null;
-                changed = cleaned.remove("difficulty") != null || changed;
-                if (!changed) continue;
-                Map<String, AttributeValue> replacement = new HashMap<>(item);
-                replacement.put("data", AttributeValue.builder().m(cleaned).build());
-                client.putItem(PutItemRequest.builder().tableName(tableName).item(replacement).build());
-                updated++;
-            }
-            start = response.lastEvaluatedKey();
-        } while (start != null && !start.isEmpty());
-        return updated;
-    }
-
     public void delete(String pk, String sk) {
         client.deleteItem(DeleteItemRequest.builder().tableName(tableName).key(Map.of(
                 "pk", AttributeValue.builder().s(pk).build(),
