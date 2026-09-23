@@ -150,8 +150,17 @@ public class OpenAiQuestionExtractor {
     private boolean isHighQualityQuestion(ExtractedQuestion item) {
         String text = item.questionText() == null ? "" : item.questionText().trim();
         if (text.isBlank() || text.length() < 8 || text.length() > 140) return false;
+        String description = item.questionDescription() == null ? "" : item.questionDescription().trim();
+        if (description.isBlank()) return false;
         float confidence = item.confidence() == null ? 0f : item.confidence();
-        if (confidence < 0.70f) return false;
+        if (confidence < 0.70f || confidence > 1.0f) return false;
+        float specificity = item.questionSpecificity() == null ? -1f : item.questionSpecificity();
+        if (specificity < 0.0f || specificity > 1.0f) return false;
+        String canonicalType = normalizeQuestionType(item.questionType());
+        if (!Set.of("Coding", "Database", "System Design", "LLD", "Cloud", "Security", "DevOps",
+                "AI/ML", "Data Engineering", "Distributed Systems", "Networking", "Operating Systems",
+                "Programming Language", "Web Frontend", "Mobile", "Testing", "Technical Concept")
+                .contains(canonicalType)) return false;
         String normalized = text.toLowerCase(Locale.ROOT)
                 .replaceAll("[^a-z0-9\\s]", " ").replaceAll("\\s+", " ").trim();
         Set<String> weakExact = Set.of(
@@ -224,6 +233,7 @@ public class OpenAiQuestionExtractor {
         var question = objectMapper.createObjectNode().put("type", "object").put("additionalProperties", false);
         var properties = objectMapper.createObjectNode();
         properties.set("sourcePlatform", nullableStringSchema());
+        properties.set("originalPostUrl", nullableStringSchema());
         properties.set("problemUrl", nullableStringSchema());
         properties.set("postDate", nullableStringSchema());
         properties.set("company", nullableStringSchema());
@@ -242,7 +252,7 @@ public class OpenAiQuestionExtractor {
         properties.set("questionSpecificity", nullableNumberSchema());
         question.set("properties", properties);
         question.set("required", objectMapper.createArrayNode()
-                 .add("sourcePlatform").add("problemUrl").add("postDate").add("company").add("level")
+                 .add("sourcePlatform").add("originalPostUrl").add("problemUrl").add("postDate").add("company").add("level")
                 .add("location").add("candidateYoE").add("outcome").add("roundType")
                 .add("questionType").add("questionText").add("questionDescription")
                 .add("topics").add("confidence").add("questionSpecificity"));
