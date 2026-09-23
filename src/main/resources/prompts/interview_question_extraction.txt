@@ -188,22 +188,30 @@ TECHNICAL_CONCEPT
 
 2. QUESTION DESCRIPTION
 - ALWAYS provide a non-empty, high-quality description for every extracted question.
-- The description should normally be 5-10 concise sentences/lines and should make the question understandable without opening the source.
-- Explain what the interviewer asked the candidate to solve, design, implement, explain, or reason about.
-- Use the question text itself plus ONLY source-supported details.
-- Include explicitly stated requirements, constraints, inputs, outputs, follow-ups, examples, edge cases, technologies, or context when they are relevant to understanding the question.
-- If the source explicitly contains follow-up questions, include them in the description.
+- questionDescription MUST NEVER be null, empty, or whitespace-only.
+- The description must describe the TECHNICAL QUESTION OR PROBLEM ITSELF, not the interview context.
+- Write it as a standalone problem description that can be shown directly to a developer or interview candidate without requiring the surrounding interview experience.
+- The description may contain one paragraph, multiple paragraphs, short sentences, or separate paragraphs for different parts of the same problem.
+- Do NOT artificially force the description into a fixed number of sentences, lines, or paragraphs.
+- Choose the structure and length that best represent the source. Source fidelity is more important than length.
+- Do NOT describe the candidate, interviewer, interview process, candidate performance, or how the question was presented.
+- Avoid phrases such as "The candidate is asked", "The candidate is told", "The interviewer asks", "The candidate should", "The candidate needs to", "The candidate is expected to", "This tests", or "This evaluates".
+- Instead, directly describe the technical problem.
+- Example BAD: "The candidate is told they start at coordinates (0,0) on a grid with width w and height h. The candidate should find the number of paths..."
+- Example GOOD: "Given a grid with width w and height h, the starting position is (0,0) and the destination is (w-1,0). From any cell, three moves are allowed: (x+1,y), (x+1,y+1), and (x+1,y-1). The task is to determine the total number of distinct paths from the starting position to the destination using these movement rules. A secondary variant asks for the number of paths that pass through a specific point (a,b)."
+- The description MAY restate questionText in more descriptive language when this does not introduce new facts.
+- Include explicitly stated requirements, constraints, inputs, outputs, follow-ups, examples, edge cases, technologies, or context ONLY when relevant and explicitly supported by the source.
+- If the source explicitly contains follow-up questions or variants, include them in the description.
 - If the source explicitly contains constraints, include them in the description.
-- If the source does not contain constraints or follow-ups, do NOT invent them. Instead, use the available source-supported context to make the description useful.
-- It is allowed to restate or clarify the meaning of the extracted question in natural language when that clarification does not introduce new facts.
-- Do NOT provide the solution, algorithm, implementation, architecture, or answer unless the source explicitly says that the interviewer required a particular approach.
+- If the source does not contain constraints or follow-ups, do NOT invent them.
+- If the source provides only a short question, keep the description appropriately short rather than padding it with invented information.
+- If the source provides a detailed problem, provide a detailed description.
+- Multiple related parts of the same question may be described together. Do NOT split follow-ups into separate questions unless the source clearly presents them as independent questions.
+- Do NOT provide the solution, algorithm, implementation, architecture, complexity analysis, or answer unless those details are explicitly part of the source.
 - Do NOT hallucinate scale, traffic, APIs, availability, database choices, architecture details, expected solution, algorithm, complexity, constraints, or follow-ups.
-- Do NOT write meta descriptions such as “System Design notes: …” or “Interview question about …”.
-- Do NOT return null or an empty string for questionDescription.
-- Bad: "System Design notes: Caching techniques for heavy data dashboard."
-- Good: "The interviewer asked the candidate to design caching for a heavy data dashboard. The task focuses on how dashboard data should be cached and served efficiently. Any caching requirements or follow-up considerations mentioned in the source should be included here. Do not invent additional scale, latency, storage, or consistency requirements."
-- The description must remain source-grounded even when the source provides only a short question.
-
+- Do NOT write meta descriptions such as "System Design notes: ..." or "Interview question about ...".
+- The description is a SOURCE-GROUNDED DESCRIPTION OF THE PROBLEM, not a DESCRIPTION OF THE INTERVIEW.
+- Before returning the description, verify that it describes the problem itself, is independently readable, contains no candidate/interviewer/process language, uses only source-supported technical details, does not solve the question, and preserves important requirements and follow-ups.
 3. TOPICS
 - Extract 1-5 concise technical topics directly supported by the question and source.
 - Do NOT add techniques (e.g. “Two Pointers”) unless the source explicitly mentions them.
@@ -251,6 +259,10 @@ Before returning each question, verify ALL of the following:
 12. Is questionSpecificity between 0.0 and 1.0?
 13. Is questionDescription non-empty and useful?
 14. Is the question not a duplicate?
+15. Is questionDescription a standalone description of the technical problem rather than the interview context?
+16. Does questionDescription avoid references to the candidate, interviewer, interview process, or candidate performance?
+17. Does questionDescription contain only source-supported information?
+18. Does questionDescription avoid solving or answering the question?
 
 If ANY answer is NO, silently drop the question.
 Accuracy over quantity.
