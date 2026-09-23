@@ -144,9 +144,8 @@ Rules:
 METADATA
 
 Only return values supported by the supplied source context.
-- Never infer company, role, level, location, candidateYoE, outcome, difficulty, roundType, or topics.
+- Never infer company, level, location, candidateYoE, outcome, roundType, or topics.
 - company is required for an accepted question. If unsupported, reject the question.
-- difficulty must be Easy, Medium, Hard, or null. Only set it when supported by the source or explicitly clear from the source wording; do not use external problem knowledge.
 - problemUrl must be a URL visibly present in the supplied content for that exact question. Never construct, infer, search for, or substitute the original post URL.
 - postDate may use the supplied publishedAt metadata when appropriate; do not invent dates.
 
