@@ -350,15 +350,32 @@ INVALID:
 
 
 <question_type_taxonomy>
-Every extracted question MUST use exactly ONE of:
+Every extracted question MUST use exactly ONE of these database values:
 
+Coding
+Database
+System Design
+LLD
+Cloud
+Security
+DevOps
+AI/ML
+Data Engineering
+Distributed Systems
+Networking
+Operating Systems
+Programming Language
+Web Frontend
+Mobile
+Testing
+Technical Concept
+
+These exact human-readable values are stored in DynamoDB and returned by the API.
+
+Do NOT use enum-style values such as:
 CODING
 DATABASE
 SYSTEM_DESIGN
-LLD
-CLOUD
-SECURITY
-DEVOPS
 AI_ML
 DATA_ENGINEERING
 DISTRIBUTED_SYSTEMS
@@ -366,14 +383,11 @@ NETWORKING
 OPERATING_SYSTEMS
 PROGRAMMING_LANGUAGE
 WEB_FRONTEND
-MOBILE
-TESTING
 TECHNICAL_CONCEPT
 
 Do NOT invent new question types.
 
 NEVER return:
-
 DSA
 ALGORITHM
 LEETCODE
@@ -390,7 +404,7 @@ IMPORTANT:
 ALL DSA, algorithm, LeetCode, and data-structure coding problems
 MUST use:
 
-questionType = "CODING"
+questionType = "Coding"
 
 Never use:
 
@@ -404,16 +418,16 @@ as questionType.
 Examples:
 
 "Find the kth largest element."
-→ CODING
+→ Coding
 
 "Find the longest substring without repeating characters."
-→ CODING
+→ Coding
 
 "Merge two sorted linked lists."
-→ CODING
+→ Coding
 
 "Implement an LRU cache."
-→ CODING
+→ Coding
 
 The specific DSA category may be represented in the topics field
 ONLY when it is explicitly supported by the source.
@@ -1101,7 +1115,7 @@ questionDescription MUST NOT be null or empty.
 questionDescription must describe the technical problem itself,
 not the candidate, interviewer, or interview process.
 
-questionType MUST be one of the canonical question types.
+questionType MUST be one of the exact human-readable database values defined in the question type taxonomy.
 
 confidence MUST be between 0.0 and 1.0 inclusive.
 
