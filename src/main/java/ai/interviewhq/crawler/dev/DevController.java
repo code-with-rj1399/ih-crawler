@@ -25,17 +25,14 @@ public class DevController {
     private final CrawlSourceRepository sourceRepository;
     private final InterviewQuestionRepository questionRepository;
     private final ObjectMapper objectMapper;
-    private final ai.interviewhq.crawler.config.DynamoDbRepositorySupport db;
 
     public DevController(CrawlRunner crawlRunner, CrawlSourceRepository sourceRepository,
                          InterviewQuestionRepository questionRepository,
-                         ObjectMapper objectMapper,
-                         ai.interviewhq.crawler.config.DynamoDbRepositorySupport db) {
+                         ObjectMapper objectMapper) {
         this.crawlRunner = crawlRunner;
         this.sourceRepository = sourceRepository;
         this.questionRepository = questionRepository;
         this.objectMapper = objectMapper;
-        this.db = db;
     }
 
     @GetMapping("/dev")
@@ -121,11 +118,6 @@ public class DevController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=interviewhq-dynamodb-data.json")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(json);
-    }
-
-    @PostMapping("/questions/remove-legacy-fields")
-    public java.util.Map<String, Integer> removeLegacyQuestionFields() {
-        return java.util.Map.of("updated", db.removeLegacyInterviewQuestionFields());
     }
 
     @PostMapping("/crawl")
