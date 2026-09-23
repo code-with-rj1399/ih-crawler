@@ -53,7 +53,7 @@ not the interview context.
 If the source does not contain clearly supported technical interview
 questions, return:
 
-{"questions":[]}
+{"source":{"name":"{{source_platform}}","url":"{{post_url}}"},"experience":{"title":null,"postedAt":null,"author":null},"questions":[]}
 </objective>
 
 
@@ -90,7 +90,7 @@ REJECT the entire source if it is primarily:
 
 If the source fails this gate, return:
 
-{"questions":[]}
+{"source":{"name":"{{source_platform}}","url":"{{post_url}}"},"experience":{"title":null,"postedAt":null,"author":null},"questions":[]}
 </real_experience_gate>
 
 
