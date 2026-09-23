@@ -115,7 +115,7 @@ public class OpenAiQuestionExtractor {
                 question.setCandidateYoE(item.candidateYoE());
                 question.setOutcome(item.outcome());
                 question.setRoundType(item.roundType());
-                question.setQuestionType(item.questionType());
+                question.setQuestionType(normalizeQuestionType(item.questionType()));
                 question.setQuestionText(item.questionText().trim());
                 question.setQuestionDescription(item.questionDescription());
                 question.setTopics(item.topics() == null ? Collections.emptyList() : item.topics());
@@ -329,6 +329,33 @@ public class OpenAiQuestionExtractor {
             value = value.substring(0, value.length() - 3).trim();
         }
         return value;
+    }
+
+    private static String normalizeQuestionType(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        String normalized = value.trim().replace('-', '_').replace(' ', '_').toUpperCase(Locale.ROOT);
+        return switch (normalized) {
+            case "CODING" -> "Coding";
+            case "DATABASE" -> "Database";
+            case "SYSTEM_DESIGN" -> "System Design";
+            case "LLD" -> "LLD";
+            case "CLOUD" -> "Cloud";
+            case "SECURITY" -> "Security";
+            case "DEVOPS" -> "DevOps";
+            case "AI_ML", "AIML" -> "AI/ML";
+            case "DATA_ENGINEERING" -> "Data Engineering";
+            case "DISTRIBUTED_SYSTEMS" -> "Distributed Systems";
+            case "NETWORKING" -> "Networking";
+            case "OPERATING_SYSTEMS" -> "Operating Systems";
+            case "PROGRAMMING_LANGUAGE" -> "Programming Language";
+            case "WEB_FRONTEND" -> "Web Frontend";
+            case "MOBILE" -> "Mobile";
+            case "TESTING" -> "Testing";
+            case "TECHNICAL_CONCEPT" -> "Technical Concept";
+            default -> value.trim();
+        };
     }
 
     private static String normalizeProblemUrl(String value) {
