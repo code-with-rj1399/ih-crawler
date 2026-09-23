@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
@@ -24,6 +25,8 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 
 /**
  * Model is used only to structure questions from page text the crawler already
@@ -60,221 +63,15 @@ public class OpenAiQuestionExtractor {
         }
 
         try {
-            String prompt = """
-                    You are an advanced technical interview question and problem listing engine.
+            String prompt = loadPrompt()
+                    .replace("{{source_platform}}", source.getName())
+                    .replace("{{post_url}}", postUrl)
+                    .replace("{{title}}", title == null ? "" : title)
+                    .replace("{{author}}", author == null ? "" : author)
+                    .replace("{{published_at}}", publishedAt == null ? "" : publishedAt.toString())
+                    .replace("{{tags}}", "")
+                    .replace("{{page_content}}", truncate(bodyText));
 
-                    The crawler has already fetched this interview-experience post and supplied its content below.
-                    DO NOT browse the web, search, open URLs, or use tools.
-
-                    SOURCE PLATFORM: %s
-                    POST URL: %s
-                    TITLE: %s
-                    AUTHOR: %s
-                    PUBLISHED AT: %s
-
-                    PAGE CONTENT:
-                    ---
-                    %s
-                    ---
-
-                    EXPERIENCE AUTHENTICITY GATE:
-                    First determine whether this post describes a REAL interview, assessment, or hiring interaction
-                    experienced by the author/candidate.
-
-                    Extract technical questions ONLY when they are reported as having been asked, given, or
-                    encountered by the candidate during their own interview or assessment.
-
-                    DO NOT extract questions from:
-                    - interview preparation articles
-                    - "Top X interview questions" lists
-                    - study guides
-                    - tutorials or educational articles
-                    - question banks or practice problems
-                    - generic interview tips
-                    - collections of commonly asked questions
-                    - posts that provide questions and answers without describing the author's actual interview experience
-
-                    Strong signals that the post IS an interview experience include:
-                    - "I interviewed at..."
-                    - "My interview experience..."
-                    - "I was asked..."
-                    - "The interviewer asked..."
-                    - "In the coding round..."
-                    - "In the system design round..."
-                    - "During my interview..."
-                    - interview rounds, dates, companies, roles, outcomes, or candidate experience
-
-                    If the post is primarily an educational/question-list article rather than a personal interview
-                    experience, return an empty questions list.
-
-                    COMPANY REQUIREMENT:
-                    A valid interview experience must identify the company involved in the interview.
-                    The company must be explicitly supported by the supplied post content or reliable post metadata.
-                    Never guess or infer a company from the technology, author, job title, or context.
-                    If no company can be identified, return an empty questions list.
-                    For every extracted question, company must be non-null and non-blank.
-
-                    If the title or content indicates a generic collection such as "Top 50 Interview Questions",
-                    "100 Java Interview Questions", "Frequently Asked Questions", "Interview Questions with Answers",
-                    or similar educational content, treat it as a preparation article unless the post clearly contains
-                    a separate personal interview experience.
-
-                    Your task is to generate a list of genuine technical interview questions, coding problems,
-                    system design prompts, or technical scenarios reported in this text.
-
-                    IMPORTANT:
-                    You are listing the ACTUAL CORE TECHNICAL QUESTION OR PROBLEM, not blindly copying sentences
-                    from the post.
-
-                    For every candidate item, determine:
-                    1. What was actually asked or given to the candidate?
-                    2. What is the core technical problem or prompt?
-                    3. Which words are merely describing, qualifying, comparing, or explaining that question?
-
-                    CORE PROBLEM EXTRACTION:
-                    Separate the source text into:
-                    A. The actual technical problem/question
-                    B. Description or qualification of that problem
-                    C. Surrounding interview narrative
-
-                    questionText must represent A.
-                    Use B only to accurately describe A.
-                    Never include C in questionText.
-
-                    QUESTION TEXT FORMAT:
-                    - questionText must be ONE concise line and ONE sentence whenever possible.
-                    - Target <= 140 characters so it is easy to scan in a table.
-                    - Keep only the essential technical problem and constraints.
-                    - Do not include interview narrative, candidate approach, or solution explanation.
-
-                    QUESTION DESCRIPTION:
-                    - questionDescription must read like a LeetCode problem statement, NOT an interview recap.
-                    - Write 3 to 4 concise sentences, roughly 40-80 words.
-                    - Start directly with the problem/task, for example: "Given two strings, determine the minimum number of edits required to transform one string into the other."
-                    - Describe the input/problem, the required output/goal, and only the constraints or allowed operations that are explicitly known.
-                    - NEVER mention "the candidate", "the interviewer", "the interview", "technical interview", "coding round", "the post", "the author", or "the prompt".
-                    - NEVER add commentary such as "This is a core...", "often used in coding rounds", "a common problem", "a dynamic programming task", or similar educational/meta commentary.
-                    - NEVER describe a solution, algorithm, data structure, complexity, or approach unless the source explicitly makes that part of the problem requirement.
-                    - Do not invent constraints or examples.
-                    - If the post only gives a problem name and does not provide enough details for a faithful problem statement, keep the description minimal rather than filling gaps from generic knowledge.
-                    - When the supplied content explicitly contains a recognizable problem statement, preserve its actual requirements and wording as closely as possible while making it concise.
-                    - The description should answer: "What problem does the user need to solve?" and nothing else.
-
-                    QUESTION NORMALIZATION RULES:
-                    - List the smallest meaningful description that identifies the actual technical question or problem.
-                    - Preserve the original meaning and technical context.
-                    - Do not invent information that is not present in the post.
-                    - Remove conversational prefixes, filler phrases, and qualifiers when they do not form part
-                      of the actual problem identity.
-                    - Remove conversational qualifiers such as "a variation of", "a modified version of",
-                      "a variant of", "similar to", "based on", "something like", "one question was",
-                      "the question was", "they asked me", "was asked", and "just explanation".
-                    - Preserve technical constraints, requirements, data structures, scale requirements, and other
-                      details that materially describe the problem.
-
-                    However:
-                    - Do NOT remove information that changes the identity of the problem.
-                    - Do NOT assume that two problems are the same just because they sound similar.
-                    - Do NOT replace a problem with a standard/canonical name based on similarity.
-                    - Do NOT use external knowledge to determine what the author "must have meant".
-                    - When the author gives only a descriptive technical problem statement, preserve that description.
-                    - When the author explicitly names a problem, prefer the explicit problem name.
-
-                    Examples:
-                    "the coding question was a variation of Two Sum with negative numbers"
-                    → "Two Sum with negative numbers"
-
-                    "they asked to design a notification system like Kafka-based pub-sub"
-                    → "Design a Kafka-based pub-sub notification system"
-
-                    "question was similar to Longest Substring Without Repeating Characters"
-                    → "Longest Substring Without Repeating Characters"
-
-                    "Past project architecture discussion"
-                    → DO NOT list as a technical question unless the post explicitly describes a concrete
-                      technical question or problem that was asked about the architecture.
-
-                    "Discussed microservices and Docker"
-                    → DO NOT list as a question unless the post explicitly identifies a technical interview
-                      question or problem involving them.
-
-                    EVIDENCE REQUIREMENT:
-                    Include an item only when the post provides sufficient evidence that it was part of an actual
-                    technical interview or assessment.
-
-                    Valid evidence includes:
-                    - "they asked..."
-                    - "the coding problem was..."
-                    - "I was asked to write a function..."
-                    - "system design round: ..."
-                    - "coding round: ..."
-                    - a clearly described sequence of questions from the author's own interview.
-
-                    Do NOT list:
-                    - interview preparation advice
-                    - technologies or frameworks merely mentioned
-                    - candidate background/previous projects without a concrete technical prompt
-                    - hypothetical examples or generic skills
-                    - recruiter/screening questions unless they contain an actual technical problem
-
-                    MULTIPLE QUESTIONS:
-                    - List every distinct technical question/problem separately.
-                    - Do not merge different questions.
-                    - Do not split one question into multiple questions merely because it contains multiple
-                      requirements or constraints.
-
-                    CANONICAL NAME RULE:
-                    - If the post explicitly names the problem, preserve that exact problem name.
-                    - If the post describes a known problem but does not explicitly provide its name, DO NOT infer
-                      or substitute a canonical LeetCode, GFG, HackerRank, or other platform problem name.
-                    - If the post says "variation of N-Anagram", list "N-Anagram".
-                    - If the post says "similar to Two Sum with negative numbers", list
-                      "Two Sum with negative numbers".
-                    - If the post only provides a descriptive problem statement, create a concise description
-                      using ONLY information contained in the supplied content.
-                    - Never hallucinate or rename the author's problem based on external knowledge.
-
-                    QUALITY TEST:
-                    Before including each technical question, ask internally:
-                    "Could I point to a specific part of the supplied post that shows it was an actual technical
-                    question or problem?"
-                    If NO → do not list it.
-
-                    Then ask:
-                    "Does questionText describe the actual technical problem, rather than the author's narrative?"
-                    If NO → normalize it before adding it to the list.
-
-                    Rules:
-                    - Never invent a question or metadata.
-                    - Use null when metadata is not supported by the content.
-                    - questionType: CODING, SYSTEM_DESIGN, LOW_LEVEL_DESIGN, BEHAVIORAL, TECHNICAL, DATABASE, DEVOPS, AI_ML, or OTHER.
-                    - difficulty: Easy, Medium, or Hard only when supported.
-                    - questionText must be a one-line concise question/problem summary.
-                    - questionDescription must be a short 3-4 sentence description supported only by the supplied content.
-                    - candidateApproach must only contain the candidate's explicitly stated approach.
-                    - candidateYoE must come from the candidate's content.
-                    - problemUrl only when confidently identified in the supplied content.
-                    - postDate should use the supplied publication timestamp converted to UTC date when available.
-                    - confidence must be between 0.0 and 1.0.
-
-                    Return ONLY the required JSON object.
-                    """.formatted(
-                    source.getName(),
-                    postUrl,
-                    title,
-                    author,
-                    publishedAt,
-                    truncate(bodyText)
-            );
-
-            log.info("""
-                    ==================== OPENAI EXTRACTION PROMPT ====================
-                    source={}
-                    postUrl={}
-                    {}
-                    ================== END OPENAI EXTRACTION PROMPT ==================
-                    """, source.getSlug(), postUrl, prompt);
-            
             JsonNode root = callOpenAi(prompt, questionExtractionSchema(), source);
             String output = extractOutputText(root);
             if (output == null || output.isBlank()) {
@@ -297,6 +94,11 @@ public class OpenAiQuestionExtractor {
                     continue;
                 }
 
+                if (!isHighQualityQuestion(item)) {
+                    log.info("Rejecting low-quality extracted question: source={} postUrl={} question={}", source.getSlug(), postUrl, item.questionText());
+                    continue;
+                }
+
                 InterviewQuestion question = new InterviewQuestion();
                 question.setSourcePlatform(firstNonBlank(item.sourcePlatform(), source.getName()));
                 question.setOriginalPostUrl(postUrl);
@@ -314,10 +116,10 @@ public class OpenAiQuestionExtractor {
                 question.setQuestionType(item.questionType());
                 question.setQuestionText(item.questionText().trim());
                 question.setQuestionDescription(item.questionDescription());
-                question.setCandidateApproach(item.candidateApproach());
-                question.setDifficulty(item.difficulty());
+                                question.setDifficulty(item.difficulty());
                 question.setTopics(item.topics() == null ? Collections.emptyList() : item.topics());
                 question.setConfidence(item.confidence());
+                question.setQuestionSpecificity(item.questionSpecificity());
                 question.setModelName(settings.extractModel());
                 question.setExtractedAt(Instant.now());
                 question.setDedupeHash(Hashing.questionDedupeHash(
@@ -331,6 +133,29 @@ public class OpenAiQuestionExtractor {
         }
     }
 
+
+    /** Deterministic quality gate: LLM output is a candidate, not truth. */
+    private boolean isHighQualityQuestion(ExtractedQuestion item) {
+        String text = item.questionText() == null ? "" : item.questionText().trim();
+        if (text.isBlank() || text.length() < 8 || text.length() > 140) return false;
+        float confidence = item.confidence() == null ? 0f : item.confidence();
+        if (confidence < 0.70f) return false;
+        String normalized = text.toLowerCase(Locale.ROOT)
+                .replaceAll("[^a-z0-9\\s]", " ").replaceAll("\\s+", " ").trim();
+        Set<String> weakExact = Set.of(
+                "explain your project", "explain your project architecture",
+                "tell me about your project", "tell me about yourself",
+                "introduce yourself", "what is your project",
+                "what are you working on", "how was your interview",
+                "how did the interview go");
+        if (weakExact.contains(normalized)) return false;
+        String[] weakStarts = {"are you using ", "do you use ", "have you used ",
+                "have you worked with ", "what tools do you use ",
+                "what technology do you use ", "what tech stack ",
+                "what is your experience with "};
+        for (String prefix : weakStarts) if (normalized.startsWith(prefix)) return false;
+        return true;
+    }
     private JsonNode callOpenAi(String prompt, JsonNode schema, CrawlSource source) throws Exception {
         ObjectNode request = objectMapper.createObjectNode();
         request.put("model", settings.extractModel());
@@ -378,6 +203,15 @@ public class OpenAiQuestionExtractor {
         return root;
     }
 
+    private String loadPrompt() {
+        try {
+            return new String(new ClassPathResource("prompts/interview_question_extraction.txt")
+                    .getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            throw new IllegalStateException("Unable to load shared extraction prompt", e);
+        }
+    }
+
     private JsonNode questionExtractionSchema() {
         var format = objectMapper.createObjectNode()
                 .put("type", "json_schema")
@@ -399,18 +233,18 @@ public class OpenAiQuestionExtractor {
         properties.set("questionType", nullableStringSchema());
         properties.set("questionText", nullableStringSchema());
         properties.set("questionDescription", nullableStringSchema());
-        properties.set("candidateApproach", nullableStringSchema());
-        properties.set("difficulty", nullableStringSchema());
+                properties.set("difficulty", nullableStringSchema());
         ObjectNode topicsSchema = objectMapper.createObjectNode().put("type", "array");
         topicsSchema.set("items", objectMapper.createObjectNode().put("type", "string"));
         properties.set("topics", topicsSchema);
         properties.set("confidence", nullableNumberSchema());
+        properties.set("questionSpecificity", nullableNumberSchema());
         question.set("properties", properties);
         question.set("required", objectMapper.createArrayNode()
                 .add("sourcePlatform").add("problemUrl").add("postDate").add("company").add("role").add("level")
                 .add("location").add("candidateYoE").add("outcome").add("roundType")
-                .add("questionType").add("questionText").add("questionDescription").add("candidateApproach")
-                .add("difficulty").add("topics").add("confidence"));
+                .add("questionType").add("questionText").add("questionDescription")
+                .add("difficulty").add("topics").add("confidence").add("questionSpecificity"));
 
         var schema = objectMapper.createObjectNode().put("type", "object").put("additionalProperties", false);
         ObjectNode schemaProperties = objectMapper.createObjectNode();
@@ -536,6 +370,6 @@ public class OpenAiQuestionExtractor {
     private record ExtractedQuestion(String sourcePlatform, String originalPostUrl, String problemUrl, LocalDate postDate,
                                      String company, String role, String level, String location, Float candidateYoE,
                                      String outcome, String roundType, String questionType, String questionText,
-                                     String questionDescription, String candidateApproach, String difficulty,
-                                     List<String> topics, Float confidence) {}
+                                     String questionDescription, String difficulty,
+                                     List<String> topics, Float confidence, Float questionSpecificity) {}
 }

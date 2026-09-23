@@ -34,15 +34,15 @@ public final class SeedCatalog {
         List<Seed> seeds = new ArrayList<>();
 
         seeds.add(seed(
-                "glassdoor-interviews",
-                "Glassdoor Interview",
-                "https://www.glassdoor.com/Interview/index.htm",
-                "html",
-                6,
-                10000,
-                true,
-                "General Glassdoor interview index. Company-specific pages follow /Interview/[Company-Name]-Interview-Questions-E[ID].htm.",
-                config("browser_first", 48, List.of("glassdoor.com"), true, false)
+                "leetcode-discuss",
+                "LeetCode Discuss",
+                "https://leetcode.com/discuss/interview-question/",
+                "leetcode_graphql",
+                12,
+                2000,
+                false,
+                "LeetCode interview-question discussions. Keep only genuine candidate interview experiences.",
+                config("browser_first", 26, List.of("leetcode.com"), true, false)
         ));
 
         seeds.add(seed(
@@ -50,11 +50,35 @@ public final class SeedCatalog {
                 "TeamBlind",
                 "https://www.teamblind.com/",
                 "html",
-                6,
-                10000,
-                true,
+                12,
+                2000,
+                false,
                 "Search for recent interview experience and company-specific interview discussions.",
-                config("browser_first", 48, List.of("teamblind.com"), true, false)
+                config("browser_first", 26, List.of("teamblind.com"), true, false)
+        ));
+
+        seeds.add(seed(
+                "teamblind-search-interview-experience",
+                "TeamBlind Interview Experience Search",
+                "https://www.teamblind.com/search/interview%20experience",
+                "html",
+                12,
+                2000,
+                false,
+                "TeamBlind search results for interview experience discussions.",
+                config("browser_first", 26, List.of("teamblind.com"), true, false)
+        ));
+
+        seeds.add(seed(
+                "geeksforgeeks-interview-experiences",
+                "GeeksforGeeks Interview Experiences",
+                "https://www.geeksforgeeks.org/category/experiences/interview-experiences/",
+                "html",
+                6,
+                5000,
+                false,
+                "GeeksforGeeks interview experiences category. Crawl recent experience posts and extract only genuine interview questions.",
+                config("browser_first", 26, List.of("geeksforgeeks.org"), true, false)
         ));
 
         seeds.add(seed(
@@ -62,59 +86,11 @@ public final class SeedCatalog {
                 "TeamBlind Interview Experiences",
                 "https://www.teamblind.com/channels/interview-experiences",
                 "html",
-                6,
-                10000,
-                true,
+                12,
+                2000,
+                false,
                 "TeamBlind interview-experiences channel.",
-                config("browser_first", 48, List.of("teamblind.com"), true, false)
-        ));
-
-        seeds.add(seed(
-                "1point3acres",
-                "1Point3Acres",
-                "https://www.1point3acres.com/bbs/",
-                "html",
-                6,
-                10000,
-                true,
-                "Interview / 面经 community. Company search pages can be discovered from the forum.",
-                config("browser_first", 48, List.of("1point3acres.com"), true, false)
-        ));
-
-        seeds.add(seed(
-                "reddit-cscareerquestions",
-                "Reddit r/cscareerquestions",
-                "https://www.reddit.com/r/cscareerquestions/",
-                "html",
-                6,
-                10000,
-                true,
-                "Recent software-career interview discussions. Prefer dated posts and candidate-authored experiences.",
-                config("browser_first", 48, List.of("reddit.com"), true, false)
-        ));
-
-        seeds.add(seed(
-                "reddit-leetcode",
-                "Reddit r/leetcode",
-                "https://www.reddit.com/r/leetcode/",
-                "html",
-                6,
-                10000,
-                true,
-                "Recent LeetCode/interview discussions. Keep only genuine candidate interview experiences.",
-                config("browser_first", 48, List.of("reddit.com"), true, false)
-        ));
-
-        seeds.add(seed(
-                "reddit-experienced-devs",
-                "Reddit r/ExperiencedDevs",
-                "https://www.reddit.com/r/ExperiencedDevs/",
-                "html",
-                6,
-                10000,
-                true,
-                "Experienced-developer interview discussions.",
-                config("browser_first", 48, List.of("reddit.com"), true, false)
+                config("browser_first", 26, List.of("teamblind.com"), true, false)
         ));
 
         return List.copyOf(seeds);

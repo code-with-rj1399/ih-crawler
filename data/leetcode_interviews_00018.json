@@ -1,0 +1,909 @@
+[
+  {
+    "id": "4988878",
+    "url": "https://leetcode.com/discuss/interview-experience/4988878/amazon-screening-onsite-sde-3-india",
+    "title": "Amazon | Screening + Onsite | SDE-3 India",
+    "page_content": "**YoE**: ~12 years\\n**Current**: Staff engineer at a mid-sized start-up\\n**Team**: Tax Services\\n**Result**: Downgraded to SDE-2, which I rejected. They told the offer for SDE-2 can go upto 90 LPA.\\n# Screening round\\n1. Tell me about some interesting past project you\\'ve worked on.\\n2. Walk me through some outage that happened on your platform.\\n3. How do you learn outside of work?\\n4. https://leetcode.com/problems/shortest-unsorted-continuous-subarray/\\n# Onsite rounds\\n## Coding round 1\\n1. https://leetcode.com/problems/lru-cache/\\n2. https://leetcode.com/problems/valid-parentheses/\\n3. Tell me about a time when you delivered something which was considered unachievable, but you still did it.\\n## Coding round 2\\n1. https://leetcode.com/problems/longest-increasing-subsequence/\\n2. https://leetcode.com/problems/populating-next-right-pointers-in-each-node/\\n3. How do you ensure that you and the teams you\\u2019re working with follow high engineering standards?\\n## HLD round\\nDesign a news aggregator service like Google News.\\n## Bar raiser round\\n1. Tell me about your role at your current workplace.\\n2. How do you do design reviews?\\n3. Tell me about a time (TMAAT) when you got a design doc to review and it was completely off the track. What did you do?\\n4. TMAAT when you had to give a harsh feedback in a design review.\\n5. TMAAT when you went above and beyond your role for a customer.\\n6. TMAAT when you got some requirement from the customer or the products team and they suggested a way to do it, but you suggested another way which was better / more feasible.\\n7. How do you keep yourself up-to-date with technologies in your field?\\n8. TMAAT when you learned something and then applied that in your work. (This is different from when you have some requirement at work for implementing a feature and then you learn about some technologies).\\n9. TMAAT when you had to take a tech decision based on a limited amount of available knowledge. What was the outcome?\\n## Hiring manager round\\n1. Tell me about some interesting project you\\u2019ve worked on. What was your role in it?\\n2. TMAAT when you disagreed with some senior person. Were you able to convince them? Or did you get convinced?\\n3. TMAAT when you got a constructive feedback. Did you agree with the feedback? If yes, what did you do to improve things?\\n4. TMAAT when you did something which was beyond your role.\\n5. TMAAT when some engineer in your team was stuck in a technical issue and you had to help them.",
+    "tags": [
+      "amazon senior sde",
+      "amazon"
+    ],
+    "votes": 9,
+    "views": 918,
+    "creation_date": 1712506367,
+    "author": null
+  },
+  {
+    "id": "4988872",
+    "url": "https://leetcode.com/discuss/interview-experience/4988872/intuit-sde2-bangalore-april-2024-offer",
+    "title": "Intuit | SDE2 | Bangalore | April 2024 [Offer]",
+    "page_content": "Status: Experienced\\nPosition: Software Engineer at a service-based company\\n\\nAll of my rounds were virtual as I don\\'t live in Bangalore.\\n\\n**Round-1 (1-hour DSA and technical)**\\nI was asked to solve one medium-to-hard level DSA problem on DP. I solved it in like 40 minutes. I was then asked on some techincal concepts in Java/ Spring Boot and my skillset in my CV for the remaining amount of time. Feedback was positive and I got an update from the recruiter after two weeks.\\n\\n**A4A rounds (Craft Demo, Assessor, Team member, Hiring manager)**\\nAll the rounds happened on the same day. A week before, I was given a case study which I have to build with the tech stack that I\\'m comfortable with. Since the problem statement was abstract, I had to make few assumptions. I focused on completing the task instead of thinking on complex architecture which would delay the development. I spent 4 days to complete this. After that the interview was scheduled. \\n\\n**Craft Demo (1-hour)**\\nThere were 4 panel members and they asked lot of questions on the use-case flows, concurrency, DB design, etc. The demo went well and the feedback was positive. Few tips for this round are,\\n* Keep it simple and focus on DB design, clean coding standards like SOLID principles, OO design patterns\\n* Include unit/ integration testing\\n* Create HLD diagram. I used Excalidraw\\n* If possible prepare a short PPT with your portfolio, HLD\\n* If you have made any assumptions, make sure to ask yourself \"why and how\" questions. Be strong in it\\n\\n--- Short break ---\\n\\n**Assessor (1-hour)**\\nThere were two panel members. I was asked to solve one DP problem. I felt it hard, but it seems to be a medium level. I was not able to code it fully, but they liked my approach. After this, there were questions on Java/ Spring boot and they also asked few questions on how would my craft project react if any new features added or removed. For eg: Database schema change, API versioning, concurrency etc. Feedback was positive.\\n\\n**Team member (1-hour)**\\nThere was only one panel member. Again, he asked me to add a new feature in my craft project. This contained lot of discussion on designing it. Feedback was positive.\\n\\n**Hiring Manager (half hour)**\\nQuestions about my work experience, projects, achievements. It was a typical behavioural round. Feedback was positive.\\n\\nOverall experience: It was a good interview experience. Being you will help a lot; just be you. Prepare well for the craft round and try to complete it within the time frame. Be clear about both the functional and non-functional requirements like web technologies, concurrency, ACID, design decisions, and other use-case specific things as well. Take a pause while speaking. Think and answer. Make it interactive instead of just answering questions. The final result were also positive and they confirmed on the same day.\\n\\nCompensation: https://leetcode.com/discuss/compensation/4993406/Intuit-or-SDE-2-or-Bangalore",
+    "tags": [
+      "banglore",
+      "intuit"
+    ],
+    "votes": 8,
+    "views": 3413,
+    "creation_date": 1712506223,
+    "author": null
+  },
+  {
+    "id": "4988044",
+    "url": "https://leetcode.com/discuss/interview-experience/4988044/airbus-fte-offcampus",
+    "title": "Airbus | FTE | Offcampus",
+    "page_content": "**Airbus off-campus hiring happened through Airbus Aerothon conducted on HackerEarth.** \\n\\n**Compensation Details:**\\nCTC: 13 LPA\\nBase Salary: 12 LPA\\nJoining Bonus: 1 Lakh\\n\\n\\n**Round 1(Online Coding):** It was an online coding round hosted on the HackerEarth platform. There were 2 coding questions with intermediate level based on Bit Masking and String algorithm to solve in 3 hours. One correct question can lead you to the next round. It was an elimination round.\\n\\n**Round 2(Technical Interview):** It was a Technical Interview hosted on google meet. There was one interviewer. \\n\\nQuestions asked were \\u2013  \\nHow are you and Tell us about yourself\\nTell us about your technical skills\\nTell us about the HTTP protocol\\nDifference between HTPP and HTTPS\\nWhat is the OSI model\\nExplain all layers of the OSI model\\nTell us all OOPS concepts that you know\\nWhat is localhost\\nHow we connect database with project\\nTell us about your Internship\\nWhat happens in a backend when you search google.com\\nHow does web search algorithm works\\nHow exactly server works.\\nDo you have any questions or feedback for us\\n\\n**Round 3(HR and Managerial Interview):** It was an HR and Managerial Interview. There were two panelists. \\n\\nQuestions asked were-\\n\\nHow are you and Tell us about yourself\\nTell us about your technical skills\\nWhere are you from\\nWhich is your college\\nDifference between Overloading and Overriding.\\nWhat is a constructor and copy constructor?\\nWhat is an access specifier?\\nWhich databases you are familiar with\\nWill you come to Bangalore\\nHave you placed anywhere and How much they are paying\\nWhy airbus\\nTell us about your internship project\\nDo you have any questions for us?\\n\\nI was selected for the role of Associate System Engineer.",
+    "tags": [
+      "interview",
+      "offcampus",
+      "airbus",
+      "fte"
+    ],
+    "votes": 0,
+    "views": 209,
+    "creation_date": 1712493778,
+    "author": "simrrrran1"
+  },
+  {
+    "id": "4987768",
+    "url": "https://leetcode.com/discuss/interview-experience/4987768/amazon-online-assessment",
+    "title": "Amazon online assessment",
+    "page_content": "Hey Leetcodes, i took amazons OA last week there were two questions for 105 min, i have solved both successfully but didnt not explain those answers as i was not aware of thet after exam i saw that we need to explain answer, can i hope for next call or not??\\nDo we really need explain code??",
+    "tags": [
+      "amazon assesment"
+    ],
+    "votes": 0,
+    "views": 502,
+    "creation_date": 1712489001,
+    "author": "rushikeshkotkar"
+  },
+  {
+    "id": "4987607",
+    "url": "https://leetcode.com/discuss/interview-experience/4987607/google-onsite-l5",
+    "title": "Google Onsite | L5",
+    "page_content": "I interviewed with google last month - did phone screen and 4 onsite interviews\\nThe position was outside US.\\nThe process was chaotic and took long time.\\nFirst i got contacted by a recruiter regarding a senior position in google and he did set up a quick call to discuss the position and if i\\'m interested.\\nAfterwards couple of weeks went by without any communication until i contacted back.\\nThen without asking for availability dates a phone screen was scheduled but i had no problem reschudling it for a more suitable time.\\n\\nI did well in the phone screen but again couple of weeks with no communication from the recruiter until i nudged him again. (I was expecting a reject email).\\nBut i got positive feedback and moved to onsite interviews where i was scheduled 3 coding interviews and one googlyness without any system design.\\nAnd again the onsite interviews got scheduled again without asking me for availability dates, so i had to reschedule them again.\\n\\nOne day before the interviews i got an email telling me that 2 interviews will be canceled and need to be reschudled since the interveiwers had a conflict which is fine and provided alternative dates. but got no response from the Coordinator. (this time i said f it.)\\nDid the 2 interviews they went well also. and a week after the recruited reached out to ask how is it going so i told him that 2 interviews weren\\'t scheduled\\nThen again the remaining interviews got scheduled a month later.\\nEventuallly after a process of 3 months i got rejected since i didn\\'t do well in the last 2 coding interviews :)\\n\\nPhone Screen:\\n1.) https://leetcode.com/discuss/interview-question/1850201/faang-onsite-splitting-loaddata\\nInterview was pleasent and went very well.\\n\\nOnsite:\\n1.) https://leetcode.com/problems/find-all-possible-recipes-from-given-supplies/description/\\n2.) Googlyness interview.\\n3.) Card has 2 attributes (Color, count) where color can be (Red,Green,Black) and count (1-9)\\nA pattern of 3 cards can be either the 3 are the same card or the 3 cards have the same color and have increamenting order ex:(Black, 1), (Black,2 ),(Black,9)\\n\\nThe first question is to write a funciton to check if the set of 3 cards have a pattern or not.\\nThen the question was we have 12 cards write a function to check if we can divide the cards into 4 patterns then return true otherwise false.\\n4.)We have a streaming tic tac toe game with board size of n.\\nWrite a function that recieves 1 or 0. and for each input to return true in case there is a row or a column that consists of 1s.\\nfor example\\n\\nBoard size is 3:\\nThe input is 0,0,1,0,0,1,0,0,0\\nOur board would be\\n|0,0,1|\\n|0,0,1|\\n|0,0,0|\\nand the next input is 1\\nThen the board will be\\n|1,0,0|\\n|1,0,0|\\n|1,0,0| and the function return true.",
+    "tags": [],
+    "votes": 5,
+    "views": 1342,
+    "creation_date": 1712486380,
+    "author": null
+  },
+  {
+    "id": "4986696",
+    "url": "https://leetcode.com/discuss/interview-experience/4986696/google-onsite-l5",
+    "title": "Google Onsite L5",
+    "page_content": "I interviewed with google last month - did phone screen and 4 onsite interviews\\nThe position was outside US.\\nThe process was chaotic and took long time.\\nFirst i got contacted by a recruiter regarding a senior position in google and he did set up a quick call to discuss the position and if i\\'m interested. \\nAfterwards couple of weeks went by without any communication until i contacted back.\\nThen without asking for availability dates  a phone screen was scheduled but i had no problem reschudling it for a more suitable time.\\n\\nI did well in the phone screen but again couple of weeks with no communication from the recruiter until i nudged him again. (I was expecting a reject email).\\nBut i got positive feedback  and moved to onsite interviews where i was scheduled 3 coding interviews and one googlyness without any system design.\\nAnd again the onsite interviews got scheduled again without asking me for availability dates,  so i had to reschedule them again.\\n\\nOne day before the interviews i got an email telling me that 2 interviews will be canceled and need to be reschudled since the interveiwers had a conflict  which is fine and provided alternative dates. but got no response from the Coordinator. (this time i said f it.)\\nDid the 2 interviews they went well also. and a week after the recruited reached out to ask how is it going so i told him that 2 interviews weren\\'t scheduled\\nThen again the remaining interviews got scheduled a month later.\\nEventuallly after a process of 3 months  i got rejected since i didn\\'t do well in the last 2 coding interviews :) \\n\\n\\n\\nPhone Screen:\\n1.) https://leetcode.com/discuss/interview-question/1850201/faang-onsite-splitting-loaddata\\nInterview was pleasent and went very well.\\n\\n\\nOnsite: \\n1.) https://leetcode.com/problems/find-all-possible-recipes-from-given-supplies/description/\\n2.) Googlyness interview.\\n3.) Card has 2 attributes (Color, count) where color can be (Red,Green,Black) and count (1-9)\\nA pattern of 3 cards can be either the 3 are the same card  or the 3 cards have the same color  and have increamenting order ex:(Black, 1), (Black,2 ),(Black,9)\\n\\nThe first question is to write a funciton to check if the set of 3 cards have a pattern or not.\\nThen the question was  we have 12 cards write a function to check if we can divide the cards into 4 patterns  then return true otherwise false.\\n4.)We have a streaming tic tac toe game with board size of n.\\nWrite a function that recieves 1 or 0.  and for each input to return true in case there is a row or a column that consists of 1s.\\nfor example \\n\\nBoard size is 3:\\nThe input is 0,0,1,0,0,1,0,0,0\\nOur board would be \\n|0,0,1|\\n|0,0,1|\\n|0,0,0|\\nand the next input is 1\\nThen the board will be \\n|1,0,0|\\n|1,0,0|\\n|1,0,0| and the function return true.",
+    "tags": [
+      "google",
+      "onsite"
+    ],
+    "votes": 4,
+    "views": 1181,
+    "creation_date": 1712473953,
+    "author": null
+  },
+  {
+    "id": "4985300",
+    "url": "https://leetcode.com/discuss/interview-experience/4985300/microsoft-interview-experience-sde-2",
+    "title": "Microsoft Interview Experience SDE 2",
+    "page_content": "\\nI attended Microsoft Sde 2 Interview l 1st Week Of April\\n\\n\\n\\nRound 1 : DSA + Senario Based Question \\n\\ta. I was given a Stream of Inputs like a logger and have to differentiate various logs w.r.t to catogory in the order of arival time\\n\\tb. Senario : What are the basic test case Do I validate by designing a escalator.\\n\\tc.some LP based question .\\n\\nRound 2 : Straight forward LLD round\\n\\ta. Design Snake and Ladder game\\n\\t\\tNeed to show class diagrams , analysis and working code \\n\\nRound 3 : The HR , said it is a HLD round , but I got a DSA question \\n\\ta. Design a Data Structure which provides insert , delete , and gets most frequest element , all in O(1) TC\\n\\tb. Some LP Questions \\n\\nHR said they would communicate regarding the results on the samday or next working day , still not heard from them \\n\\nI believe mostly a reject as there was not proper communication from HR , I anticipate the same .\\n\\n\\n\\nEdit  1 : Was contacted for Hiring Manager Round on 2nd week of April, \\n\\nQuestion : \\nImpletement File Sharing app HLD ? \\nTell me Issues in Production you faced .\\nGreatest Engineering Problem You Solved till Date.\\nAre you Willing to Relocate to Hyderabad ? \\nMy Current CTC and Expected one ?\\n \\n\\n\\n\\n~ Mr.D\\n\\n\\n\\n\\nEdit 2 : Other Post\\n\\nhttps://leetcode.com/discuss/interview-experience/4985300/Microsoft-Interview-Experience-SDE-2\\nhttps://leetcode.com/discuss/interview-question/4669868/Interview-Experiences-Google-Amazon-Paypal-Walmart-Sprinkler-MMT-Fresh-Works-I-PAC\\nhttps://leetcode.com/discuss/interview-experience/4181782/Google-phone-screen-L3-ghosted\\n\\nEdit 3 :\\nJoined Microsoft as SDE 2",
+    "tags": [
+      "microsoft-india",
+      "microsoft azure",
+      "microsoft-idc",
+      "mr.d",
+      "microsoft"
+    ],
+    "votes": 2,
+    "views": 2593,
+    "creation_date": 1712458482,
+    "author": null
+  },
+  {
+    "id": "4979731",
+    "url": "https://leetcode.com/discuss/interview-experience/4979731/wheelseye-technologies-sde-i-gurugram-april-2024-reject",
+    "title": "Wheelseye Technologies | SDE-I | Gurugram | April 2024 [Reject]",
+    "page_content": "Previous Position - Software Engineer II\\nLocation - Bengaluru, India\\nYears of Experience - 1.5 years of Experience\\n\\nCold emailed to HR. Got a positive reply to go ahead!\\n\\n**Telephonic Conversation with HR (5-10 mins)**\\n\\nThe recruiter informed me that my resume was shortlisted and he would like to proceed ahead for the interviews. He explained a little about Wheelseye Technology and asked about my background and questions like - YOE, CTC etc.\\n\\nThen, he explained the interview process- 6 total rounds of interviews at Wheelseye Technology\\n\\nRound 1 : HackerEarth Test shared (Coding)\\nRound 2 : DSA  (Virtual round)\\nRound 3 : DSA ( Computer science fundamentals)  (Face to face in office)\\nRound 4 : LLD (Face to Face in office) \\nRound 5 : Techno functional (Face to face in office)\\nRound 6 : Cultural Round (Face to face in office)\\n\\n*All rounds face to face at the same day in Gurgaon office\\n\\nI received the test link for the Online Assessment (OA) on hackerearth.\\n\\n**Round 1 : HackerEarth Test shared (Coding) :**\\n\\nThere were total 2 sections having 3 problems based on arrays and strings.\\n\\n**Section-1 (Easy)**\\n\\n**Problem 1:**\\n\\nN noble people from the court of King Bob are standing in a line (1 to M. Each person is either wise or strong (not both). His prime advisor advised Bob that all wise people should be standing first followed by strong people (first means lower index). Bob cannot change the order of the noble people standing but he can do one thing ask his court magician to transform the type of person standing at any position. You are given the type of N persons as a string (\\'S\\' means strong and \\'W\\' means wise).\\n\\nDetermine the minimum number of times the magician must apply his trick so that the ordering is as per his advisor\\'s advice.\\n\\nNotes\\n\\n\\u2022 It is possible that after applying the magic trick, the number of either form of people becomes 0.\\n\\n\\u2022 Bob can ask his magician to change the same type of person\\xA0several\\xA0times.\\n\\nTC 1:\\nInput :  n = 10, str = \"SSWWSWWSWW\"\\nOutput : 4\\n\\nTC 2:\\nInput :  n = 5, str = \"SSSSS\"\\nOutput : 0\\n\\n\\n**Problem 2:**\\n\\nGiven an integer array A of the size N. Find the sum of values in the array that has different parity from that of their index in the array.\\nCalculate the sum of values of A[i] for all i where, A[2] mod 2 \\u2021 i mod 2 \\nNote: 1-based indexing is used.\\n\\nTC 1:\\nInput :  n = 3, arr[] : {33,43,38}\\nOutput : 81\\n\\nTC 2:\\nInput :  n = 4, arr[] : {2,3,4,5}\\nOutput : 14\\n\\n**Section-2 (Medium)**\\n\\n**Problem 3:**\\n\\nGiven a string S1 of length L1 consisting of Latin uppercase alphabets only and a string S2 of length L2 consisting of characters T\\' and \\'F\\' only.\\nGenerate a lexicographically smallest string S of length (L1 + 12 - 1) such that a substring of length L1 in string S starting at index / (0 \\u2264 i < L2) is equal to S1 if and only if ith element of S2 is \\'T (without quotes) else not. If no such string can be generated, print \"-1\" (without quotes).\\n\\nNotes\\n\\nA string a is lexicographically smaller than a string b if and only if one of the following holds:\\n\\u2022 a is a prefix of b, but a # b;\\n\\u2022 in the first position where a and b differ, the string a has a letter that appears earlier in the alphabet than the corresponding\\xA0letter\\xA0in\\xA0b.\\n\\nFind the lexicographically smallest string S which satisfies the given\\xA0condition.\\n\\nTC 1:\\n\\nInput :  S1 = \"ABCA\", S2 = \"TFFF\"\\nOutput : \"ABCAAAA\\n\\n\\nI was able to solve both easy questions but could not solve medium completely as it was unclear to me.\\n\\nGot the call from HR next day, that I have passed the OA and he scheduled the Round 2 on google meet.\\n\\n**Round 2 : DSA  (Virtual round)**\\n\\nThe interviewer was a SDE with 4 YOE. We started with our introductions then jumped straight to problem solving-\\n\\n**Problem 1 (LC - Medium)** : https://leetcode.com/problems/search-a-2d-matrix/description/\\n\\n- Interviewer was expecting the optimized solution.\\n- Gave solution using staircase search\\n- Then, he asked to dry run with an example. \\n- Asked about time and space complexity.\\n\\n\\n**Problem 2 (LC- Hard)** : https://leetcode.com/problems/find-median-from-data-stream/description/\\n\\n- Explained the approach using two heaps- Min and Max heap.\\n- He asked to explain logic using sample example. \\n- I coded the solution and dry ran the example. But seems like my logic got little wrong. So, I asked to look again.\\n- Unfortunately, could not come up with any solution.\\n\\nInterviewer gave a positive response as he said that he understood my approach but in interest of time it was better to conclude.\\n\\nThen he asked if I have any questions for him - I asked about the work he do in daily tasks in his current team.\\n\\nFeedback: I thought he would be satisfied with my performance and may consider for the next round. But sadly it was a reject.\\n",
+    "tags": [
+      "software engineer",
+      "sde",
+      "gurgaon",
+      "backend",
+      "gurugram",
+      "wheelseye",
+      "2024placement"
+    ],
+    "votes": 1,
+    "views": 1073,
+    "creation_date": 1712347680,
+    "author": null
+  },
+  {
+    "id": "4979225",
+    "url": "https://leetcode.com/discuss/interview-experience/4979225/bloomberg-phone-screen-senior-swe-mobile-nyc",
+    "title": "Bloomberg Phone Screen | Senior SWE Mobile | NYC",
+    "page_content": "I recently had an interview for Senior Mobile Engineer - Bloomberg Media. \\nHR round -> Moved to next round -> Phone screen for 30 mins about resume and also regarding React Native, and iOS questions and how you build a mobile application. Restful webservices. Cloud questions. How to build a data model on backend and handle it on mobile and some presistent data questions.\\n\\n30 mins HackerRank question about - Build a #ToList. Which has seperate methods addTask(\"1\"), deleteTask(\"1\"), printAllTasks() \\n\\ncompleted the problem and gave the time complexity to solve the each task.\\n\\nRejected with no Feedback. \\n\\nBad experience with the person who interviewed me. Has a bad internet connection and had to repeat him my answers as well as ask him to clarify questions. \\nInterview happened yesterday - April 4th.",
+    "tags": [
+      "bloomberg nyc"
+    ],
+    "votes": 1,
+    "views": 247,
+    "creation_date": 1712339347,
+    "author": "user8668bd"
+  },
+  {
+    "id": "4978898",
+    "url": "https://leetcode.com/discuss/interview-experience/4978898/phonepe-software-engineer-bangalore-may-2023-reject",
+    "title": "PhonePe | Software Engineer | Bangalore | May 2023(Reject)",
+    "page_content": "Status : SDE-1 at Amazon . 4 years of experience,\\nDate : May 2023\\nLocation : Bangalore \\n\\nRound 1 : Machine coding \\n\\nDevelop a TODO task tracking application which allows its users to maintain TODO lists. TODO tasks in the list can have a deadline and tags associated with them for easier grouping and management. You can demonstrate the working of the application using a driver program. There is no requirement to use a database for persistence (instead, use memory to store data) or write a web service.\\n\\n**Features**\\n\\n- Users should be able to update the TODO list at any point in time - add, modify and remove tasks\\n- A task can be marked as completed and once it is completed, it is automatically removed from the TODO list. Tasks can also be added to appear in the TODO list at a future date.\\n- Users should be able to see an activity log which describes additions, modifications and removals of tasks from the TODO list during a particular time period.\\n- Users should also be able to see statistics around how many tasks were added, completed and spilled over the deadline during a particular period of time.\\n\\nYou are given 3 hours to code and submit this .\\n\\n\\nRound 2 : DSA\\n\\nhttps://leetcode.com/problems/find-the-duplicate-number/  . \\n1. Interviewer wanted O(n) solution first . Can use additional space. \\n2. Interviewer wanted O(n) solution . Don\\'t use additional space but can modify the array \\n3. Solution without using additional space and without modify orginial array . Used binary search. \\n\\nRound 3 :Design Distribued job schedular. Expectation was to come with high level design , database design and how the system is resiliant to failures.\\n\\nGot rejection mail after some time. Feedback for round 3 was not positive.",
+    "tags": [
+      "phonepe interview"
+    ],
+    "votes": 6,
+    "views": 1028,
+    "creation_date": 1712334976,
+    "author": "hello_world_cc"
+  },
+  {
+    "id": "4978470",
+    "url": "https://leetcode.com/discuss/interview-experience/4978470/walmart-swe3-in3-management-mistake-rejected-after-all-round",
+    "title": "Walmart SWE3- IN3 - Management Mistake - Rejected After all round",
+    "page_content": "- **Education:** Graduated in 2022 from a Tier-3 College.\\n- **Total Experience:** 1.6 Years (Full-time) + 5 Months Internship\\n- Recently laid off.\\n- A recruiter from Walmart reached out to me and asked if I was available for three rounds of interviews after 2 days, to which I agreed.\\n  \\n**Round 1: DSA**\\n- Some theoretical questions on Data Structures.\\n- Presented with 3 DSA questions, 2 LeetCode mediums, and 1 easy, requiring optimized solutions.\\n- Also, asked some questions on Java collections.\\n\\nAfter 30 minutes, the recruiter called to inform me of positive feedback from the last round and scheduled the next round within the next 30 minutes.\\n\\n**Round 2: DSA + LLD**\\n- Presented with a LeetCode medium-level string manipulation question.\\n- Discussed projects.\\n- Designed Twitter.\\n\\nGot confirmation after 10-15 minutes that I received very good feedback from the last round and was informed that my HM round was scheduled for the next day.\\n\\n**Round 3: HM + HLD**\\n- In-depth project discussion.\\n- Discussed the Low-Level Design (LLD) of the Zoom Car app.\\n- The last round went well; we are currently awaiting a decision.\\n\\nAt the end of the interview, the interviewer asked about my total Years of Experience (YOE), and upon learning that I had less than 2 YOE, questioned who allowed me this opportunity. I explained that I had informed HR about my experience, and the interview concluded.\\n\\nAfter the interview, I received a call from HR about my experience and was informed that there is a very low chance of selection due to this miscommunication. They assured me they would keep me updated.\\n\\nFeeling demotivated as it has already been 2 months.",
+    "tags": [],
+    "votes": 3,
+    "views": 555,
+    "creation_date": 1712328856,
+    "author": null
+  },
+  {
+    "id": "4978370",
+    "url": "https://leetcode.com/discuss/interview-experience/4978370/wayfair-software-engineer-2-l3-bangalore-rejected",
+    "title": "Wayfair | Software Engineer 2 , L3 | Bangalore | Rejected",
+    "page_content": "Recently went through interview process of wayfair for software engineer 2, L3 position.\\nThis article for reference\\n\\nAtttended only 4 rounds rejected in 4th round so couldn\\'t attend 5th round.\\nGot detailed feedback from wayfair HR.\\n\\n**OA round**\\n3 coding questions in 60 minutes(2 medium & 1 hard)\\n\\n**Coding round**\\n1. https://leetcode.com/problems/maximum-product-subarray/description/\\n2. Follow up question to print start and last index\\n\\n**LLD**\\nTicket reservation system parking of single floor parking lot\\n\\n**HLD**\\nDesign google photos with own blob storage system\\n\\nVerdict : Rejected",
+    "tags": [
+      "interview",
+      "wayfair",
+      "experience",
+      "hld",
+      "lld",
+      "software engineer 2",
+      "coding",
+      "coding assessment"
+    ],
+    "votes": 7,
+    "views": 1353,
+    "creation_date": 1712327270,
+    "author": null
+  },
+  {
+    "id": "4977629",
+    "url": "https://leetcode.com/discuss/interview-experience/4977629/microsoft-principal-mle-interview-experience",
+    "title": "Microsoft Principal MLE Interview Experience",
+    "page_content": "Hello All, want to bring to the notice of the LC community, the absolute unprofessionalism I witnessed as I interviewed with Microsoft last month, in March, 2024. Let me share my experience below:\\n\\n\\xA7. Getting a call\\nI\\'m from a teir-1(non IITs) college, albeit largely associated with startups/small companies. But it took me, a good junior of mine, to reach out infact every team that was hiring. Personally pitching my resume. \\nFinally after an ordeal of 2 weeks, I magically get a call like a flying spear in the air that Microsoft was keen on giving in up my a$$- proferring to interview me for a \"Principal Machine Learning Engineer\", wherein I, carrying 9+ yoe, have largely been applying for Sr Software roles, in Data and Backend. This as well, was communicated to me by an interviews coordinator, who\\'d nothing otherwise to do with Microsoft.\\n\\n\\xA7. the OA\\nRandomly, I receive a mail with link to OA. I \\'d seen a lot of hue and cry about that Microsoft OA wherein 1 of those 2 questions was almost impossible to invent and crack all on one\\'s own in that 90 or 120min window.\\nI understood that I will have to keep 2 work machines by my side, one to attempt the assignment in, and the other to google solution through. \\nSurprisingly, I had to write the answer in a language I had never worked on, on being able to chance upon the solution on the internet which was so hard-to-find.\\nverdit=>passed the OA.\\n\\n\\xA7. R1- DS/A\\nthe coordinator sets up my first round, stating it\\'ll be DS/A problem solving\\nq1: sort a list of tuples by value and then by key.\\nq2. use 2 pointers to find if 2 elems in an array total up to a target sum.\\nq2.5: some useless improvisations of the same.\\nIt all seemed like a piece of cake.\\n\\n\\xA7. R2 - System Design\\nq. design something like Google Drive.\\nI was mentioning about FR, NFR, back of the envelope, assumptions, contracts, but all that interviewer wanted to hear was breaking a big file into chunks and maintaining those chunks in a block server and a metadata. \\nI wanted to elaborate further but he was already going orgasmic and wanted to conclude on a good note, which he did.\\n\\n\\xA7. R3 - with th HM. \\ninterviewer joins 5 mins late and after a brisk intro, asks me to design an \"Auto ML\" capability. \\nAll the assumptions, features, were mine. an absolute free-hand. He infact wanted me to frame a problem statement/usecase and frame an answer to it. \\nNot sure how that went, but the next hour I received a call for my last round.\\n\\n\\xA7. Final round (something they call as AA)\\nthe interviewer asked me how my interviews have been so far. I was clueless. \\nnext, he asks a couple of questions:\\n- how do you debug memory errors/leaks in an app.\\nAny answer I give, he says this is boring, not interesting.\\n- How do you serve a ML model.\\ngave him a very detailed answer, from pickled serving to KServe, PMML, Seldon-Core, Kubeflow, vLLM, Triton Server.\\nhe yawned a couple of times. \\n- As if he wasnt done asking all the vague questions, he next wanted me to design something like Elasticsearch.\\nI proposed a fine HLD seeking inspirations from how ES actually is architected- brought in WAL, Fail-over, redundancy, and lucene. \\nhe again had a few times his pet dialog mentioned \"I dont buy this idea to be frank...\"\\nfinally ended the interview giving me a chance to ask questions.\\n\\n2 weeks later. I again began begging of my junior to see if there\\'s any feedback he can chase internally for. \\nJunior said I have been reaching out over messages on official channels to the HM, the recruiter but to no avail.\\n\\nI desperately requested him to mention that if Principal role is something I am unfit for, can they consider me for L63/L64?\\n\\nFinally, the recruiter replied that my performance wasnt upto the mark even for lower levels.\\n\\nAnd finally, to the notice of my LC community, this is how i have responded:\\n\\n![image](https://assets.leetcode.com/users/images/9f3c4084-5180-46f3-b134-5531696d2702_1712315402.81744.png)\\n \\n",
+    "tags": [
+      "microsoft-india",
+      "machine learnig engineer",
+      "principal-engineer",
+      "bangalore india"
+    ],
+    "votes": 11,
+    "views": 1579,
+    "creation_date": 1712315417,
+    "author": null
+  },
+  {
+    "id": "4977400",
+    "url": "https://leetcode.com/discuss/interview-experience/4977400/oracle-cerner-india-rejected-verbal-offer-for-pmts-position-after-2-weeks",
+    "title": "Oracle(Cerner) India rejected verbal offer for PMTS position after 2 weeks",
+    "page_content": "2 weeks back HR congratulated me on phone and shared salary breakup in whatsapp chat. And told me that offer rollout will take roughly 2 weeks since it has to go through approval pipeline. once it gets approved from all the concerned members then only it will be release.\\n\\n2 days back he sent me another link to apply for the same position asking your offer is getting approved.\\n\\nBut to my suprise I got rejection email for the applied job though their career site. Now HR is not responding my calls/chats.\\n\\nSuch a sitty commpany Oracle has become.\\n\\nHas it happend to anyone else here?\\n",
+    "tags": [
+      "oracle india",
+      "oracle"
+    ],
+    "votes": 1,
+    "views": 475,
+    "creation_date": 1712312325,
+    "author": null
+  },
+  {
+    "id": "4977067",
+    "url": "https://leetcode.com/discuss/interview-experience/4977067/airbnb-g10-remote-us-march-2024-reject",
+    "title": "Airbnb | G10 | Remote (US) | March 2024     [Reject]",
+    "page_content": "Sharing my experience since I didn\\'t find many posts on Airbnb Staff level.\\n\\nRound 1 (1h): With EM, discussing past projects\\n\\nRound 2:\\n2 Architecture/System Design (1h each)\\n1 Coding (45m)\\n1 Technical Background (1h)\\n\\nCoding round - was not Leetcode type question, was mostly something you\\'ll use in your job. My self evaluation on this was terrible. Was prepared for a leetcode question and was thrown off by the question. Weirdly the recruiter said that coding was not why I was rejected.\\n\\nArchitecture/System design round - I enjoyed these interviews. The questions weren\\'t straight forward design FB/cache etc. It delved more into the details. In both rounds, the interviewers asked more questions on data model and DB design. Recruiter had mentioned that the system design rounds will be used for leveling and post interview shared that there weren\\'t enough signals for G10 level.\\n\\nTechnical Background - chat in depth about past project.\\n\\nOverall - I liked the type of interviews and way they were conducted. Stumbled in coding but it was a very fair question. Disappointed to be rejected but liked the company.",
+    "tags": [
+      "staff",
+      "remote",
+      "staff engineer",
+      "airbnb"
+    ],
+    "votes": 12,
+    "views": 1671,
+    "creation_date": 1712307192,
+    "author": null
+  },
+  {
+    "id": "4976662",
+    "url": "https://leetcode.com/discuss/interview-experience/4976662/gap-on-campus-intern-experience-cbit",
+    "title": "GAP On-Campus Intern Experience CBIT",
+    "page_content": "I recently had the opportunity to participate in an on-campus interview with GAP Inc., and it was an insightful experience that provided a glimpse into the company\\'s culture and expectations. The interview process encompassed various aspects, including technical questions, aptitude tests, and behavioral evaluations.\\n\\nThe technical interview portion was particularly engaging, featuring a question on string manipulation that challenged my problem-solving skills. I was tasked with a problem where I needed to replace occurrences of \"xy\" with \"yxx\" within a given string. This problem required a deep understanding of string manipulation techniques and efficient algorithm design. Through careful analysis and coding, I successfully addressed the challenge, demonstrating my proficiency in handling string-related tasks.\\n\\nIn addition to the technical aspect, the interview included an aptitude test comprising 40 questions. However, I found this segment challenging, primarily due to the company\\'s requirement to code exclusively in Java. While I does not possess a strong foundation in Java programming, adapting to coding under time constraints and within a specific language framework presented its own set of challenges. Nevertheless, I approached each question methodically, leveraging my knowledge of Java programming concepts to navigate through the aptitude test.\\n\\nOverall, my interview experience with GAP Inc. provided valuable insights into the company\\'s recruitment process and the skills required to excel in a dynamic corporate environment. The combination of technical problem-solving and aptitude assessment offered a comprehensive evaluation of my capabilities, highlighting areas of strength and areas for further development. I look forward to applying the learnings from this experience as I continue to pursue opportunities in the field of software development.",
+    "tags": [
+      "string",
+      "gap"
+    ],
+    "votes": 2,
+    "views": 106,
+    "creation_date": 1712301018,
+    "author": "Abhinav_Reddy_Ragidi"
+  },
+  {
+    "id": "4976539",
+    "url": "https://leetcode.com/discuss/interview-experience/4976539/eightfold-ai-sde2-full-stack-rejected",
+    "title": "Eightfold.ai | SDE2 | Full Stack | Rejected",
+    "page_content": "Round1:- Two leetcode medium-hard problems.Solved both problems optimally in 1 hr.\\nRound2:- This was with the hiring manager round, it was a coding round(not expecting running code)  an hr platform based problem was asked where we need to match candidates who have worked in the same company at the same time.\\nRound3:- Director of engineering( detailed discussion about my previous projects).\\nRound4:- LLD round was asked to create system which generated an offer letter based on certain dynamic values that are coming in, was exptected to write a working code in 1 hr.\\nVerdict:- Rejected, as i was not able to code in the given time in LLD round.",
+    "tags": [],
+    "votes": 0,
+    "views": 348,
+    "creation_date": 1712299585,
+    "author": null
+  },
+  {
+    "id": "4976416",
+    "url": "https://leetcode.com/discuss/interview-experience/4976416/sixsense-lead-frontend-engineer-bangalore-in-february-2024-reject-bad-experience",
+    "title": "SixSense | Lead Frontend Engineer | Bangalore, IN | February 2024 [Reject][Bad Experience]",
+    "page_content": "Position: Lead Frontend Engineer at SixSense  \\nExperience: 10+ Years\\nSalary Expectation Range: 45 - 55L Base\\nLocation: Bangalore, IN  \\nDate: February, 2024\\n\\n**Interview Process:**\\n\\n1.  **Initial Phone Screen (30 minutes - 1 hour):**\\n    \\n    -   Behavioral questions about past projects and experiences.\\n    -  Last drawn salary and expected Salary etc.\\n\\n3.  **Virtual Onsite (4 rounds):**\\n    \\n    -   **Round 1 (Technical - 1 hour):** Project Coding\\n\\n    -   **Round 2 (Technical - 1 hour):** Past projects discussion and JS concepts\\n    -   **Round 3 (Technical - 1 hour):** Problem-solving + Experience discussion \\n    -   **Round 4 (Leadership - not mentioned):** Checking experience and overall fit for the role (Seniority check)\\n    - **Round 5 (Behavior - 45 minutes):** Culture Fit round\\n\\n**Result:** Rejected! (Rejected at Round 1, got rejection mail after 1 month)\\n\\n**Interview Experience:**\\n\\n\\nThe interview started with high hopes as I was excited about the opportunity to work with a startup specializing in AI inspection of semiconductor chips\\u2014an area I\\'m personally interested in. However, the experience of the first round was unexpectedly challenging and disappointing.\\n\\nThe interview was conducted via a video call with the interviewer sharing their video feed as well. I was asked some introductory questions, and then the unexpected part began. I was asked to share my screen and given a coding task to build a folder structure component similar to that in VS Code, to be production-ready, within 45 minutes.\\n\\nUnfortunately, the provided online editor for coding was not functioning properly. As a result, the interviewer suggested using CodePen instead. I shared my screen, including the coding window, and this led to a significant performance issue on my Windows system. The lag became unbearable, causing me to disconnect and restart my system, which wasted approximately 15 minutes of the interview time.\\n\\nOnce reconnected, I explained my approach to the interviewer and proceeded to code the component using React JS. Throughout this time, I noticed that the interviewer seemed disengaged, and kept resting with heads down, which was quite disheartening.\\n\\nBy the 45-minute mark, the interviewer abruptly asked me to stop coding and explain my implementation. As I was explaining, the interviewer appeared agitated and mentioned they could see the code, seemingly implying impatience.\\n\\nUltimately, the interview concluded abruptly with the interviewer thanking me and stating that the HR team would provide feedback.\\n\\n**Thoughts:**\\n\\nThe interview experience left me feeling disappointed and uncertain about the company\\'s culture and expectations. The technical task itself was not particularly challenging for me due to prior experience with a similar task in one of the past successful interview, but the overall atmosphere and the interviewer\\'s demeanour were unexpected and discouraging.\\n\\nUpon reviewing the profile of my interviewer for personal curiosity, I was surprised to discover that he is a frontend developer with four years of experience, having held roles with relatively short tenures ranging from four to seven months. Furthermore, the interviewer is currently serving a notice period at their current company.\\n\\nIn my own experience as an interviewer, I have always approached interviews with genuine interest and professionalism, never exhibiting disinterest or appearing disengaged during the conversation.\\n\\n**Tags:** sixsense, frontend, react. bengaluru, lead, engineer",
+    "tags": [
+      "interview",
+      "frontend",
+      "bengaluru",
+      "lead",
+      "sixsense"
+    ],
+    "votes": 0,
+    "views": 208,
+    "creation_date": 1712297919,
+    "author": null
+  },
+  {
+    "id": "4976152",
+    "url": "https://leetcode.com/discuss/interview-experience/4976152/meta-phone-screen",
+    "title": "Meta Phone Screen",
+    "page_content": "Given an array of integers, the objective is to reorder the array, if necessary, to obtain a sequence where the sum of the absolute differences between adjacent pairs is minimized. If the array\\'s length is odd, one element must be removed to achieve this goal.\\nFor example:\\n\\nFor the array [6, 3, 10, 8], after reordering, the array should be [3, 6, 8, 10]. The function should return the reordered array: [3, 6, 8, 10].\\nGiven [1, 11, 13, 15, 17], removing 1 to minimize the sum of differences, the function should return the reordered array [11, 13, 15, 17].\\nGiven [1, 3, 8, 14, 15], removing 8 to minimize the sum of differences, the function should return [1, 3, 14, 15].\\nGiven [1, 3, 8, 14, 25], removing 25 to minimize the sum of differences, the function should return [1, 3, 8, 14].\\n\\nI have provided a brute force solution with O(n^2) complexity. Could someone provide an optimized solution?\\n",
+    "tags": [
+      "meta",
+      "facebook"
+    ],
+    "votes": 0,
+    "views": 458,
+    "creation_date": 1712294910,
+    "author": null
+  },
+  {
+    "id": "4975294",
+    "url": "https://leetcode.com/discuss/interview-experience/4975294/oracle-oci-ic4-principal-pending-offer",
+    "title": "Oracle OCI IC4 - principal - pending offer",
+    "page_content": "Applied through Oracle portal  from linked in.  got call from recruiter.  had a  small chat then phone call was scheduled. \\n\\nTech phone - few  behavioral and then a  rate limiter implementation with a few extra scenarios. \\n\\nround1- 2 technical questions.  Behavioral as well. both are medium. \\nround 2 -  behavioral 1 algo and 1 ooad\\nround 3 - manager -  project discussion and  pastt role. \\n round 4 -  full behavioral\\n round 5 - behavioral,  java, sys  design, past projects\\n \\nnext day got call abt  being  positive\\n\\nTC 245k  current at xx\\n\\nnew tc 281k",
+    "tags": [
+      "oracle oci"
+    ],
+    "votes": 9,
+    "views": 1063,
+    "creation_date": 1712280541,
+    "author": "zeus1985"
+  },
+  {
+    "id": "4974523",
+    "url": "https://leetcode.com/discuss/interview-experience/4974523/google-l3-bangalore-india-offer",
+    "title": "Google | L3 | Bangalore, India | Offer",
+    "page_content": "Exp: SWE at Product Company. 1.5YoE\\nPosition: SWE-II / L3\\nLocation: Bangalore, India\\n\\nRecruiter reached out via LinkedIn (Jan last week), got on a call to discuss the opening. Agreed to take Phone Screen round as early as possible.\\n\\n**Phone Screen Round** - Feb second week :\\nTwo Medium problems (based on Heap/Math);\\nSolved both, went well.\\nRecruiter got back a day later with SH and scheduled Onsites a week later.\\n\\n**Onsite Round 1 (Technical) :**\\n\\nOne heap problem, one two-pointer problem. Both were medium, doable. Solved both, round went well overall.\\n\\n**Onsite Round 2 (Technical) :**\\n\\nOne east-medium binary search question, solved it. \\nOne Medium/Hard 2D-DP problem, did okayish, conveyed the approach verbally, didn\\'t have time to fully finish up the solution. (self : average)\\n\\n**Onsite Round 3 (Technical) :**\\n\\nOne medium graph problem, follow-up leading it to Hard. Solved both, went well. Although interviewer had another approach in mind and took some convinving. (until I heard back from recruiter I thought I messed it up though because of the understanding part).\\n\\n**Onsite Round 4 (Googlyness) :**\\n\\nStandard G&L round. Interviewer was pretty chill. Was fun, went well.\\n\\nIn two days, recruiter reached out and mentioned that the interview feedback\\'s \"positive\" and that they would wanna continue with team-fit calls. \\nIn another one day, I got my first team-fit call scheduled (was scheduled to a week later).\\nHM was pretty chill, work was good, aligned with what I was looking for, team had good reputation from what I read, so I went ahead and confirmed it from my end.\\nRecruiter got back after about 3-4 days confirming the HM had given a green flag as well and as a next step, he collected additional details for HC packet.\\n\\nGot HC Approval, Compensation approval in about 3-4 days. Currently have extended the verbal offer with EVP document. Will mostly get the final offer letter in another couple of days.\\n\\nUPD : Signed the offer :)\\nCompensation Details: https://leetcode.com/discuss/compensation/4974452/Google-or-L3-or-Bangalore-India\\n\\nTried to uphold confidentiality of the problems.\\nPlease let me know if anything needs clarity. Thanks.",
+    "tags": [
+      "google",
+      "swe",
+      "l3"
+    ],
+    "votes": 11,
+    "views": 1222,
+    "creation_date": 1712257493,
+    "author": null
+  },
+  {
+    "id": "4973819",
+    "url": "https://leetcode.com/discuss/interview-experience/4973819/meta-e4-full-loop-mostly-reject",
+    "title": "Meta | E4 | Full Loop | Mostly Reject",
+    "page_content": "Just got done with my full loop, pretty sure I am gonna get a reject but paying it forward to the community which has been very helpful - \\n\\nCoding Round 1:\\n1. Simple Variation of https://leetcode.com/problems/missing-ranges/description/\\n\\tIf the number of missing numbers is <= 2, append them as a number else, append the range of missing numbers\\n2. Return the max consecutive characters in the string:\\n\\tExample: `\"This is a string\"` -> no char appears consecutively hence return `[\\'T\\', \\'h\\', \\'i\\',\\'s\\',.....\\'i\\',\\'n\\',g\\']`\\n\\t`\"Thiss is aa ssttrring\"` -> `[\"ss\", \"aa\", \"ss\", \"tt\", \"rr\"]`. Note that the output should be in order\\n\\t\\nCoding round 2:\\n1. https://leetcode.com/discuss/interview-question/894401/facebook-phone-find-a-local-minima-in-an-array\\n\\tI was prepared for https://leetcode.com/problems/find-peak-element/solutions/ but the twist in the problem threw me off\\n\\t\\n2. Design an API `getOne(start_idx, end_idx)` which will return the number of 1\\'s between the two indices from an array consisting of only 0\\'s and 1\\'s eg: [0,1,1,0,0,0,1,1] The call should be completed in constant time.\\n\\n\\tInterviewer was helpful and hinted prefix sum to me but I was not able to code it. https://stackoverflow.com/questions/73742786/how-to-count-the-number-of-1s-in-a-subarray/73742982#73742982\\n\\t\\n\\tSystem Design - design a ride share with some variation\\n\\t\\n\\t\\n\\tJust wanna say, these interviews are nerve-wracking. Make sure you really understand the problem and not just memorize them or try to solve them from memory\\n\\t\\n\\tI prepared from Meta tagged top 50, but the variations in the actual interview can really throw you off. Best of luck to folks who have their onsite coming up.\\n\\t\\n\\n\\t\\n\\t",
+    "tags": [
+      "meta",
+      "#swe",
+      "facebook"
+    ],
+    "votes": 13,
+    "views": 2155,
+    "creation_date": 1712248671,
+    "author": null
+  },
+  {
+    "id": "4972418",
+    "url": "https://leetcode.com/discuss/interview-experience/4972418/qualcomm-software-engineer-hyderabad-feb-2024-offer",
+    "title": "Qualcomm | Software Engineer | Hyderabad | Feb 2024 [Offer]",
+    "page_content": "Current Experience: 1 Year 10 months\\nCurrent Position: SDE-1 at MNC\\nLocation: Noida\\n\\n\\n**Round 1 - Technical phone screen (1-1.5 hour):** (Day 1)\\n\\n- Brief intro , discussion about my previous work i.e. related to kernel bootloader issues debugging , code integration etc.\\n- Asked about my previous projects and explained them in brief\\n- How do you debug kernel issues from logs- told him all type of issues\\n- Delete a given node from linked list with code\\n- Count the occurrence of each letter given in an array without extra space\\n- How kernel communicates to user space\\n- Discussion about kernel drivers\\n- What is the function of zygote\\n- When we use static keyword, more questions related to it\\n- Friend classes & its use\\n- Difference between stack memory and heap memory\\n- Malloc , calloc & realloc\\n- If you want to multiply two numbers , how will i do it - discuss many approaches \\n- Code snippets output\\n- Time slicing scheduling\\n- If a game developer wants to implement a scheduling algo in his system, is time slicing is a good choice for it?\\n- What are activities, how to communicate between two activities\\n- Why do you want to switch to qualcomm.\\n\\n\\n\\n**Round 2 - Technical phone screen - (1-1.5 hour):** (Day 1 -  after 5 min from Round 2)\\n\\n- brief intro , discussed about kernel debugging\\n- Find the element in the array such that all its left element is smaller than it and all the right element is greater than it\\n- 100 doors puzzle\\n- 5 code snippet output\\n- What is dangling pointer how to avoid \\n- Struct vs class\\n- What is design patters, why we use it\\n- Pointer vs reference , which is better\\n- How kernel communicates to HAL\\n- What are memory leaks, how do you identify it in a code, and how to prevent it\\n- Asked about how google map works, how google maps manages to show road blocks etc\\n- If you want to design a google map, how will you handle road blocks that is taking extra time, how will you identity and manage it in your application\\n\\n-> Got the call from HR in the evening regarding the round 3 with HM as the feedback was positive from Technical Rounds.\\n\\n**Round 3 - Hiring Manger + Technical Round (30 min)** (Day 2)\\n\\n- Bried Intro, Asked some questions around C language.\\n- Discussion around kernel, pointers, memory allocation, how do a kernel do memory management\\n- How do kernel communicates with user space\\n- If we want to write an user application on a embedded system having no kernel, how will we write it?\\n- Give description about the team and the work they do\\n- Ask me about the latest date when i can join , and told me to join as soon as possible.\\n\\n\\n-Got the email after 1 hour to fill the details and follow up call from HR after 2 hours telling me that that i cleared all the rounds and he guided me for the next process.\\n\\n-> Got the Offer letter after 12-14 days.\\nOffer Details - https://leetcode.com/discuss/compensation/4938846/qualcomm-software-engineer-1-hyderabad/2334249",
+    "tags": [
+      "qualcomm",
+      "qualcomm-india"
+    ],
+    "votes": 1,
+    "views": 2795,
+    "creation_date": 1712229854,
+    "author": null
+  },
+  {
+    "id": "4971155",
+    "url": "https://leetcode.com/discuss/interview-experience/4971155/recruiter-does-not-provide-feedback",
+    "title": "Recruiter does not provide feedback.",
+    "page_content": "Hi all, I  had a phone screen around 3 weeks ago. was asked two facebook tagged leetcode problems and I was able to solve it in 30 mins. I felt the interviewer was impressed but I am not getting any feedback yet. when I email my recruiter she does not reply. Any suggestions on what I should do? It has been frustating for me.\\n\\nQS asked:\\n- right side view of binary tree. follow up- left side\\n- top k frequent elements - needed to print in order - used heap solution",
+    "tags": [
+      "facebook"
+    ],
+    "votes": 0,
+    "views": 319,
+    "creation_date": 1712212721,
+    "author": null
+  },
+  {
+    "id": "4970525",
+    "url": "https://leetcode.com/discuss/interview-experience/4970525/jp-morgan-software-engineer-java-ghosted",
+    "title": "JP Morgan | Software Engineer (Java) | Ghosted",
+    "page_content": "**MY BACKGROUND:**\\n*Education*: Mechanical Engineering from a Tier 3/4 college in Bengaluru\\n*Year of passing*: 2021\\n*Current company*: A large service-based MNC\\n*Designation*: Software Engineer (mostly worked on low-code platform)\\n*YOE*: 2 years\\n\\n**INTERVIEW PROCESS:**\\n*Application source:* Applied on their career site without any referral.\\n*Role*: Software Engineer (Java) (not sure whether it was SW-1 or SW-2)\\n\\n**OA:**\\n2 medium questions were asked which was needed to be solved in 1 hr.\\n\\n*I solved both the questions. Then after a week I got a call from the HR and she scheduled all the 3 virtual rounds on the same day back to back with 15 mins break between each round.*\\n*All the rounds were of 45 mins.*\\n\\n**Round 1: Code pair round**\\nQ1 - Given a piece of code and was asked to give some suggestions to enhance it.\\nQ2 - Print pairs with minimum difference in an array\\n\\n**Round 2: Design pair round**\\nConvert a Monolithic shopping appilication to a Microservice. Was not asked to code, just discussion using block diagrams on hackerrank\\n\\n**Round 3: Cultural fit round**\\nCurrent project discussion and typical HR, situation based questions were asked.\\n\\n**VERDICT:** Ghosted\\n",
+    "tags": [
+      "jp morgan",
+      "jpmc"
+    ],
+    "votes": 3,
+    "views": 884,
+    "creation_date": 1712206079,
+    "author": null
+  },
+  {
+    "id": "4967899",
+    "url": "https://leetcode.com/discuss/interview-experience/4967899/quince-sde3-backend-interview-experience-india-rejected",
+    "title": "Quince | SDE3 (Backend) | Interview Experience India | Rejected",
+    "page_content": "Current Position: SDE2 at E-commerce Big MNC\\nYOE: 5.2 years\\n\\n**Round 1:** PS/DS  - HireHunch (third party) \\n1. Q1: Check if string is valid IPV4 or IPV6 Ip.\\n2. Q2: Design Chess LLD\\n3. Introduction, yes introduction after 2 questions \\n3. Questions related to my projects on resume.\\n\\n**Round 2:** HLD/LLD - Quince Senior Engineer\\n1. Design Hotel management system\\n\\t \\nI had my first interview after my college in five years, but the experience wasn\\'t as positive as I\\'d hoped. It seems that the interviewers lacks the proper training on conducting interviews. They expected me to lead the discussion, Otherwise, there was complete silence, like falling into a black hole. I had to constantly break the silence.\\n\\nPS: Interviwer did not show courtesy to come on video.",
+    "tags": [
+      "easy",
+      "quince",
+      "onequince",
+      "quinceindia"
+    ],
+    "votes": 1,
+    "views": 961,
+    "creation_date": 1712156374,
+    "author": null
+  },
+  {
+    "id": "4965161",
+    "url": "https://leetcode.com/discuss/interview-experience/4965161/meta-new-grad-security-engineer-interview-experience",
+    "title": "Meta New Grad Security Engineer Interview Experience",
+    "page_content": "**One of the worst onsite interview experiences**. \\n\\nI was selected for a New Grad Product Security Engineer interview. The recruiter reached out and asked to schedule a meeting. Rescheduled it for two times and finally scheduled a screening round of 60 mins with 50% coding and 50% security related topic. One day before the screening again rescheduled it for next week. Finally appeared for the screening round. It was a good experience. The interviewer was really helpful and cooperative. \\nQuestion asked: [Valid Palindrome](https://leetcode.com/problems/valid-palindrome/) and lot of scenario based web security questions related to CSRF, XSS, Password Hashing, cookies, etc.\\n\\nQualified and scheduled onsite round spanning for two days in two consecutive weeks:\\nDay 1: Security Code Review (Web In Domain), Security Systems Design\\nDay 2 : Coding, Behavioral.\\n\\nAfter couple of days, re-scheduled the Systems Design round to a third week. Now I am having onsite spanning for three weeks :)\\nThe security code review was a new kind of round for a new grad role. So I asked for the programming language and frameworks that I am supposed to encounter. Repeatedly, the recruiter provided only coding (Data Structure Algo) resources and a generic interview prep guide with no mention of languages and frameworks what so ever. Obviously the recruiter had zero idea about the round. \\n\\nI appeared for the code review round today and the interviewer posted a codebase written in PHP :) I have zero knowledge of PHP and it was never mentioned on my resume or anywhere else on my profile. Also it was written that the code review round is (Web in domain round) but guess what! not a single line of JavaScript in a web security interview :) Provided a vulnerable server side codebase in PHP. Clearly mentioned to the interviewer that I do not have experience in PHP still he insisted me to review the code. Did my best but how can a person without the knowledge of a programming language review a codebase!! It\\'s like asking someone who knows English to review an essay written in Japanese! \\n\\nHow can these so called FAANG companies (with tons of employee) are not programming language agnostic!!! How can a New Grad Role consist of some \"Code Review\" round in an absurdly weird Programming Language (PHP)?? Why have they even selected me for this role if they need some veteran PHP coder? \\n\\nFYI: I have both security and software engineering internship experience and worked with several programming languages (Python, Java, JavaScript, Ruby) and frameworks (Flask, Angular, Spring Boot, Rails) both academically and during my internships.\\n\\nEDIT: I appeared for the onsite coding and behavioral rounds today. Questions asked:\\n1. [3 Sum](https://leetcode.com/problems/3sum/): Only had to return boolean if triplet found not the list of triplets\\n2. Make the shell script command `cd`: A variation of [Simplify Path](https://leetcode.com/problems/simplify-path/) but insted of starting from root, the function will take another argument for present working directory. Example: `cd(pwd, path)` so if `pwd = \\'/home/user\\' and path = \\'../document\\'` then answer will be `/home/document` `path` can be absolute as well as relative if absoulte then we need to ignore `pwd`. Needed to solve both of them optimally.\\n\\nBehavioral was pretty standard as well: Conflict resolution, best team, worst team, lessons learned, etc. \\n\\nEDIT: I appeared for the Security Systems Design Round. Question Asked:\\nGiven a UI of an online coding exam platform, I was asked to desing it keeping security in mind (traditional systems design requirements like Scalability, Maintainability, etc was out of the scope).\\nAs expected, the interviewer was extremely rude and did not even answer the clarifying questions. I asked if the candidate will require to sign in to a career portal or will they receive the link via email, he answered \"You tell me, you are the architect here\". Then I asked if he want me to focus on the client side (JS) or the backend side, as security can be implemented in both, he said \"you decide whatever you think is more important.\" I could not even clarify the functional and non functional requirements :)\\n\\nEDIT; I got rejected (As Expected). I hope they find a E4 level engineer for a New Grad Role :)",
+    "tags": [
+      "software engineer",
+      "new grad",
+      "menlo park",
+      "onsite-interview",
+      "meta",
+      "security engineer",
+      "screen-round",
+      "new graduate",
+      "security engineer -1"
+    ],
+    "votes": 1,
+    "views": 1591,
+    "creation_date": 1712107664,
+    "author": null
+  },
+  {
+    "id": "4959863",
+    "url": "https://leetcode.com/discuss/interview-experience/4959863/meta-e4-phone-screen-rejected",
+    "title": "Meta | E4 | Phone Screen | Rejected",
+    "page_content": "Questions\\n\\n1. Find number of unique elements in sorted array. \\n2. Assuming optimized solution on the first question which is O(n) time and O(1) space. Can I improve O(n) even more given that, k (the number of unique elements) is much smaller than n (the size of the array)\\n\\nI got the first one right. Though he had to tell me that my solution must be O(1) space and my original solution was O(n) space. I was able to quickly adjust it to O(1) space.\\n\\nThe second 1 I needed a lot of hints from the interviewer. Eventually, I picked up that it was binary search. I coded up something but wasn\\'t able to verify it due to time. I figure though my idea is in the right the direction, there may be a lot of errors in my code.\\n\\nGot a response saying I was not moving forward today. Bummer. I asked if I could try again after the cooling period. Not sure if that was a good idea.",
+    "tags": [
+      "meta",
+      "facebook"
+    ],
+    "votes": 11,
+    "views": 2157,
+    "creation_date": 1712009809,
+    "author": "lgdelacruz"
+  },
+  {
+    "id": "4957806",
+    "url": "https://leetcode.com/discuss/interview-experience/4957806/beware-of-phonepe",
+    "title": "Beware of PhonePe",
+    "page_content": "I had applied to PhonePe recently and would like to share the interview experience. \\n\\nRound 1 : Machine Coding : This round went well and interviewer was very friendly and helpful.\\nRound 2 : Problem Solving DSA : This round also went well and qualified for next round.\\nRound 3 : System Design : Worst interview experience so far in my entire career. The interviewer was barely 2-3 years of experience and has asked one of the standard question of system design. The guy just memorised the solution and was not ready to listen to any other solution. It was like if I am telling any other solution, I am wrong and I don\\'t have any understanding of designing. For eg : the guy knew the solution which uses rabbitMQ and I suggested kafka, he was not ready to accept the solution. The guy was not even having some courtsy how to end the inteview call. No cross questioning session after the interview.\\n\\nVerdict : Rejected. \\n\\nPhonePe hiring team should take care of these things and should allow to take interviews only if interviewer is well knowledgable and understanding. It was simply waste of time for me. HR team is not even giving any feedback.",
+    "tags": [
+      "system design",
+      "design",
+      "phonepe",
+      "hiring"
+    ],
+    "votes": 110,
+    "views": 8631,
+    "creation_date": 1711981304,
+    "author": null
+  },
+  {
+    "id": "4957776",
+    "url": "https://leetcode.com/discuss/interview-experience/4957776/amazon-sde-1-contract-bengaluru-mar-2024-reject",
+    "title": "Amazon | SDE-1(Contract) | Bengaluru | Mar 2024 [Reject]",
+    "page_content": "Previous Position - Software Engineer II\\nPrevious Organisation - Sabre\\nLocation - Bengaluru, India\\nYears of Experience - 1.5 years of Experience\\n\\nThe recruiter reached out via email with the job description (JD) and I responded positively.\\n\\nI received the test link for the Online Assessment (OA), where problems were presented in the form of stories but were ultimately reduced to the following:\\n\\n**Online Assessment(OA) :**\\n\\nProblems were manipulated a little in form of a story but got deduced to following-\\n\\n**Problem 1 (LC- Medium)** : https://leetcode.com/problems/k-closest-points-to-origin/description/\\n\\n**Problem 2 (LC - Hard):**\\n\\nDemolition Robot\\n\\nGiven a matrix with values 0 (trenches) , 1 (flat) , and 9 (obstacle) you have to find minimum distance to reach 9 (obstacle). If not possible then return -1.\\nThe demolition robot must start at the top left corner of the matrix, which is always flat, and can move on block up, down, right, left.\\nThe demolition robot cannot enter 0 trenches and cannot leave the matrix.\\nSample Input :\\n[1, 0, 0],\\n[1, 0, 0],\\n[1, 9, 1]]\\nSample Output :\\n3\\n\\nWas able to solve both the problems with all test cases passed.\\n\\n**Telephonic Conversation with HR (5-10 mins)**\\n\\nThe Amazon recruiter informed me that I had cleared the OA round and would like to proceed ahead for a virtual interview. She said the interview process will consist of 2 Technical Rounds of 1 hr each:\\n\\n* Technical Round 1 - DSA\\n* Technical Round 2 - DSA\\n\\nI received the Amazon Chime invite. Both rounds were scheduled for the same day.\\n\\n**Technical Round-1(DSA) : (1 hr)**\\n\\nWe started with our introductions. The interviewer, a SDE-2 at Amazon with 7 years of experience, explained the interview process, which would consist of 2 DSA problems for 45 minutes each, with the remaining time dedicated to behavioral questions.\\n\\nHe shared a live code link to solve the problems.\\n\\n**DSA Problem 1 (LC- Medium)** : https://leetcode.com/problems/asteroid-collision/description/\\n\\nThe platform was an online code editor. He was interested in logic first, and then the implementation of the code in any language of choice.\\n\\n* I explained the problem and the brute-force approach.\\n* Then I discussed a stack-based implementation for optimization.\\n* We went through some inputs to dry run and explain. Then we discussed some edge cases.\\n* Finally, we discussed the time and space complexity, both worst and best cases.\\n\\n**DSA Problem 2 (LC- Medium)** : https://leetcode.com/problems/coin-change/description/\\n\\n* I explained the problem and the brute-force approach.\\n* Then I discussed a DP-based implementation for optimization.\\n* We went through some example inputs for dry run.\\n* Then we discussed the space and time complexity.\\n\\nLastly, we discussed some behavioral and situation-based questions:\\n\\n* Did you encounter a situation where you had to refer to the documentation for the implementation of any solution?\\n* What is the worst thing you felt and thought could have been improved in your current codebase?\\n* What are some new technologies or coding practices you learned in your previous projects?\\n\\nBy then, we were done with the interview. He asked if I had any questions for him.\\n\\n**Feedback:** Positive. The interviewer was supportive and gave ample time to think about the solution. We discussed the corner cases in detail.\\n\\n**Technical Round-2 (DSA) : (1 hr)**\\n\\nWe started with our introductions. The interviewer, an SDE at Amazon with 5 years of experience, went straight to problem-solving.\\n\\nHe shared a live code link to solve the problems.\\n\\n**DSA Problem 1 (DP):** The problem was a story-based problem. You are an Amazon delivery guy who needs to deliver parcels to buildings painted in different colors. Your task is to reach the end of the buildings in the minimum number of steps.\\n\\nYou are allowed to have the following operations standing on the ith building:\\n\\n* You can take a step forward or backward, i.e. (i+1) or (i-1).\\n* You can go to the jth building with the same color as that of the ith in one move.\\n\\nEg. Input : [ 1 0 0 2 1 3 ] (Starting from 0th index -> 4th index -> last index)\\n\\t\\tOutput : 2\\n\\t\\t\\n- It was a new problem for me. I thought to relate it with https://leetcode.com/problems/reach-a-number/description/ \\n- But could not come up with a solution.\\n- After wasting 20 mins, I asked if he could change the problem.\\n\\n**DSA Problem 2 (Graph) :** \\n\\nThere are few projects in Amazon which have dependencies on another projects. \\n\\nE.g.\\na -> b\\n\\t\\ta -> c\\n\\t\\tc -> d\\n\\nInput : [(a,b), (a,c), (c,d)]\\nOutput : d -> c -> b -> a\\n\\nFind the correct order of execution of the projects.\\n\\n- It was again a new problem. I thought to use topological sort based logic on it. Took another 20-25 mins\\n- Had explained my logic to him and started coding.\\n- But could not come up with a correct solution as was running out of time.\\n\\nHe said that he would need to conclude the interview as I won\\'t be able to complete on time.\\n\\n**Feedback:** Negative. Could not come up with a solution to any of the problems.\\n\\n**Tip:** I was not very well prepared with graphs and DP-based problems. Try to focus more on these areas while preparing for Amazon.\\n\\n**Verdict:** Haven\\'t received any call yet, but considering the performance in the last round, it\\'s definitely a REJECT.\\n",
+    "tags": [
+      "software developer",
+      "software engineer",
+      "sde",
+      "offcampus",
+      "bengaluru",
+      "backend",
+      "amazon sde 1",
+      "sde1 job",
+      "2024placement",
+      "amazon"
+    ],
+    "votes": 3,
+    "views": 746,
+    "creation_date": 1711981055,
+    "author": null
+  },
+  {
+    "id": "4955971",
+    "url": "https://leetcode.com/discuss/interview-experience/4955971/pinterest-software-engineer-l14-phone-screen",
+    "title": "Pinterest | Software Engineer L14| Phone Screen",
+    "page_content": "Recently had a phone screen with Pinterest for an L14 SWE 2 position. Got the following question:\\nhttps://leetcode.com/problems/count-subarrays-with-score-less-than-k/description/\\n\\nInitially brute forced the solution, interviewer asked on ways to optimize. Proposed a solution using binary search after a few hints from the interviewer that the score is increasing. Was able to code up the solution and run 2 test cases that passed.\\n\\nResult: Passed to onsite",
+    "tags": [
+      "pinterest"
+    ],
+    "votes": 3,
+    "views": 766,
+    "creation_date": 1711957104,
+    "author": "zaki952"
+  },
+  {
+    "id": "4955695",
+    "url": "https://leetcode.com/discuss/interview-experience/4955695/meta-l5-onsite",
+    "title": "Meta | L5 Onsite",
+    "page_content": "Hi, I want to give back to this wonderful community. Here\\'s my recent interview experience at Meta for an L5 software engineering position: \\n\\nCoding round 1: \\n1. K closest points to origin. \\n2. Valid word abbreviation. \\n\\nSystems Design: \\nA web crawler that parses over 1B+ web pages. \\n\\nCoding round 2: \\n1. Partition an array into two sections where the sum of each section is the same. \\n2. Max area of island. \\n\\nBehavioral: Fairly standard STAR pattern questions. \\n\\nAll the best.",
+    "tags": [
+      "onsite-interview",
+      "meta",
+      "2024",
+      "facebook"
+    ],
+    "votes": 13,
+    "views": 2746,
+    "creation_date": 1711953732,
+    "author": null
+  },
+  {
+    "id": "4954463",
+    "url": "https://leetcode.com/discuss/interview-experience/4954463/microsoft-asked-for-current-comp-details-what-to-expect-next",
+    "title": "Microsoft asked for current comp details. What to expect next ?",
+    "page_content": "I completed my interviews at Microsoft India for L60. After the last round, HR asked for the current compensation details and docs over email. I sent them on the same day.\\n\\nWanted to ask does it mean, I will get an offer or I can still be rejected maybe because of high current comp numbers or 90 days of notice period etc",
+    "tags": [
+      "microsoft-india"
+    ],
+    "votes": 0,
+    "views": 510,
+    "creation_date": 1711938245,
+    "author": null
+  },
+  {
+    "id": "4953575",
+    "url": "https://leetcode.com/discuss/interview-experience/4953575/google-swe-iii-l4-ml-hyderabad-mar-2024-offer",
+    "title": "Google | SWE III (L4) ML | Hyderabad | Mar 2024 [Offer]",
+    "page_content": "There aren\\'t a lot of Google SWE ML posts here so I thought I\\'d contribute.\\n\\n**First Contact**  \\nRecruiter contacted me over email. This was followed by a 15 minute phone call a few days later to discuss my work experience, skillset and career aspirations. I asked for a month\\'s prep time for the screening round.\\n\\n**Screening Round**\\nMedium level question on trees. Similar to https://leetcode.com/problems/delete-nodes-and-return-forest/\\n\\n**Onsite 1: Problem Solving**\\nSimilar to https://leetcode.com/problems/finding-mk-average.\\nVerdict: Hire\\n\\n**Onsite 2: Problem Solving**\\nMedium level question on trees. This was followed by two hard follow ups. I solved one and verbally discussed an approach for the other.\\nVerdict: Hire\\n\\n**Onsite 3: ML**\\nThe interviewer tested ML depth and breadth through an ML system design problem. I had to identify the type of problem, as well as break down my approach for solving it. The interviewer asked me several questions related to the topics/method I was mentioning.\\nVerdict: Hire\\n\\n**Onsite 4: Googleyness and Leadership**\\nGeneral behavioural questions\\nVerdict: Strong Hire\\n\\nI got feedback within 2-3 days of each round. Thankfully, I found a very helpful recruiter and the overall process was quite smooth.\\n\\n**Compensation: ** https://leetcode.com/discuss/compensation/4943342/google-l4-hyderabad/",
+    "tags": [
+      "google"
+    ],
+    "votes": 12,
+    "views": 2167,
+    "creation_date": 1711913611,
+    "author": null
+  },
+  {
+    "id": "4952612",
+    "url": "https://leetcode.com/discuss/interview-experience/4952612/arcesium-se-2024-interview-experience",
+    "title": "Arcesium | SE | 2024 | Interview Experience",
+    "page_content": "Arcesium - Software Engineer Role(1+ years exp) - India\\nTotal rounds - 5\\nOA - Firstly there was a Hackerrank OA, with 3 ds/algo problems where 1 was easy, and 2 problems were medium-hard.\\n\\nInterview 1 - First interview was a problem solving, ds/algo round with 2 problems, and 1 extra problem because I had solved everything before time. First problem was an easy greedy problem based on arrays. Second problem was a hard Dp problem. Third problem was not a regular leetcode problem.\\n\\nInterview 2 - Second interview was on OOPs, Design patterns, in-depth knowledge of C++ and Javascript because these are my preferred languages, Dbms, MongoDB, MySQL, and some discussions on what I have worked on in my previous company.\\n\\nInterview 3 - Third interview was a Hiring manager round, where I was again asked design patterns, had to code one of the very famous patterns, some questions again were on my projects and the previous company work, and lastly to design and code a small problem. \\n\\nInterview 4 - Fourth interview was with the Hr, where we had a discussion on my work experience mainly..\\n\\nAll rounds went well.\\nGot the offer!\\n",
+    "tags": [
+      "software engineer",
+      "interview experience",
+      "arcesium",
+      "lld",
+      "dsa",
+      "se",
+      "2024"
+    ],
+    "votes": 12,
+    "views": 2120,
+    "creation_date": 1711897945,
+    "author": null
+  },
+  {
+    "id": "4952162",
+    "url": "https://leetcode.com/discuss/interview-experience/4952162/microsoft-idc-l61-sde2-offer-accepted",
+    "title": "Microsoft IDC | L61 | SDE2 | Offer Accepted",
+    "page_content": "Previous Background - \\nWorking at Top Non FAANG Product Based Company. 3 YOE. CSE From Tier 2 College (India\\'s Top 25)\\n\\nHere are my rounds\\n1. Online Test\\n\\t* \\tModified Kadane Algo  (Find Max Product) \\n\\t\\t* \\thttps://leetcode.com/problems/maximum-product-subarray/description/\\n\\t* \\tTricky Linked List Question (Could Not find on Internet)\\n\\n  Was able to solve both\\n\\n  \\n 2. Round 1\\n\\tStarted with Introduction. Then interviewer moved to Coding\\n    1) Find Anagrams. Solved Using HashMap and Was Able to handle all test cases\\n    2) Binary Search in Sorted 2-D Matrix. Was able to solve \\n\\n    Then interviewer asked about multithreading as i have mentioned in my resume.\\n\\n    Wrote basic Syntax of Runnable and Callable Interface in JAVA \\n\\n3) Round 2 (Scheduled on Same Day)\\n\\t*   Started with Introduction and Work Experience. Then interviewer moved to Coding.\\n\\t*   Implement LRU Cache and Value in Cache can be any Object Type.\\n\\t*   Solved using JAVA Generic CLasses.\\n\\t*   Implemted seperate functions for get and put.\\n\\t\\t*   Was able to handle all test Cases.\\n\\n*   Then he asked my current tech stack and experience with Cloud services.\\n\\n4) Round 3 (Scheduled on Same Day)\\n      * Started with Introduction and Work Experience. Then Asked multiple situaution questions\\n      * A situaution u have missed your deadline\\n      * What will your manager say about you\\n      * How much time i do coding in my daily Schedule\\n      * Do i interact with business directly\\n\\n\\tMoved to Leetcode Hard type ques.\\n\\tDont remeber exactly.\\n\\tNot able to solved fully. But used graph approach.\\n\\tSome test cases were missed in my code.\\n\\n* After this point, I did not recieved a call from HR. Thought I was rejected. \\n* Got call late night to have ROUND 4 two days After\\n\\n5) Round 4 \\n  Started with Introduction and Work Experience.\\n  Implement a Simple Job Scheduling Algorithm of CPU. (Not a Round Robin. But based on priority)\\n  Need to make HLD and LLD both.\\n  Was able to wrap in 40 min.\\n\\n  interviewer then asked job location preferences\\n  .\\n\\n\\n**Got mail from HR after 1 Week To Send Previous Compensation Details .\\n  Got final call from HR in 3 Weeks**\\n\\n  Offer Given - L61 Role\\n",
+    "tags": [
+      "microsoft-idc"
+    ],
+    "votes": 29,
+    "views": 5122,
+    "creation_date": 1711889916,
+    "author": null
+  },
+  {
+    "id": "4948386",
+    "url": "https://leetcode.com/discuss/interview-experience/4948386/servicenow-interview-experience",
+    "title": "ServiceNow Interview Experience",
+    "page_content": "I got invitation for ServiceNow Women Tech Hiring Challenge and then registered for the same.\\n\\nRound1 : Assessment on hackerrank\\n2 coding questions [Story based, i only remember one]\\nQues:\\nTwo new shops are opening inside a new building in hackerland and k kinds\\nof items are needed to stock cells at each store given the prices of an items in\\ntwo shops choose exactly K indices in such a way that the minimum sum of\\narrays first shop and second shop over these indices is maximum.\\n\\nEx-1:\\nN=5\\nk=3\\nfirstShop = [6, 3, 6, 5, 1]\\nsecondShop = [1, 4, 5, 9, 2]\\n\\nChoosing subset 0,2,3\\nThe value is minimum(firstShop sum of those indices, secondShop sum of those indices)\\nmin(6+6+5, 1+5+9),\\nmin(17, 15) = 15, which is maximum possible\\n\\nEx-2:\\nint n = 3, k = 1;\\nfirstShop = {10, 2, 4};\\nsecondShop = {1, 9, 6};\\n\\nchoosing subset 2\\nmin(4, 6) = 4 which is maximum possible\\n\\nIn both the question, my 3/4 test cases passed.\\nStill, I got call for interviews:- She said that I am not shortlisted, but do I want to give interviews, I said Yes, and then there were only two rounds [DSA and HM]\\n\\nRound2 : DSA\\nIntro + work I am doing in my current role\\na. Input: 12:14 am midnight(22nd ), 11 pm(22nd ), 12:00 am(22nd), 12:40 am(22nd), ..... K = 15 mins\\n\\nOutput: true, true, false, true \\u2026.\\n\\nInput has flights landing timings and I want to return boolean array if the current and previous landed flight time difference is more than K, return true else false.\\n\\nb. Input had Checkin and Checkout array[dates of checkin and checkout by the user] of same size, and k which was number of Cottages given, i had to return boolean value if all the bookings are possible with given k, at a time only one booking is possible in single cottages from checkin date till checkout date inclusive.\\nInput:\\ncheckin 1 3 4 5\\ncheckout 2 8 11 8 and K = 2\\nOutput: false\\n\\nand at last He asked me If i have any questions so i asked few.\\nThis round was for 1 hour, but It went close to 2 hour, the interviewer was Friendly.\\n\\nRound3 : HM\\nThe interviewer asked me to tell the total APIs I will be need to make Udemy like Application and\\nthen He moved to coding question and asked me to write producer - Cosumer Code implementation, which I didn\\'t remember so I said that I dont know that\\nthen he moved to next coding question which was\\nImplement Stack using Queues which I did and He was satisfied\\nand at last He asked me If i have any questions so i asked few.\\n\\nVerdict: Rejected",
+    "tags": [
+      "array",
+      "tree",
+      "dp"
+    ],
+    "votes": 5,
+    "views": 2012,
+    "creation_date": 1711825216,
+    "author": null
+  },
+  {
+    "id": "4945272",
+    "url": "https://leetcode.com/discuss/interview-experience/4945272/adobe-mts-2-noida-selected",
+    "title": "Adobe || MTS-2 || Noida || Selected",
+    "page_content": "#  Adobe MTS 2 Interview Journey\\n\\n\\n\\nRecently, I had the opportunity to undergo the rigorous interview process for the role of MTS at Adobe. Here, I share a glimpse into my interview experience, shedding light on the diverse range of topics covered and the insights gained along the way.\\n\\nProcess: HR reached out to me on instahyre regarding SDE position at Adobe. After a call he scheduled my first round of interview.\\n\\n\\n### Technical Round 1\\n### \\n\\nTheis round focused on algorithmic problem-solving. The interviewer asked two intriguing questions. Medium to Hard LC. \\n\\nFirstly, I was asked to find the longest continuous sequence in an array, a classic problem that required a keen understanding of **array manipulation and dynamic programming** techniques. Luckily I had solved it earlier so it helped me finish this off faster.\\n\\nNext, I was asked a question from LeetCode - \"Apply Operations to Make Two Strings Equal.\" This problem focused on string manipulation and required an analytical approach to devise an optimal solution. We discussed around 10 minutes for the approaches and then I wrote the code which passed the test cases presented by the interviewer.\\n\\n\\n\\n###  Technical Round 2\\n### \\n\\nThe second technical round was again based on DSA, focusing primarily on **modified binary search**. \\nThe interviewer introduced a novel twist wherein the **mid-point in the binary search was generated by a random function.** I was asked to write a code for numbers that will be searched appropriatemely with the binary search approach here.  Moreover, the discussion went up with follow-up questions aimed at identifying the elements in an array that would be correctly searched using the modified binary search approach. \\n\\n\\n\\n### EM Round\\n### \\n\\nThe third technical round delved more into system design and practical scenarios based on my job experience. The interviewer asked questions on operating systems, checked my understanding of core concepts and real-world applications. Additionally, discussions questioned around my current job responsibilities and past projects, providing insight into my professional background and expertise. I was asked to elaborate the system design of WhatsApp, which led to an exploration of message queues and scalability challenges. Furthermore, I was asked to share my long-term goals and explain why Adobe was the ideal fit for my aspirations.\\n\\n\\n\\n\\n### Director Round\\n### \\n\\nThe final technical round was the Director round which began with general discussions ranging from job-related queries to technical discussions on data structures and system architecture. The conversation began of with designing an airline system, focusing upon graph theory and complexity analysis. \\nAdditionally, we talked about topics such as caching mechanisms and on-call support, addressing practical challenges encountered in software development and maintenance. Notably, I also shared my perspectives on monitoring tools and request authentication mechanisms, showcasing my understanding of industry best practices and emerging trends.\\n\\n\\n### Verdict\\nGot a call from HR that I have been selected that too for MTS 2.\\n\\n\\n#interviewexperience #adobe #mts2",
+    "tags": [
+      "interview experience",
+      "mts2",
+      "adobe mts2",
+      "adobe"
+    ],
+    "votes": 7,
+    "views": 1750,
+    "creation_date": 1711779527,
+    "author": null
+  },
+  {
+    "id": "4944129",
+    "url": "https://leetcode.com/discuss/interview-experience/4944129/java-backend-developer-qloron-technology-rejected",
+    "title": "Java Backend developer || Qloron technology || REJECTED",
+    "page_content": "Experience:1.5 years\\nCompany:Qloron technology\\nFirst of all interviewer introduced herself and asked me to do the same and started asking the questions.\\nAs this interview is for java backend developer interviewer focussed on java, spring boot and microservices.\\n* what is microservices and explain the architecture?\\n* Explain hashmap\\n* what is lambda expression?\\n* Write a program to print unique elements in an array and asked to explain the approach\\n* How we connect the database in backend technology\\n* what is functional interface\\n\\ni was mostly focussed and prepared for java,spring framework and spring boot . i was failed in explaining microservices as i didnt prepared for it and i was rejected and the interview went short as im unable to answer microservices.\\n\\n",
+    "tags": [
+      "java backend developer"
+    ],
+    "votes": 2,
+    "views": 409,
+    "creation_date": 1711746521,
+    "author": null
+  },
+  {
+    "id": "4944008",
+    "url": "https://leetcode.com/discuss/interview-experience/4944008/interview-experience-at-dkafka-very-new-start-up",
+    "title": "Interview Experience at Dkafka (Very new Start-Up)",
+    "page_content": "# **Dkafka | Intern | Pune, India | March 8th, 2024 [Selected]**\\n\\n**Current Status:** Final Year student, Bachelor of Science in Computer Science Engineering from Neotia Institute of Technology, Management and Science\\n\\n**Position:** Intern at Dkafka\\n\\n**Interview Process:**\\n\\n***Technical Interview (March 8th):***\\n\\n* Started with self-introductions and discussion on academic background.\\n* Technical questions covered project experiences, queue, stack implementations, and SQL queries.\\n* Challenging water jug problem with a follow-up question on optimization without unlimited water supply.\\n* Demonstrated problem-solving skills and adaptability under pressure.\\n\\n***Assignment Round (3 days later):***\\n\\n* Tasked with creating Python test cases for real algorithms which the interviewer developed.\\n* Initially struggled with unit testing concepts but utilized online resources and received guidance from the interviewer.\\n* Misunderstood the assignment\\'s scope initially but adjusted approach after clarification.\\n* Developed a comprehensive set of test cases, focusing on code functionality, edge cases, and future-proofing against changes.\\n\\n***Post-Interview Thoughts:***\\n\\n* Initial uncertainty and challenges were overcome through perseverance and adaptability.\\n* Appreciated the opportunity to showcase problem-solving skills and learn new concepts.\\n* Interaction with the team during the HR round provided insights into company culture and team dynamics.\\n\\n***Company Perks and Culture:***\\n\\n* All interviews conducted via Zoom, offering flexibility and accessibility.\\n* Remote work mode aligns with current trends and provides a conducive environment for productivity.\\n* Excited to join Dkafka\\'s innovative team and contribute to meaningful projects.\\n* Verdict: Selected for the internship role at Dkafka, a startup with a promising future.\\n\\n**Company Website:**  https://www.dkafka.com/home\\n\\n**A bit informal and more detailed explanation is here, where i talked about what went through my mind and all**:   \\nhttps://medium.com/@ayannaskar5067/internship-experience-at-dkafka-f57369ee33f7",
+    "tags": [
+      "interview",
+      "interview question",
+      "interview experience",
+      "accepted",
+      "start-up",
+      "dkafka"
+    ],
+    "votes": 2,
+    "views": 249,
+    "creation_date": 1711743388,
+    "author": "Lil_ToeTurtle"
+  },
+  {
+    "id": "4943221",
+    "url": "https://leetcode.com/discuss/interview-experience/4943221/microsoft-hiring-event-sde-2-rejected",
+    "title": "Microsoft Hiring Event | SDE - 2 | Rejected",
+    "page_content": "Last week went through full interview loop - had a good experience.\\n\\nRound 1: intro + 2 behavioural and some follow-up questions. 1 DS medium question, couldn\\'t find it on leetcode.\\nRound 2: intro + 1 behavioural. 1 leetcode medium and follow-up leetcode hard (didn\\'t have to code it, just the logic).\\nRound 3: intro + 1 behavioural. 1 modified leetcode medium. \\nRound 4: in-depth behavioural + System design.\\n\\nThroughout the process, interviewers were helpful. I was surprised to not have any LLD question. \\nAnd sorry due to NDA won\\'t be able to share questions.",
+    "tags": [
+      "microsoft"
+    ],
+    "votes": 3,
+    "views": 1460,
+    "creation_date": 1711731843,
+    "author": null
+  },
+  {
+    "id": "4942993",
+    "url": "https://leetcode.com/discuss/interview-experience/4942993/meta-e5-london-offer",
+    "title": "Meta | E5 | London | Offer",
+    "page_content": "Time to give back to community, contributions made here by other people really helped a lot. Signed NDA so won\\'t be sharing exact questions but will try to help maximum.\\n\\nYoE: 7.5\\nPrep time: 1.5 months\\nPrev company: Another FAANG\\n\\nFirst contact: Reached out to recruiter on LinkedIn. Scheduled phone screen for 3 weeks later.\\n\\nPhone screen: Asked 2 medium from top 100 Meta tagged. Able to explain in detail for both within 30mins.\\nFeedback: Pretty solid as per recruiter.\\n\\nOnsite scheduled for 2 weeks later.\\n\\nCoding 1: Asked 2 medium again. First one wasn\\'t directly from Meta tagged but on similar pattern so quickly solved it. Second one was from Meta tagged and explained multiple approaches for it (with code for one). We then went onto pros and cons discussion of each approach for fun.\\n\\nCoding 2: Asked 2 medium again. Both from top 100 Meta tagged and solved both with ease.\\n\\nBehavioral: Taken by a manager who asked pretty complex questions. I tried to be as much natural as possible.\\n\\nSystem Design: I prepared very thoroughly for this. Question asked was from frequently asked topics of system design. I tried to go deeper into database/conflict-resolution/solving-CUJs and didn\\'t waste much time on usual path. I also tried to be very proactive in my conversations to explain hidden and usual things.\\n\\nPreparation: I went through Alex Xu for starter, once comfortable I also read DDIA selectively. Then SDFC and Jordan has no life channels came in handy. I also went through multiple mocks to become comfortable with the format.\\n\\nHC Result: After a week, I was told by recruiter that verdict is hire.",
+    "tags": [
+      "meta",
+      "e5",
+      "facebook"
+    ],
+    "votes": 13,
+    "views": 2289,
+    "creation_date": 1711728367,
+    "author": null
+  },
+  {
+    "id": "4942593",
+    "url": "https://leetcode.com/discuss/interview-experience/4942593/cashfree-payments-sde-2-4-yoe-reject",
+    "title": "CashFree Payments | SDE 2 | 4+ YOE | Reject",
+    "page_content": "Round 1 : Coding (Virtual)\\nIt was conducted on Hackerrank Portal.\\nQuestion : Convert Roman Numbers into Integers.  \\n\\nRound 2 : HLD + LLD (Virtual)\\nBookMyShow : Was expected to come up DB schema, complete flow diagram and classes explaining design Pattern.\\n\\nRound 3 : LLD + Mangerial Round (In-Person)\\nContinuation of second question, to derive library which clients like BookMyShow, Paytm can use to book tickets. Come up with all classes and functions which should be present in library providing basic functionalities and validation boiler plate code.\\nHe asked me to code, how tickets would be booked handling concurrency and locking using MultiThreading (which i couldn\\'t)\\n\\nVerdict : Rejected in last Round.",
+    "tags": [
+      "cashfree payments"
+    ],
+    "votes": 1,
+    "views": 962,
+    "creation_date": 1711721824,
+    "author": null
+  },
+  {
+    "id": "4941966",
+    "url": "https://leetcode.com/discuss/interview-experience/4941966/cvent-sse-horrible-experience",
+    "title": "Cvent SSE | Horrible experience",
+    "page_content": "I interviewed at Cvent F2F at their gurgaon office.\\n\\nRound 1 :\\n\\nFind element in sorted rotated array.\\nA lot of Java questions on OOPS. Sql Queries.\\n\\nRound 2 :\\n\\nLLD of Splitwise.\\nFollowup questions on DB schema. Queries on schema.\\n\\nRound 3 : (Director Round)\\n\\nQuestions from resume.\\nHLD of project i am currently working.\\n\\n\\nGot mail from recruiter next week that i passed all rounds and need documents.\\n\\nNow, after one week when i enquired. He said there is some event in india office at senior management team is busy in it.\\n\\nNext week, got call from cvent that it is taking time but they will give me some number by next week.\\n\\nAfter 2 weeks, When i enquired, they said I am not fit for the role they are hiring. Lol Wasted More than a month. HR should not waste time of interviewers.",
+    "tags": [
+      "cvent"
+    ],
+    "votes": 0,
+    "views": 214,
+    "creation_date": 1711711105,
+    "author": null
+  },
+  {
+    "id": "4941767",
+    "url": "https://leetcode.com/discuss/interview-experience/4941767/indmoney-senior-software-engineer-bangalore-ghosted",
+    "title": "INDMoney | Senior Software Engineer | Bangalore | Ghosted",
+    "page_content": "A recruiter reached out to me on Linkedin. The process included 3 rounds of interviews.\\n\\nINDMoney | Senior Software Engineer | Bangalore | March-2024\\n\\nRound 1- Problem-solving and technical discussion\\nIn this round, I was asked a question on binary search. The question was of medium-level difficulty. The interviewer later on asked about Goroutines/worker pools. \\n\\nRound 2 - Technical Discussion\\nSome design questions were asked, how INDmoney shows real-time updates to all the users of top gainers, top losers, etc. And some questions about the experience.\\n\\nRound 3 - CTO Round\\nA design question to design a widget for a hotel booking app to show the number of people who recently viewed this hotel and an easy problem on string manipulation.\\n\\nVerdict - Ghosted after the 3rd round of interviews. My interviews went fine but I wasted my time in interviewing with them as they couldn\\'t even reach\\xA0out with the feedback.\\n\\nSuggestion:- Please don\\'t waste your time interviewing with INDmoney.\\n",
+    "tags": [
+      "indmoney",
+      "bangalore india"
+    ],
+    "votes": 3,
+    "views": 623,
+    "creation_date": 1711707961,
+    "author": null
+  },
+  {
+    "id": "4939081",
+    "url": "https://leetcode.com/discuss/interview-experience/4939081/meta-e4-phone-screen",
+    "title": "Meta e4 phone screen",
+    "page_content": "1. https://leetcode.com/problems/contains-duplicate-ii/\\n2. https://leetcode.com/problems/merge-sorted-array/ - merge 3 sorted arrays\\n\\nfirst one completed successfully - optimal approach\\nsecond one explained brute force and optinmal approaches, but didn\\'t have time to code. \\nProbably a reject, but defenitely gained confidence, since until now I thought I couldn\\'t even make a move. Definitely got lucky with comparatively easy questions. Interviewer was friendly and helpful.",
+    "tags": [
+      "facebook"
+    ],
+    "votes": 6,
+    "views": 807,
+    "creation_date": 1711651301,
+    "author": null
+  },
+  {
+    "id": "4937133",
+    "url": "https://leetcode.com/discuss/interview-experience/4937133/microsoft-sde2-l61-interview-experience",
+    "title": "Microsoft SDE2 L61 interview experience",
+    "page_content": "I was referred to MS and was directly called by HR for interviews (so no coding test before interviews).\\nGot a call in Feb 2024 starting (first week)\\n\\nI was given an option to either give interviews in the hiring event or before that, I opted for before hiring event.\\nFinally interview got scheculed in March(second week) after HR pospotned it 3 times, which gave me time to prepare so nice only.\\n\\nAll the MS interviewers were very nice and were open to discussion during the interviews\\n\\nRound 1 and 2 were scheudled by the HR together, so basically I had to give both the rounds doesnt matter on the results of first round. Both were coding rounds, no design in these rounds.\\n\\nRound 1 (1-1.5 hrs): Felt more like a screening round (as I didnt gave a test). Basic intro, Discussed a bit on my resume trying to understand what I did. What is a HashMap, HashMap time complexities for insert delete and get - I went ahead with the implementation based approach on this, like started to think how a hashmap is implemented to give the answers to the questions. At first I didnt remember the implementation of a HashMap but after discussion got to the right path and answered all the questions. Then he as asked what is a BST (I asnwered) then he gave me a question on Tress\\nQ - Connect all the nodes to its right neighbours in a tree. Good part was the BST was complete so it was a very easy question. I wrote the question in codelitiy but he didnt expect me to run it, just dry ran it for test cases and he was okay with the approach. He asked me the time complexity for it as well.\\n\\nHe was more keen on checking my confidence in the interview with which I answered questions. So even when I gave write answer for time complexity he questioned it to check if I stand by it.\\n\\nThen he asked me what is a Heap (I answered). I showed him how heap is implemented in the explaination of the heap only coz I knew that one lol. Then he asked me to tell the time complexity for insertion and deletion. I showed him on the heap tree how the insertion and deletion time complexities will be calculated and gave the answer.\\nAt last he asked me if I have an array and I want to make it to a heap what will be the time complexity, I said nlogn as we can just loop over the array and insert it into a heap. He again questioned it and I misunderstood it to be him asking the proof, I tried prooving it but the time was ending so he said just give me a final answer and I said its nlogn then he said I was just checking your confidence and I said ohh i thought you asked for the proof so I was trying that answer to definitely is nlogn.\\n\\nhe asked me I have and questions for him, I asked some basic MS culture related questions and the round got over.\\n\\nRound 2 (1.5 hrs): after basic intro he went straight to the coding question, again on codility.\\n\\nQ: Give the max width of a tree, now tree can be any tree not necessarily complete so width can be somewhere in the middle as well. Width means the length between the first node and the last node on each level.\\nAt first I started with a wrong apporach and then when I failed to give right answers for all the test cases I changed my approach to the right one i.e. to use 2i and 2i-1 for getitng child numbers from a parent node.\\nFor this round I had to run the whole code, From test case creation to the main logic function. I was lucky that my both attempts ran without any complation error in the first get go so gave me more time to explain the logic and change it than keep on wasting time on acutally writing my code.\\n\\nhe asked me I have and questions for him, I asked some basic MS culture related questions and the round got over.\\n\\nAfter 2 say Hr called me to schedule Round 3 on a Monday. I got the weekend so again got lucky to learn about Design concepts.\\n\\nRound 3 (1.5 hr Design): This was a proper design round. Interviewer was very experience and after basic intro and little bit deep dive on my resume he asked me a coding questions first. He expected me to write the code (function and the node class for linked list).\\nQ: Sum of integers - intergers being given to you as a linked list, so it can be as long as you want.\\nI discussed multiple approach to this and wrote the code for the O(n) approach code which I was missing the trailing 9 case which I said I will add later but as the time was less he said lets first go to the other question. Before moving he already knew how am I going to do it, its just I didnt write it in code.\\n\\nHe asked me do you know OS or networking, I said no. As I am from no CSE background I am not very well versed with the theory but I have worked and gained experience on coding and my deisgn concepts.\\n\\nQ: He asked me to design a library system.\\nFirst I asked is it HLD or LLD that you want, he said good question first give me HLD then if time allowd we will go to LLD.\\nI designed it well, showed him what metadata we will need, took care of all the cases and features, took care of CAP theory, SQL no SQL, scalability and what type request client will throw to server\\n\\nHe asked me to have a run through of how we will go about in the design if a student wants to come and do x thing. Then he asked me how you will scale it.\\n\\nAfter this round it took 1 week for the HR to get back to me and I thought I am rejected because of the non CSE thing. HR told me all the three rounds were positive feedback for me so we are moving to the AA round (final behavioural round). I had a friend who gave round 4 also because his round 3 design didnt go as well so MS gave one more chance to him.\\n\\nRound 4 (1.5 hrs AA): Genrally in AA round you are asked whatever was given a bad rating in the previous rounds. Like if your design or coding was not that good he will ask design or coding respectively. For me he just asked behavioural questions, about me resume by work, my working type and so on.\\n\\nI was given a offer after 2-3 days of this round",
+    "tags": [
+      "software developer",
+      "interview experience",
+      "sde2",
+      "offer",
+      "microsoft-idc"
+    ],
+    "votes": 16,
+    "views": 8758,
+    "creation_date": 1711621779,
+    "author": null
+  },
+  {
+    "id": "4937023",
+    "url": "https://leetcode.com/discuss/interview-experience/4937023/super-money-sde-2-backend-feb-2024-offer",
+    "title": "super.money | SDE-2 | Backend | Feb 2024 | Offer",
+    "page_content": "**Prior experience:** overall 3.5y in unicorn startup\\n**College:** 3rd tier  \\n**Location:** Bangalore\\n**Date:**  Feb 2024\\n\\n**Process:** I have taken referral and got call from HR. There were total 4 technical rounds. \\n\\n**ROUNDS**\\n\\n**Round 1:**\\n**Machine coding (2.5 hours)**\\nIn the given time frame, problem statement was explained and was expected to code compiled and running code, covering edge cases, handling errors, applications of design patterns, SOLID principles.\\nQues: https://docs.google.com/document/d/1qSSL_5_tipDsReaE9sQZKW6cQwPPNZ45f6OZnsUHc9U/edit#heading=h.ys7yi56mkbs5\\nVerdict: Strong Hire\\n\\n**Round 2:**\\n**PSDS Medium-Hard (1 hour)**\\nIn the given time frame, discussions and coded both the problems with optimium solutions\\nQues:\\n* https://leetcode.com/problems/remove-k-digits/\\n* https://leetcode.com/problems/find-k-th-smallest-pair-distance/\\n \\nVerdict: Hire\\n\\n**Round 3:**\\n**Design Round (LLD+HLD, 1 hour)**\\nThere is a IPL tournament happening with multiple matches, predict(poll) match, post match we want to send notifications to pollers of winning team ie. notification to winners, rewarding to winners(milestone winning, 10, 30, 50), overall rewarding after tournaments, leaderboard.\\n\\nFunctional Requirement:\\n* Tournament (cricket, IPL) -> multiple matches -> each match-> 2 teams\\n* Pre Match \\n\\t* Panels to vote\\n\\t* Split of votings\\n* Post match: \\n\\t* Leaderboard\\n\\t* Notify voters about winning team\\n\\t* Notify to winners, milestone x in the tournament\\n\\t* Reward if reached the milestone milestone winning, 10, 30, 50\\n\\t* OverWall rewarding\\n\\nVerdict: Strong Hire\\n\\n**Round 4:**\\n**HM(1 hour)**\\nThere were multiple ques wrt to past experiences and projects, cutural questions and small LLD ques.\\nVerdict: Hire\\n\\n**OverAll Verdict:** Hire\\n**Compensation Details:** https://leetcode.com/discuss/compensation/4939044/super.money-or-SDE-2-or-backend-or-Bangalore\\n\\nHope, this was helpful!\\n\\n",
+    "tags": [
+      "bangalore"
+    ],
+    "votes": 7,
+    "views": 1939,
+    "creation_date": 1711620288,
+    "author": null
+  },
+  {
+    "id": "4934486",
+    "url": "https://leetcode.com/discuss/interview-experience/4934486/aws-sde-ii-no-offer",
+    "title": "AWS | SDE-II | No Offer",
+    "page_content": "OA - included one medium and one hard problem (can\\'t remember the details now)\\nPhone Screen - 3 LP questions followed by coding question (get top visited 3-page sequence in history of web-pages navigation -> More like top k elements in an array)\\n\\nFinal stage - included 5 rounds (1 hour each)\\n\\n1. Completely based on LP questions. The interviewer asked 3 LP questions but drilled down into every detail of the answer I gave.\\n2. 2 LP questions followed by coding questions: two sum, sorting algorithms, validate binary search, merge two sorted arrays. The interviewer didn\\'t ask me to write the code but explain the logic for every question.\\n3. System Design (tiny URL) followed by 2LP questions. Deep dive into system design topics like consistency, caching, scalability etc.\\n4. 2LP question followed by low level design question (design a chess game, not the full version but the basic classes and write move logic for a knight)\\n5. 2LP questions followed by coding question: minimum cost to connect data centers (minimum spanning tree)\\n\\nSuggestion about LP questions: don\\'t prepare for specific questions. Focus on individual LP and come up with 2-3 stories. 2 stories about where you exhibited that LP and one where you couldn\\'t. Once you have these stories, you can tackle pretty much all the questions.\\n\\nReceived a call from the recruiter second day. Unfortunately, I couldn\\'t make it.",
+    "tags": [
+      "aws",
+      "aws-sde-2",
+      "amazon"
+    ],
+    "votes": 6,
+    "views": 1216,
+    "creation_date": 1711569921,
+    "author": null
+  },
+  {
+    "id": "4934346",
+    "url": "https://leetcode.com/discuss/interview-experience/4934346/google-l4-swe-iii",
+    "title": "Google L4 SWE-III",
+    "page_content": "College: Tier3, 2020 Grad\\nPrevious Experience : SDE2 at Ecommerce Company\\nLocation: Bengaluru ,India .\\n\\nPhone Screen : Skipped as HM liked the profile\\n\\nOnsiteRound 1 : A variant of coin change . (No Hire)\\nOnsiteRound 2: Union Find related problem (Strong Hire)\\nOnsite Round 3: BFS related problem (Strong Hire)\\nOnsite Round 4 :Googliness (Strong Hire)\\n\\nHM asked to conduct one more round due to No Hire in first round so HR cancelled the Team match call and scheduled one more round.\\n\\nOnsite Round 5: Problem related to Sliding window with one follow up (Strong Hire)\\n\\nHR asked to provide further details post the last onsite round for some approval and after sending the details HR is not responding to any mails or linkedin messages. Anyone facing same issue?\\n\\nUpdate(9th April): Completed 1 TM call, waiting for result\\nUpdate(17th April): HM feedback was positive, waiting for HC\\nUpdate(19th April): Passed HC, negotiating offer\\n\\n",
+    "tags": [
+      "google"
+    ],
+    "votes": 9,
+    "views": 1777,
+    "creation_date": 1711567274,
+    "author": null
+  },
+  {
+    "id": "4933859",
+    "url": "https://leetcode.com/discuss/interview-experience/4933859/microsoft-sr-em-phone-screen",
+    "title": "Microsoft Sr.EM Phone screen",
+    "page_content": "Interviewer was super friendly and eased my nerves. I was asked few behavioral questions specific to their team\\'s area of concentration. \\nAnd the last 20-30 mins was one coding question - Merge k sorted lists (LC Hard). I explained my thoughts on the brute force approach that came first to my mind (traverse through all linked lists -> put them in an arraylist -> sort using in-built sort -> then convert back to one big linked list). Before coding this, interviewer asked for time n space complexity of this approach and asked to come up with more optimal way to do it. I tried to explain a two pointer solution, interviewer asked for time n space complexity of this approach and discussed more on the time complexity. And then asked to code this approach, I got a bit blanked out while coding, but the interviewer was helpful. \\nThere was a couple mins left, I asked a question regarding the team and ended the interview. \\nWaiting for result/next steps, but in either case, the experience was great, interviewer was respectful and friendly, it was like talking to a co-worker.",
+    "tags": [
+      "microsoft"
+    ],
+    "votes": 0,
+    "views": 211,
+    "creation_date": 1711560291,
+    "author": null
+  },
+  {
+    "id": "4933788",
+    "url": "https://leetcode.com/discuss/interview-experience/4933788/meta-e4-full-loop-onsite-reject",
+    "title": "Meta E4 Full Loop Onsite - Reject",
+    "page_content": "Coding 1:\\nCan Place Flowers - pretty easy but took some time to remember since I hadn\\'t done it in a while\\nVariation to https://leetcode.com/problems/shortest-distance-from-all-buildings/ - this problem I knew how to do but interviewer wasn\\'t convinced my solution worked. Struggled explaining it to him, even though I had an idea how to do the problem. Would not let me code without sufficient explanation. \\nPoor round and I knew for sure my chances at an offer were somewhere close to zero\\nBehavioural: standard behavioural questions\\nCoding 2: \\nSome variation to a backtracking function. Interviewer again was not convinced of the solution. After looking it up on google post interview my solution was correct. Either way I knew I failed the onsite based on round 1 so didn\\'t matter that much.\\nKth largest element - presented sort, heap without popping and heap with popping, and mentioned quickselect. She seemed happy about the solution, both the heap and the quickselect.\\nproduct design: Design Messenger. Interviewer was extremely happy with the solution\\n\\nGiven, I did it yesterday so I haven\\'t gotten an official rejection, but I know that if you don\\'t solve both questions optimally, you\\'re basically done for so eh.\\n\\nHope this helps you guys. \\n\\nUPDATE: Rejected, to no surprise. \\n",
+    "tags": [
+      "facebook"
+    ],
+    "votes": 3,
+    "views": 1023,
+    "creation_date": 1711558950,
+    "author": null
+  },
+  {
+    "id": "4931962",
+    "url": "https://leetcode.com/discuss/interview-experience/4931962/tekion-sde-backend",
+    "title": "Tekion SDE Backend",
+    "page_content": "Tekion SDE Backend - 30 Jan\\n\\nRound 1:\\n1. asked 2 question from easy-medium level\\n\\nRound 2: (LLD)\\n1. it was LLD, but they asked 2 very general question how to improve this pseudo code.\\n2. one DSA quesiton of infinite array binary search.\\n\\nRound 3: (Hiring Manager)\\n1. one DP question\\n2. detailed discussion of 1.5 hour on behavioural, project and some general discussion, as they need it urgently that is why hiring manager was trying to convince\\n\\nVerdict: Rejected (as they found an immediate joiner)",
+    "tags": [
+      "flipkart",
+      "sde 2",
+      "machine coding"
+    ],
+    "votes": 0,
+    "views": 1318,
+    "creation_date": 1711528170,
+    "author": null
+  },
+  {
+    "id": "4931932",
+    "url": "https://leetcode.com/discuss/interview-experience/4931932/flipkart-sde-2-machine-coding",
+    "title": "Flipkart SDE 2 Machine Coding",
+    "page_content": "Flipkart Machine Coding - 21st March - Hiring Drive\\n\\nRound 1: Format\\n1. A group of people recevied the same problem statement (Jira like task management tool).\\n2. in first 30 min interviewer explained the question and its expectation.\\n3. in next 90 min we need to code and submit\\n4. last 30 min for evaluation\\n\\nApproach:\\n- used factory method to make it more extensible\\n- used a decorator to handle exceptions -> this caused -ve point\\n- completed all functionality but missed one edge case -> this caused -ve point\\n- used enum but use a different enum for each model -> -ve point\\n- kept both sprint and task logic in same class -> -ve point\\n\\nVerdict: Rejected\\n\\nCan some one help me by pointing out mistakes of my code? and how can I improve it\\nCode: [https://github.com/Abhijeet-14/DSA-OOPS-LLD/tree/main/__DSA_PYTHON/06_LLD_PYTHON/Interview/Flipkart-R1-MC]",
+    "tags": [
+      "flipkart",
+      "sde 2",
+      "machine coding"
+    ],
+    "votes": 0,
+    "views": 626,
+    "creation_date": 1711527650,
+    "author": null
+  },
+  {
+    "id": "4931425",
+    "url": "https://leetcode.com/discuss/interview-experience/4931425/onlinesales-ai-sde-offer-pune",
+    "title": "OnlineSales.Ai | SDE | OFFER | PUNE",
+    "page_content": "College: NIT \\nPrior experience: 9 months, SDE at small scale startup\\nLocation: Pune\\nDate: March 2024\\n\\nProcess: Profile view on Instahyre and got a call from company \\n\\n\\n\\nInterviews\\nRound 1 ( 30 mins): Speed Round (rapid answers no code only approach)\\n\\nQ1-> Http vs Https\\n\\nQ2-> Find the single element when all elements are repeating twice(hashmap and xor)\\n\\nQ3-> Basic SQL questions\\n\\nRound 2 (1 hr):\\n\\nQ1-> LRU CACHE (explain and code from basic (write classes for doubly linked list )(not only pseudo code)\\n\\nRound3 (1hr):\\nTricky questions\\nQ1) You have an array of only 3 and 5 repeating many times , write code to find how many number of times 5 is occurring in array without using IF condition == operator , no hashmaps....\\nQ2) I forgot another question \\nQ3) SQL Queries\\njoins\\nranks desnse rank theory questions and implementation\\nwrite query for finding NTH salary in duplicates as well. \\n\\nRound 4 (1hr):\\nDesign a Food ordering system design (low level entity design)\\nfollow up questions on how do u send notifications when  order status is updated\\ntriggers kafka aws sqs (basic notifications design aws lambda)(i have exp in kafka so i said that)\\n\\nRound 5 (1hr):\\nAPI DESIGN of where is my train\\nwhat apis u need to design\\nwhat payloads body computation etc \\nrate limiting ... \\nbehavioural questions\\nwhy this company , strengths weakness \\n\\nFinal result- Selected WFO PUNE",
+    "tags": [
+      "array",
+      "design",
+      "sql"
+    ],
+    "votes": 0,
+    "views": 184,
+    "creation_date": 1711520312,
+    "author": null
+  },
+  {
+    "id": "4931132",
+    "url": "https://leetcode.com/discuss/interview-experience/4931132/aidash-sde-intern",
+    "title": "AiDash SDE Intern",
+    "page_content": "Had anyone given the OA for off campus SDE Intern role at Aidash in march? Has anyone recived the interview call after giving it because they said the results will be declared after 2 days and now its almost been 2 weeks. I believe my OA went pretty well but still didnt recieve any update.\\n",
+    "tags": [
+      "aidash"
+    ],
+    "votes": 9,
+    "views": 1033,
+    "creation_date": 1711516099,
+    "author": null
+  },
+  {
+    "id": "4930493",
+    "url": "https://leetcode.com/discuss/interview-experience/4930493/amazon-worst-experience-sde3-gurgaon-feb-2024-reject",
+    "title": "Amazon | Worst Experience| SDE3 | Gurgaon | Feb 2024 [Reject] |",
+    "page_content": "YOE: 8 years\\nCurrent Position: SSE at Walmart\\nPosition: SDE3 at Amazon\\nLocation: Gurgaon\\n\\n**Round 1**\\n```\\n* Longest Repeating substring (leetcode hard)\\n* zigzag traversal of a binary tree\\n```\\n\\n**Round 2**\\nhttps://leetcode.com/discuss/interview-question/4930444/Amazon-or-Onsite-or-HLD-or-Widgets-In-Search-Page\\n\\n**Round 3**\\nLP Questions:\\n1. tell me an instance where you were delivering/shipping a feature to production but some unexpected obstacle came suddently which you did not know about, how did you handle the situation?\\n2. tell me an instance where you were developing some feature, and just before completion, you got to know that this feature will have some unintended consequences? how did you came to know? what actions you took? how you make sure to avoide such scenarios?\\n\\n\\nCoding Questions:\\n1. A user plays some songs,  You will be passed a List of songs which he played today (List can have one song multiple times, as user can play same song again and again), return List of unique songs in the order of their played frequencies, that is, most played song should be first in the output List, provide time complexity of the code also\\n2. reg exp matching  (https://leetcode.com/problems/regular-expression-matching/description/)\\n\\n\\n**Round 4**\\nThis was LLD Round, \\nLP Questions:\\n1. What you look in the pull request when you do a code review of peer/junior etc\\n2. tell me a scenario where you were not happy about a situation in your project ,how did you handle it? what do you think you could have done it better?\\n3. If you have to choose between Delivery timeline and standards (Quanlity) what will you choose? why? \\n\\n\\nLLD Coding Question\\n* we want to create an app like splitwise where the user can create groups/expenses and all those features, design the java classes/interfaces you need for this application\\n\\n\\n**Round 5**\\nhttps://leetcode.com/discuss/interview-question/4930449/Amazon-or-Onsite-or-HLD-or-Vehicle-Tracking\\n\\n**Round 6**\\nhttps://leetcode.com/discuss/interview-question/4930456/Amazon-or-Onsite-or-HLD-or-Linkedin-System\\n\\n**NOTE:**\\nI really dont understand how they can expect a candidate to design an entire new system/feature flawlessly within 30 minutes choosing all the right tech stack and covering all the edge cases, thats really impossible until you have already memorized the solution\\n\\n**Timelines:** Technical screening was done on 12th January 2024, and after 65 days of doing preparation, practice, coding, HLD, multiple time reschedules of the interviews I got an automated mail on 18th March saying that **After careful consideration, we have decided not to progress with your application for this role. While we are unable to provide additional details about this decision**\\n\\nThey did not even bother to send a me a mail with some feedback what went wrong\\n",
+    "tags": [
+      "gurgaon",
+      "sde3",
+      "sde - 3",
+      "amazon"
+    ],
+    "votes": 10,
+    "views": 1114,
+    "creation_date": 1711503998,
+    "author": "googlepixel"
+  },
+  {
+    "id": "4930351",
+    "url": "https://leetcode.com/discuss/interview-experience/4930351/meta-e4-phone-screen-passed-but-hiring-is-paused",
+    "title": "Meta E4 Phone Screen - Passed But Hiring is Paused!",
+    "page_content": "Hi folks- giving back to the community..\\nI had my phone screen yesterday...I got the feedback today as the recruiter mentioned it was \"very positive\" but unfortunettly Hirigin is paused now and when they unpause they will directly presume with the onsite...Part of me is so devastated and the other feels good since the 3 month of the hard work and grinding Leetcode for the first time has paid off.\\n\\n**Mock Interview:**\\n1 - https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree-iii/description/\\n2 - https://leetcode.com/problems/moving-average-from-data-stream/description/\\n\\n**Phone Screen Interview questions:**\\n1 - https://leetcode.com/problems/valid-number/description/ (no such a case like this number (3e+7) was present to count for in the solution)\\n2 - I was asked to implement a data structure. I was given a class with 3 methods (put() takes a key and a value , get() return the value associated with the key, remove() removes a value for the given key, and last() returns the most recent key either added with put() or accessed with get() that hasn\\'t been removed by delete().\\n\\n**Interview experience**:\\nThe interviewer was a cool guy...we took the first 5 min for intro, the last 5 mins for Q&A. solved both questions in exactly 35 mins. provided the high level thought process, and expalined what every single does while I am coding up the solutions, which i think got me the positive feedback. at the end I provided the time and space complexity and expalined the rational behind each one. **I DID NOT** do any dry run with examples, probably my explanation through coding both of the solutions was good enough for the interviewer...with that being said i found explaining and engaging the interviewer while you are coding the solution is effective and helps to make it more of a discussion than a test.",
+    "tags": [
+      "facebook"
+    ],
+    "votes": 1,
+    "views": 934,
+    "creation_date": 1711499674,
+    "author": null
+  },
+  {
+    "id": "4930232",
+    "url": "https://leetcode.com/discuss/interview-experience/4930232/google-swe-iii-l4-phone-screen-poland-reject",
+    "title": "Google | SWE-III (L4) | Phone Screen | Poland | Reject",
+    "page_content": "Current Company- Big Fintech Europe\\nYOE- 2+\\n\\n**Question**-\\n\\nImplement a class which has 2 functions-\\nFun 1. Insert the Interval L-R\\nFun 2. Given a number check if that number is present\\n\\nExample-\\n\\n(2-5)\\n(9-13)\\nCheck for 10, output- Yes\\nCheck for 6, output -No\\n\\nFollow ups and the clarifying questions which I asked in the interview-\\n1. Are all the numbers L-R positive integers? --- Yes\\n2. What max value of L-R are we looking at?-- Initially it was 10^6 lets assume but later he said it can be 2^32.\\n3. In the L-R is the L<R or can it be R<L as well?-- He said it can be either way\\n4. How is the input provided? Is the L-R passed to fun1 as separate parameters like\\n    op1-> fun1(int L,int R)\\n\\top2-> or in a array like fun1( Array[Pair<L,R>]) ?\\n\\t-- He didnt tell me how to assume the input to be. I implemented it using op1, had it been op2 the problem might have been very simple because we are given the queries beforehand and we are not checking calling fun2 in between the insertion of intervals. \\n5. Can we have overlapping intervals like 2-5, 7-13, 9-13?--- Yes\\n\\n\\n**My answer**-\\n\\nsol1 -\\n\\nMake a boolean array of size 10^6. Assume the indices of array as the intervals. Iterate array over L-R and mark the indices as TRUE. For checking if a number is present simply return array[Number].\\npseudocode-**\\n\\n\\t\\tvector<int> ranges;\\n\\t\\tfun1(int L,int R)\\n\\t\\t{\\n\\t\\t\\tfor(int i=L;i<=R;++i) ranges[i]=true;\\n\\t\\t}\\n\\t\\tfun2(int number)\\n\\t\\t{\\n\\t\\t\\treturn ranges[number];\\n\\t\\t}\\nIn this case\\nTC- fun1- O(N) fun2- O(1). \\nSC- O(10^6).\\n\\nFollow up is like lets assume we can have number up to 2^32 how will u proceed in that case since we cant store it in array now due to memory constraints. We dont care about time now but memory should be handled.\\n\\nsol2- \\n\\nLets create a map<int,int>. Insert L-R like map[L]=1, map[R]=-1. fun1 Insert will take O(LogN) time. Now for fun2 I will Iterate over all key,value in my map and maintain a counter to check if I am in valid range or not and if I find my number i will return true else false.\\npseudocode-\\n\\n\\t\\tmap<int,int> ranges;\\n\\t\\tfun1(Int L,int R)\\n\\t\\t{\\n\\t\\t\\tranges[L]=1;\\n\\t\\t\\tranges[R]=-1;\\n\\t\\t}\\n\\t\\tfun2(int number)\\n\\t\\t{\\n\\t\\t\\tint inRange=0;\\n\\t\\t\\tfor(range:ranges)\\n\\t\\t\\t{\\n\\t\\t\\t\\tif(number<range.first and inRange==1) return true;\\n\\t\\t\\t\\tinRange+=range.second;\\n\\t\\t\\t}\\n\\t\\t\\treturn false;\\n\\t\\t}\\n\\nIn this case \\nTC- fun1- O(logN) fun2- O(NlogN). \\nSC- O(total no of times fun1 L-R is called).\\n\\nFurther thoughts- These type of questions can be done using a Segment Tree/ Interval Tree but implementing that in a 45min interview is not that easy.\\n\\n**RESULT**-\\n\\nI got rejection mail the same day. How could I improve my solution. What can be the reason for rejection? Does the interviewer want me to-\\n1. implement it in a specific way.\\n2. Maybe I overthinked the solution trying to optimise the TC.\\n\\nPlease comment what are your thoughts on this and areas where I can improve?\\n\\n",
+    "tags": [
+      "google",
+      "europe",
+      "poland"
+    ],
+    "votes": 6,
+    "views": 919,
+    "creation_date": 1711494123,
+    "author": null
+  },
+  {
+    "id": "4929076",
+    "url": "https://leetcode.com/discuss/interview-experience/4929076/google-interview-experience-l3",
+    "title": "Google Interview Experience  L3",
+    "page_content": "Hi LC Community \\n\\nCollege: Tier1 2022 Grad\\nPrevious Experience : SDE1 at Ecommerce Company\\nLocation: Bengaluru ,India .\\n\\nPhone Screen :  Question boils down to find Cycle in graph , Follow up was topological sort and Have to check whether the graph has unique topological sort order or not.\\n\\nOnsiteRound 1 : A variant of find Maximal rectangle area in a grid where all values are same . (Hire)\\nOnsiteRound 2: how to measure 4 litres of water from 3 and 5 liter jugs , took 10 mins to reach the answer ,the main question was bit generic (BFS problem) , I KNOW IT WAS VERY EASY but i was bit confused with this question  (Strong No Hire)\\nOnsite Round 3:  Variant of Find Median from stream of numbers(No need to return exact median)  Can be solved with bits (Hire)\\nOnsite Round 4 :Googliness (Hire)\\n\\nInterviews finished nearly 20 days back , Recruiter said he is getting some 1-2 approvals to find a team match and set up call with HM ,later there will be HC decision , he said within 10 days you will get to know HC decision from Now .\\n\\nWhat are the chances of hire :) Please let me know ? .I want to switch to a different company ASAP  would like to know some good companies which are hiring .\\n\\nAll the best!!",
+    "tags": [
+      "google",
+      "l3"
+    ],
+    "votes": 2,
+    "views": 865,
+    "creation_date": 1711470986,
+    "author": null
+  },
+  {
+    "id": "4928782",
+    "url": "https://leetcode.com/discuss/interview-experience/4928782/dezerv-senior-software-engineer-backend-offer-march-2024",
+    "title": "Dezerv | Senior Software Engineer Backend | Offer [March 2024]",
+    "page_content": "College Tier 1.5 \\nExperience 3.8 Years  FAANG \\nLocation : BLR \\nDate: March 2024 \\n\\n### Interview Process \\n\\nRound 1: Coding and Problem Solving \\n\\nThe interviewer asked me a production environment like question \\n* A data stream is coming of key and values (k1 corresponds to v1, k2 corresponds to v2, etc)\\n* I need to identify in a single batch is there any extra key or value \\n\\nSolved the question and was asked to write code in any IDE of choice \\nI was expecting an IDE to be provided so fumbled a lot while coding on w3 schools online IDE \\n\\nBut wrote a working solution \\n\\nO(n) complexity and O(1) space \\n\\nthe interviewer wanted the space complexity to be O(0) I couldn\\'t think of any solution on those lines \\n\\nResult: Lean Hire \\n\\nRound 2: HLD + LLD \\n\\nHLD: Discussed about the system developed during my current job role \\n\\nLLD: Design Splitwise like system with various Requirements \\n\\nStrong HIRE \\n\\nDue to lean hire result one more coding round was scheduled \\n\\nRound 3: Coding \\n\\nThe ask was to build a groupby and filter by logic on CSV file on a few specific columns \\n\\nGave the solution approach using Java Streams filter and made it extensible by using Inheritance \\n\\nResult: Hire \\n\\nFurther Steps \\n\\nHiring Manager Round Scheduled (most likely a formality) \\n\\n\\nWant to know what is the Salary Range offered by Dezerv for Senior Software Engineers please let me know \\n\\n",
+    "tags": [
+      "startups sde role"
+    ],
+    "votes": 2,
+    "views": 1452,
+    "creation_date": 1711466787,
+    "author": null
+  },
+  {
+    "id": "4925891",
+    "url": "https://leetcode.com/discuss/interview-experience/4925891/meta-e5-reject",
+    "title": "Meta | E5 | Reject",
+    "page_content": "Phone Screen\\n1. https://leetcode.com/problems/dot-product-of-two-sparse-vectors/description/\\n2. https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree/description/\\n\\n**Onsite**\\nCoding 1\\n1. https://leetcode.com/problems/diameter-of-binary-tree/description/\\n1. https://leetcode.com/problems/valid-palindrome-ii/description/\\n\\nCoding 2\\n1. https://leetcode.com/problems/diagonal-traverse/description/\\n1. https://leetcode.com/problems/next-permutation/description/\\n\\n\\nCoding 3\\n1. https://leetcode.com/problems/robot-room-cleaner/description/\\n2. Couldn\\'t find on leetcode but an easy problem based on Hash tables\\n\\nBehavioural\\nStandard Questions like best project from current team, handling conflict with Manager, increase in project scope. \\n\\nSystem Design\\nDesign Web crawler\\n\\nFor coding rounds, I was able write optimal code, dry run and calculated the time and space complexity well before the time. So I feel I messed up in either Behavioural or System Design. Tried to ask feedback from recruiter but ghosted.",
+    "tags": [
+      "meta",
+      "facebook"
+    ],
+    "votes": 2,
+    "views": 1252,
+    "creation_date": 1711420874,
+    "author": null
+  }
+]

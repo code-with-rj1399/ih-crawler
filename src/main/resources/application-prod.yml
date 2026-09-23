@@ -15,7 +15,7 @@ crawler:
   max-concurrency: ${CRAWLER_MAX_CONCURRENCY:4}
   max-concurrent-tasks: ${CRAWLER_MAX_CONCURRENT_TASKS:8}
   extract-model: ${OPENAI_MODEL:gpt-5-nano}
-  extract-max-posts-per-source: ${CRAWLER_EXTRACT_MAX_POSTS_PER_SOURCE:50}
+  extract-max-posts-per-source: ${CRAWLER_EXTRACT_MAX_POSTS_PER_SOURCE:100}
   browser:
     headless: ${CRAWLER_BROWSER_HEADLESS:true}
 

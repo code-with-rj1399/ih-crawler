@@ -18,7 +18,7 @@ public class CrawlerProperties {
     private int robotsCacheHours = 6;
     private String extractModel = "gpt-5-nano";
     private int extractMaxPostsPerJob = 5;
-    private int extractMaxPostsPerSource = 50;
+    private int extractMaxPostsPerSource = 100;
     private int extractMaxQuestionsPerPost = 0;
     private int extractMaxTokens = 2500;
     private String xaiBaseUrl = "https://api.x.ai/v1";

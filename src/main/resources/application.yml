@@ -62,9 +62,9 @@ crawler:
   robots-cache-hours: 6
   extract-model: gpt-5-nano
   extract-max-posts-per-job: 5
-  extract-max-posts-per-source: 50
+  extract-max-posts-per-source: 100
   extract-max-questions-per-post: 0
-  extract-max-tokens: 2500
+  extract-max-tokens: 6000
 
   cron: ${CRAWLER_CRON:0 0 * * * *}
   cron-zone: ${CRAWLER_CRON_ZONE:UTC}
@@ -87,7 +87,7 @@ spring:
       on-profile: local
 
 crawler:
-  extract-max-posts-per-source: 50
+  extract-max-posts-per-source: 100
   extract-max-questions-per-post: 1
 
 ---
