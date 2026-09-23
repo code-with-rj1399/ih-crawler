@@ -99,6 +99,32 @@ public class DynamoDbRepositorySupport {
                 "sk", AttributeValue.builder().s(sk).build())).build());
     }
 
+    public int deleteAllByEntityType(Class<?> type) {
+        String entityType = type.getSimpleName();
+        int deleted = 0;
+        Map<String, AttributeValue> start = null;
+        do {
+            ScanRequest.Builder request = ScanRequest.builder()
+                    .tableName(tableName)
+                    .filterExpression("entityType = :entityType")
+                    .expressionAttributeValues(Map.of(
+                            ":entityType", AttributeValue.builder().s(entityType).build()));
+            if (start != null && !start.isEmpty()) request.exclusiveStartKey(start);
+
+            var response = client.scan(request.build());
+            for (var item : response.items()) {
+                AttributeValue pk = item.get("pk");
+                AttributeValue sk = item.get("sk");
+                if (pk != null && sk != null) {
+                    delete(pk.s(), sk.s());
+                    deleted++;
+                }
+            }
+            start = response.lastEvaluatedKey();
+        } while (start != null && !start.isEmpty());
+        return deleted;
+    }
+
     public int nextId(String sequenceName) {
         var result = client.updateItem(UpdateItemRequest.builder().tableName(tableName)
                 .key(Map.of("pk", AttributeValue.builder().s("COUNTER#" + sequenceName).build(),
