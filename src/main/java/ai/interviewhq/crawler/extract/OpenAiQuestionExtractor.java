@@ -153,13 +153,14 @@ public class OpenAiQuestionExtractor {
         String description = item.questionDescription() == null ? "" : item.questionDescription().trim();
         if (description.isBlank()) return false;
         float confidence = item.confidence() == null ? 0f : item.confidence();
-        if (confidence < 0.70f || confidence > 1.0f) return false;
+        if (confidence < 0.50f || confidence > 1.0f) return false;
         float specificity = item.questionSpecificity() == null ? -1f : item.questionSpecificity();
         if (specificity < 0.0f || specificity > 1.0f) return false;
         String canonicalType = normalizeQuestionType(item.questionType());
         if (!Set.of("Coding", "Database", "System Design", "LLD", "Cloud", "Security", "DevOps",
                 "AI/ML", "Data Engineering", "Distributed Systems", "Networking", "Operating Systems",
-                "Programming Language", "Web Frontend", "Mobile", "Testing", "Technical Concept")
+                "Programming Language", "Web Frontend", "Mobile", "Testing", "Technical Concept",
+                "Behavioral", "HR", "Personal / Background", "Resume / Project", "Interview Process", "Other")
                 .contains(canonicalType)) return false;
         String normalized = text.toLowerCase(Locale.ROOT)
                 .replaceAll("[^a-z0-9\\s]", " ").replaceAll("\\s+", " ").trim();
@@ -170,11 +171,10 @@ public class OpenAiQuestionExtractor {
                 "what are you working on", "how was your interview",
                 "how did the interview go");
         if (weakExact.contains(normalized)) return false;
-        String[] weakStarts = {"are you using ", "do you use ", "have you used ",
+        String[] weakStarts = {};", "do you use ", "have you used ",
                 "have you worked with ", "what tools do you use ",
                 "what technology do you use ", "what tech stack ",
                 "what is your experience with "};
-        for (String prefix : weakStarts) if (normalized.startsWith(prefix)) return false;
         return true;
     }
     private JsonNode callOpenAi(String prompt, JsonNode schema, CrawlSource source) throws Exception {
