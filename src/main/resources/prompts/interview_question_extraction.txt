@@ -187,14 +187,22 @@ TECHNICAL_CONCEPT
 - Do NOT convert a vague topic mention or project discussion into a specific question.
 
 2. QUESTION DESCRIPTION
-- Write a useful technical description using ONLY information explicitly present in the source.
-- Include only explicitly stated requirements, constraints, inputs, outputs, follow-ups, examples, or edge cases.
-- If the source is sparse, keep the description sparse.
-- Do NOT hallucinate scale, traffic, APIs, availability, database choices, architecture details, expected solution, algorithm, or complexity.
+- ALWAYS provide a non-empty, high-quality description for every extracted question.
+- The description should normally be 5-10 concise sentences/lines and should make the question understandable without opening the source.
+- Explain what the interviewer asked the candidate to solve, design, implement, explain, or reason about.
+- Use the question text itself plus ONLY source-supported details.
+- Include explicitly stated requirements, constraints, inputs, outputs, follow-ups, examples, edge cases, technologies, or context when they are relevant to understanding the question.
+- If the source explicitly contains follow-up questions, include them in the description.
+- If the source explicitly contains constraints, include them in the description.
+- If the source does not contain constraints or follow-ups, do NOT invent them. Instead, use the available source-supported context to make the description useful.
+- It is allowed to restate or clarify the meaning of the extracted question in natural language when that clarification does not introduce new facts.
+- Do NOT provide the solution, algorithm, implementation, architecture, or answer unless the source explicitly says that the interviewer required a particular approach.
+- Do NOT hallucinate scale, traffic, APIs, availability, database choices, architecture details, expected solution, algorithm, complexity, constraints, or follow-ups.
 - Do NOT write meta descriptions such as “System Design notes: …” or “Interview question about …”.
-- Bad example to avoid: "System Design notes: 'Caching techniques for heavy data dashboard' with follow-ups."
-- Good sparse example: "Caching techniques for a heavy data dashboard." (only if that is what was actually asked)
-- Do NOT answer or solve the question.
+- Do NOT return null or an empty string for questionDescription.
+- Bad: "System Design notes: Caching techniques for heavy data dashboard."
+- Good: "The interviewer asked the candidate to design caching for a heavy data dashboard. The task focuses on how dashboard data should be cached and served efficiently. Any caching requirements or follow-up considerations mentioned in the source should be included here. Do not invent additional scale, latency, storage, or consistency requirements."
+- The description must remain source-grounded even when the source provides only a short question.
 
 3. TOPICS
 - Extract 1-5 concise technical topics directly supported by the question and source.
@@ -221,6 +229,9 @@ It does NOT measure difficulty or quality.
 QUESTION SPECIFICITY (0.0 to 1.0)
 Measures how specifically the source describes the actual problem.
 Independent of confidence.
+
+MUST be a decimal number between 0.0 and 1.0 inclusive.
+NEVER return values above 1.0.
 Low specificity is acceptable only if confidence >= 0.70.
 </scoring_rubric>
 
@@ -236,8 +247,10 @@ Before returning each question, verify ALL of the following:
 8. Did I avoid turning a topic mention or project discussion into a question?
 9. Is questionType one of the canonical types?
 10. If it is DSA/algorithm/LeetCode/data-structure related, is questionType = CODING?
-11. Is confidence >= 0.70?
-12. Is the question not a duplicate?
+11. Is confidence >= 0.70 and between 0.0 and 1.0?
+12. Is questionSpecificity between 0.0 and 1.0?
+13. Is questionDescription non-empty and useful?
+14. Is the question not a duplicate?
 
 If ANY answer is NO, silently drop the question.
 Accuracy over quantity.
