@@ -111,10 +111,9 @@ public class DevController {
     }
 
     @DeleteMapping("/questions")
-    public void deleteAllQuestions() {
-        for (InterviewQuestion question : questionRepository.findAll()) {
-            if (question.getId() != null) questionRepository.deleteById(question.getId());
-        }
+    public ResponseEntity<java.util.Map<String, Object>> deleteAllQuestions() {
+        int deleted = questionRepository.deleteAll();
+        return ResponseEntity.ok(java.util.Map.of("deleted", deleted));
     }
 
     public record CreateSourceRequest(String name, String url, String sourceKind, Boolean enabled) {}
