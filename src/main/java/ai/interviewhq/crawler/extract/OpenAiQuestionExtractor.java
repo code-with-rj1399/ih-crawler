@@ -81,13 +81,20 @@ public class OpenAiQuestionExtractor {
                 return Collections.emptyList();
             }
 
-            ExtractedQuestions extracted = objectMapper.readValue(cleanJson(output), ExtractedQuestions.class);
-            if (extracted.questions() == null) {
+            JsonNode extracted = objectMapper.readTree(cleanJson(output));
+            JsonNode experience = extracted.path("experience");
+            String experienceTitle = nullableText(experience, "title");
+            String experienceAuthor = nullableText(experience, "author");
+            Instant experiencePostedAt = nullableInstant(experience, "postedAt");
+
+            JsonNode questionsNode = extracted.path("questions");
+            if (!questionsNode.isArray()) {
                 return Collections.emptyList();
             }
 
             List<InterviewQuestion> questions = new ArrayList<>();
-            for (ExtractedQuestion item : extracted.questions()) {
+            for (JsonNode node : questionsNode) {
+                ExtractedQuestion item = objectMapper.treeToValue(node, ExtractedQuestion.class);
                 if (item == null || item.questionText() == null || item.questionText().isBlank()) {
                     continue;
                 }
@@ -104,6 +111,9 @@ public class OpenAiQuestionExtractor {
 
                 InterviewQuestion question = new InterviewQuestion();
                 question.setSourcePlatform(firstNonBlank(item.sourcePlatform(), source.getName()));
+                question.setExperienceTitle(experienceTitle);
+                question.setExperienceAuthor(experienceAuthor);
+                question.setExperiencePostedAt(experiencePostedAt != null ? experiencePostedAt : publishedAt);
                 question.setOriginalPostUrl(postUrl);
                 question.setProblemUrl(normalizeProblemUrl(item.problemUrl()));
                 question.setPostDate(item.postDate() != null
@@ -378,11 +388,25 @@ public class OpenAiQuestionExtractor {
         return url.substring(0, end);
     }
 
+    private static String nullableText(JsonNode node, String field) {
+        JsonNode value = node.get(field);
+        return value == null || value.isNull() || !value.isTextual() || value.asText().isBlank()
+                ? null : value.asText().trim();
+    }
+
+    private static Instant nullableInstant(JsonNode node, String field) {
+        String value = nullableText(node, field);
+        if (value == null) return null;
+        try {
+            return Instant.parse(value);
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
     private static String firstNonBlank(String value, String fallback) {
         return value != null && !value.isBlank() ? value : fallback;
     }
-
-    private record ExtractedQuestions(List<ExtractedQuestion> questions) {}
 
     private record ExtractedQuestion(String sourcePlatform, String originalPostUrl, String problemUrl, LocalDate postDate,
                                      String company, String level, String location, Float candidateYoE,
