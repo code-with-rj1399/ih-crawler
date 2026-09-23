@@ -171,10 +171,6 @@ public class OpenAiQuestionExtractor {
                 "what are you working on", "how was your interview",
                 "how did the interview go");
         if (weakExact.contains(normalized)) return false;
-        String[] weakStarts = {};", "do you use ", "have you used ",
-                "have you worked with ", "what tools do you use ",
-                "what technology do you use ", "what tech stack ",
-                "what is your experience with "};
         return true;
     }
     private JsonNode callOpenAi(String prompt, JsonNode schema, CrawlSource source) throws Exception {
