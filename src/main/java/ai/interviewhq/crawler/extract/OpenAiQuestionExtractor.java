@@ -248,11 +248,32 @@ public class OpenAiQuestionExtractor {
 
         var schema = objectMapper.createObjectNode().put("type", "object").put("additionalProperties", false);
         ObjectNode schemaProperties = objectMapper.createObjectNode();
+
+        ObjectNode sourceSchema = objectMapper.createObjectNode()
+                .put("type", "object").put("additionalProperties", false);
+        ObjectNode sourceProperties = objectMapper.createObjectNode();
+        sourceProperties.set("name", objectMapper.createObjectNode().put("type", "string"));
+        sourceProperties.set("url", objectMapper.createObjectNode().put("type", "string"));
+        sourceSchema.set("properties", sourceProperties);
+        sourceSchema.set("required", objectMapper.createArrayNode().add("name").add("url"));
+
+        ObjectNode experienceSchema = objectMapper.createObjectNode()
+                .put("type", "object").put("additionalProperties", false);
+        ObjectNode experienceProperties = objectMapper.createObjectNode();
+        experienceProperties.set("title", nullableStringSchema());
+        experienceProperties.set("postedAt", nullableStringSchema());
+        experienceProperties.set("author", nullableStringSchema());
+        experienceSchema.set("properties", experienceProperties);
+        experienceSchema.set("required", objectMapper.createArrayNode().add("title").add("postedAt").add("author"));
+
         ObjectNode questionsSchema = objectMapper.createObjectNode().put("type", "array");
         questionsSchema.set("items", question);
+
+        schemaProperties.set("source", sourceSchema);
+        schemaProperties.set("experience", experienceSchema);
         schemaProperties.set("questions", questionsSchema);
         schema.set("properties", schemaProperties);
-        schema.set("required", objectMapper.createArrayNode().add("questions"));
+        schema.set("required", objectMapper.createArrayNode().add("source").add("experience").add("questions"));
         format.set("schema", schema);
         return objectMapper.createObjectNode().set("format", format);
     }
