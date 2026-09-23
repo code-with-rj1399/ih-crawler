@@ -1076,6 +1076,55 @@ If ANY answer is NO, silently drop the question.
 </final_quality_gate>
 
 
+<experience_title_rules>
+The experience.title is a DISPLAY TITLE for the interview experience.
+
+Build it from source-supported experience metadata using this preferred structure:
+
+ROLE | YOE | LOCATION | COMPANY
+
+Include only components explicitly supported by the source.
+Do NOT invent or infer missing components.
+
+Preferred examples:
+"Senior Software Engineer | 7 YOE | Bangalore | Google"
+"Software Engineer | 4 YOE | Hyderabad | Amazon"
+"SDE II | 5 YOE | Remote | Microsoft"
+
+If role, YOE, location, and/or company are not available, omit the missing component(s) while preserving the same pipe-separated style.
+
+Examples:
+"Senior Software Engineer | 7 YOE | Google"
+"Software Engineer | Hyderabad | Amazon"
+"SDE II | Google"
+
+The company should be included when explicitly supported by the source. Do not infer company from URL, domain, tags, or general knowledge.
+
+ROLE:
+Use the candidate/interview role explicitly stated by the source.
+
+YOE:
+Use the candidate's years of experience only when explicitly stated. Preserve useful precision such as "3.5 YOE" when supported.
+
+LOCATION:
+Use the interview/candidate location explicitly stated by the source. Do not infer location from company office locations or URL.
+
+Do NOT include:
+- interview round names
+- interviewer names
+- salary
+- outcome
+- behavioral details
+- invented seniority
+- invented location
+- invented YOE
+- generic titles such as "Interview Experience" when useful metadata is available
+
+The title should identify the experience clearly and compactly. It is NOT a summary of the page.
+
+The title may be generated/reformatted from source-supported metadata, unlike the source URL, which must never be changed.
+</experience_title_rules>
+
 <experience_extraction>
 The response represents ONE crawled interview experience and its independently supported technical questions.
 
