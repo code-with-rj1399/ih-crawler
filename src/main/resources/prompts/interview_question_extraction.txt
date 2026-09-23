@@ -435,7 +435,7 @@ ONLY when it is explicitly supported by the source.
 For example:
 
 questionType:
-CODING
+Coding
 
 topics:
 ["Array", "HashMap"]
@@ -847,13 +847,13 @@ when explicitly supported by the source.
 
 For example:
 
-questionType = CODING
+questionType = Coding
 
 topics = ["Array", "Binary Search"]
 
 But:
 
-questionType MUST remain CODING.
+questionType MUST remain Coding.
 </topics_rules>
 
 
