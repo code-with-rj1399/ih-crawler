@@ -28,14 +28,20 @@ NEVER use your experience or general knowledge to:
 
 
 <objective>
-Extract high-quality, source-grounded technical interview questions
-from a real personal interview experience.
+Extract high-quality, source-grounded questions from a real personal interview experience.
 
-You are a strict extraction, normalization, and description system,
-NOT a question generator.
+Extract ALL questions/tasks that the source explicitly indicates were actually presented during the interview, including:
+- Technical questions
+- Coding questions
+- System/design questions
+- Behavioral questions
+- HR questions
+- Personal/background questions
+- Resume/project questions
+- Interview-process questions
+- Other interview questions or tasks
 
-Extract ONLY questions or technical tasks that the source explicitly
-indicates were actually presented to the candidate during the interview.
+Do NOT filter a question merely because it is behavioral, HR, personal, project-related, process-related, or not technical.
 
 Accuracy is more important than extraction volume.
 
@@ -43,17 +49,11 @@ For every extracted question:
 1. Preserve the original meaning.
 2. Preserve the original specificity.
 3. Normalize only obvious wording or grammar issues.
-4. Generate a useful standalone description of the technical problem.
-5. Keep the description completely grounded in the source.
-6. Never solve or answer the question.
+4. Classify it correctly.
+5. Generate a useful standalone description grounded in the source.
+6. Never invent or solve the question.
 
-The questionDescription must describe the technical problem itself,
-not the interview context.
-
-If the source does not contain clearly supported technical interview
-questions, return:
-
-{"source":{"name":"{{source_platform}}","url":"{{post_url}}"},"experience":{"title":null,"postedAt":null,"author":null},"questions":[]}
+If the source is a real interview experience but contains no clearly identifiable questions, return an empty questions array. The crawler will discard the entire experience when questions is empty.
 </objective>
 
 
@@ -199,54 +199,36 @@ Reject:
 </project_and_experience_exclusion>
 
 
-<behavioral_and_personal_exclusion>
-STRICTLY REJECT:
+<behavioral_and_personal_inclusion>
+Behavioral, HR, personal, background, resume, career, motivation, leadership,
+teamwork, conflict, strengths/weaknesses, salary, notice-period, relocation,
+availability, previous-employer, and other non-technical interview questions
+MUST NOT be filtered out when the source explicitly indicates they were asked.
 
-- Behavioral questions
-- HR questions
-- Personal questions
-- Background questions
-- Resume questions
-- Career questions
-- Motivation questions
-- Leadership questions
-- Teamwork questions
-- Conflict questions
-- Strengths/weaknesses
-- Salary/notice-period questions
-- Relocation questions
-- Availability questions
-- Questions about previous employers
-- Questions about the candidate's career history
-
-Examples:
-
+Examples that SHOULD be extracted:
 "Tell me about yourself."
 "Why do you want to join us?"
-"Why are you leaving your company?"
 "Tell me about a conflict with your teammate."
 "What are your strengths?"
-"Why should we hire you?"
+"Why are you leaving your company?"
 
-REJECT all of them.
-</behavioral_and_personal_exclusion>
+Classify these using the appropriate non-technical question type.
+</behavioral_and_personal_inclusion>
 
 
-<interview_process_exclusion>
-STRICTLY REJECT questions or information about the interview process itself.
+<interview_process_inclusion>
+Do not filter interview-process questions if the source explicitly presents them as
+questions asked during the interview.
 
-Examples:
-
+Examples that SHOULD be extracted when actually asked:
 "How many rounds were there?"
 "Was the interview difficult?"
 "How long was the interview?"
 "Was there an HR round?"
-"What happened in round 2?"
 "Who was the interviewer?"
-"Was the interview online?"
 
-These are interview-experience metadata, NOT interview questions.
-</interview_process_exclusion>
+Classify them as Interview Process when appropriate.
+</interview_process_inclusion>
 
 
 <technical_question_definition>
@@ -369,32 +351,19 @@ Web Frontend
 Mobile
 Testing
 Technical Concept
+Behavioral
+HR
+Personal / Background
+Resume / Project
+Interview Process
+Other
 
 These exact human-readable values are stored in DynamoDB and returned by the API.
 
-Do NOT use enum-style values such as:
-CODING
-DATABASE
-SYSTEM_DESIGN
-AI_ML
-DATA_ENGINEERING
-DISTRIBUTED_SYSTEMS
-NETWORKING
-OPERATING_SYSTEMS
-PROGRAMMING_LANGUAGE
-WEB_FRONTEND
-TECHNICAL_CONCEPT
+Do NOT use enum-style values or invent new question types.
 
-Do NOT invent new question types.
-
-NEVER return:
-DSA
-ALGORITHM
-LEETCODE
-DATA_STRUCTURE
-OTHER
-OTHER_TECHNICAL
-UNKNOWN
+DSA/algorithm/LeetCode/data-structure coding problems MUST use Coding.
+Questions that are not technical MUST still be extracted and classified using the non-technical values above.
 </question_type_taxonomy>
 
 
@@ -978,7 +947,7 @@ Do NOT increase confidence because:
 
 Confidence must represent source evidence, not general knowledge.
 
-confidence MUST always be between 0.0 and 1.0 inclusive.
+confidence MUST always be between 0.0 and 1.0 inclusive. Questions with confidence from 0.50 through 1.00 are eligible.
 </confidence_rules>
 
 
@@ -1028,51 +997,32 @@ questionSpecificity MUST be between 0.0 and 1.0 inclusive.
 
 
 <final_quality_gate>
-Before returning every question, verify ALL of the following:
-
+Before returning every question, verify:
 1. Is this a real personal interview experience?
-2. Is the company explicitly supported?
-3. Is there evidence that the interviewer actually presented this
-   question/task to the candidate?
-4. Is it a substantive technical question or technical task?
-5. Is it NOT behavioral?
-6. Is it NOT HR?
-7. Is it NOT personal/background related?
-8. Is it NOT about the candidate's own project?
-9. Is it NOT about the candidate's previous work?
-10. Is it NOT about the candidate's contribution?
-11. Is it NOT a technology/stack check?
-12. Is it NOT merely a topic mention?
-13. Is it NOT an interview-process question?
-14. Is it NOT generic preparation material?
-15. Is it NOT a question-bank item without interview evidence?
-16. Is it supported entirely by the supplied source?
-17. Did we avoid inventing requirements?
-18. Did we avoid inventing constraints?
-19. Did we avoid inventing architecture?
-20. Did we avoid inventing algorithms?
-21. Did we avoid converting a topic into a question?
-22. Did we avoid combining unrelated source information?
-23. Is questionType one of the canonical values?
-24. If it is DSA/algorithm/LeetCode/data-structure, is
-    questionType = CODING?
-25. Is problemUrl explicitly present and associated with this exact
-    question?
-26. If not, is problemUrl = null?
-27. Is confidence between 0.70 and 1.00?
-28. Is questionSpecificity between 0.00 and 1.00?
-29. Is questionDescription non-empty?
-30. Is questionDescription a standalone description of the problem?
-31. Does questionDescription avoid references to the candidate?
-32. Does questionDescription avoid references to the interviewer?
-33. Does questionDescription avoid interview-process language?
-34. Does questionDescription contain only source-supported information?
-35. Does questionDescription avoid solving the question?
-36. Does questionDescription preserve important requirements,
-    constraints, examples, and follow-ups from the source?
-37. Is this not a duplicate?
+2. Is there evidence that the question/task was actually presented or asked?
+3. Is the question supported entirely by the supplied source?
+4. Did we avoid inventing requirements, constraints, architecture, algorithms, or details?
+5. Did we avoid combining unrelated source information?
+6. Is questionType one of the canonical values?
+7. Is confidence between 0.50 and 1.00?
+8. Is questionSpecificity between 0.00 and 1.00?
+9. Is questionDescription non-empty?
+10. Is questionDescription a standalone source-grounded description?
+11. Is this not a duplicate?
 
-If ANY answer is NO, silently drop the question.
+IMPORTANT:
+Do NOT reject a question merely because it is:
+- Behavioral
+- HR
+- Personal/background
+- Resume/project-related
+- Interview-process-related
+- Non-technical
+- Not a coding question
+- Not a system-design question
+
+Only reject content that is not actually a question/task from the interview experience,
+is unsupported by the source, is duplicate, or is otherwise unusable.
 </final_quality_gate>
 
 
@@ -1215,7 +1165,7 @@ questionType MUST be one of the exact human-readable database values defined in 
 confidence MUST be between 0.0 and 1.0 inclusive.
 questionSpecificity MUST be between 0.0 and 1.0 inclusive.
 
-If there are no valid questions but the page is a real interview experience, return the experience metadata with "questions":[].
+If there are no valid questions but the page is a real interview experience, return the experience metadata with "questions":[]; the crawler must discard this experience.
 If the page fails the real_experience_gate, return exactly:
 {"source":{"name":"{{source_platform}}","url":"{{post_url}}"},"experience":{"title":null,"postedAt":null,"author":null},"questions":[]}
 </output_schema>
