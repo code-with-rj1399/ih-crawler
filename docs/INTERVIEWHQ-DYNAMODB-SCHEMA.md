@@ -69,7 +69,7 @@ Example:
   "questionId": "8a91c7...",
   "questionText": "Design a notification system.",
   "questionDescription": "Design a notification system that can deliver notifications reliably to users through supported channels.",
-  "questionType": "SYSTEM_DESIGN",
+  "questionType": "System Design",
   "topics": ["Notifications", "Distributed Systems"],
   "company": "Amazon",
   "sourceUrl": "https://example.com/interview/123",
@@ -100,29 +100,29 @@ The exact deduplication algorithm should be centralized in the application layer
 
 ## 5. Canonical Question Types
 
-The database uses only these canonical values:
+The database uses these human-readable canonical values:
 
 ```
-CODING
-DATABASE
-SYSTEM_DESIGN
+System Design
+Coding
+Database
 LLD
-CLOUD
-SECURITY
-DEVOPS
-AI_ML
-DATA_ENGINEERING
-DISTRIBUTED_SYSTEMS
-NETWORKING
-OPERATING_SYSTEMS
-PROGRAMMING_LANGUAGE
-WEB_FRONTEND
-MOBILE
-TESTING
-TECHNICAL_CONCEPT
+Cloud
+Security
+DevOps
+AI/ML
+Data Engineering
+Distributed Systems
+Networking
+Operating Systems
+Programming Language
+Web Frontend
+Mobile
+Testing
+Technical Concept
 ```
 
-DSA, algorithm, LeetCode, and data-structure coding problems are stored as **CODING**. Do not introduce a separate DSA type.
+DSA, algorithm, LeetCode, and data-structure coding problems are stored as **Coding**. Do not introduce a separate DSA type.
 
 ## 6. Question Description
 
@@ -320,7 +320,7 @@ GSI2PK = TYPE#{questionType}
 GSI2SK = {postedAt}#{questionId}
 ```
 
-Supports recent questions by category such as `SYSTEM_DESIGN` or `CODING`.
+Supports recent questions by category such as `System Design` or `Coding`.
 
 ### GSI 3 — Questions by source
 
@@ -419,7 +419,7 @@ Example:
     {
       "questionText": "Design a notification system.",
       "questionDescription": "Design a notification system that supports reliable delivery of notifications.",
-      "questionType": "SYSTEM_DESIGN",
+      "questionType": "System Design",
       "topics": ["Notifications"],
       "problemUrl": null,
       "confidence": 0.92,
