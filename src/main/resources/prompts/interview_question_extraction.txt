@@ -1027,83 +1027,68 @@ is unsupported by the source, is duplicate, or is otherwise unusable.
 
 
 <experience_title_rules>
-The experience.title is a DISPLAY TITLE whose primary purpose is to distinguish this interview experience from other crawled experiences.
-
-Prefer a rich, information-dense title rather than a short generic title. The title may contain as much useful source-supported information as needed to make the experience easy to distinguish from other experiences.
-
-Use a pipe-separated structure and include every useful field that is explicitly supported by the source. There is NO fixed maximum number of title components.
-
-Preferred structure:
+The experience.title MUST follow this exact component order:
 
 ROLE | YOE | LOCATION | COMPANY | ROUND | VERDICT
 
-Possible additional components, when explicitly supported and useful for distinguishing the experience, include:
-- interview round
-- round number
-- interview stage
-- verdict / outcome
-- offer status
-- interview format
-- relevant specialization
-- internship/full-time status
-- experience-specific identifier or role variant
-- other concise metadata explicitly stated by the source
+This is a STRICT FORMAT. Do not change the order, rename the components, or place a component in a different position.
+
+Each component is optional only when the source does not explicitly support that information. Omit unsupported components rather than inventing values. Preserve the relative order of all components that are present.
 
 Examples:
+
 "Senior Software Engineer | 7 YOE | Bangalore | Google | Onsite | Selected"
 "Senior Software Engineer | 5 YOE | Hyderabad | Amazon | Round 2 | Rejected"
+"Software Engineer (Backend) | Groww | Round 1"
+"Software Engineer | 3 YOE | Hyderabad | Google"
 "SDE II | 4 YOE | Remote | Microsoft | Phone Screen | Passed"
-"Software Engineer (Frontend) | 6 YOE | Pune | OneTrust | Round 2 | Selected"
-"SDE Intern | 0 YOE | Bangalore | Amazon | HackOn | Rejected"
-"Senior Software Engineer | 8 YOE | Pune | Coupa | Technical Round 2 | Offer Received"
 
-IMPORTANT:
-- Include VERDICT/OUTCOME when the source explicitly states it.
-- A verdict is factual metadata, not a model judgment. Never invent or infer "Selected", "Rejected", "Offer", "Passed", "Failed", etc.
-- If the source explicitly says the candidate was selected, rejected, received an offer, cleared a round, or otherwise states an outcome, that source-supported outcome may be included.
-- Preserve useful distinctions such as "Round 2", "Phone Screen", "Onsite", "HackOn", or "Technical Round" when explicitly stated.
-- Include the company when explicitly supported by the source.
-- Include role, YOE, location, round, and outcome only when explicitly supported.
-- Prefer more distinguishing information when it is available.
-- Do not omit useful source-supported metadata merely to keep the title short.
-- Keep each component concise; do not turn the title into a paragraph or page summary.
-- Do not duplicate the same information across components.
-- Do not include unsupported information merely because it would make the title more descriptive.
+IMPORTANT FORMAT RULES:
+- ROLE must come first when explicitly supported.
+- YOE must come immediately after ROLE when explicitly supported.
+- LOCATION must come immediately after YOE when explicitly supported.
+- COMPANY must come after LOCATION (or after the last earlier supported component).
+- ROUND must come after COMPANY when explicitly supported.
+- VERDICT must always be the final component when explicitly supported.
+- Never put COMPANY before ROLE when ROLE is available.
+- Never put ROUND before COMPANY.
+- Never put VERDICT before any other component.
+- Never use the raw page title as the final title if it violates this format.
+- Never include the words "Interview Experience" as a generic title component.
+- Never use commas, dashes, or other separators between components. Use " | " only.
+- Do not duplicate information across components.
+- Do not turn the title into a paragraph or page summary.
 
 ROLE:
-Use the candidate/interview role explicitly stated by the source.
+Use the candidate/interview role explicitly stated by the source. Preserve useful specialization such as "Software Engineer (Backend)" or "Software Engineer (Frontend)".
 
 YOE:
-Use the candidate's years of experience only when explicitly stated. Preserve useful precision such as "3.5 YOE" when supported.
+Use the candidate's years of experience only when explicitly stated. Preserve useful precision such as "3.5 YOE".
 
 LOCATION:
-Use the interview/candidate location explicitly stated by the source. Do not infer location from company office locations or URL.
+Use the interview/candidate location explicitly stated by the source. Do not infer it from the company, office, URL, or domain.
+
+COMPANY:
+Use the company explicitly supported by the source. Do not infer it from URL, domain, tags, or general knowledge.
 
 ROUND:
-Use the interview round/stage only when explicitly stated by the source.
+Use the interview round/stage explicitly stated by the source, such as "Round 1", "Round 2", "Phone Screen", "Onsite", or "Technical Round 2".
 
 VERDICT:
-Use the explicitly stated interview outcome/verdict only when supported by the source. Examples include "Selected", "Rejected", "Passed", "Failed", "Offer Received", or another concise source-supported outcome. Never infer the outcome from the wording, tone, interview performance, or number of questions.
+Use the explicitly stated interview outcome only. Examples include "Selected", "Rejected", "Passed", "Failed", or "Offer Received". Never infer a verdict from interview performance, tone, number of questions, or any other indirect evidence.
 
-Do NOT:
-- invent or infer missing metadata
-- infer company from URL, domain, tags, or general knowledge
-- infer seniority
-- infer location
-- infer YOE
-- infer round
-- infer verdict/outcome
-- add interviewer names unless they are genuinely useful and explicitly supported
-- add salary unless it is explicitly stated and genuinely useful for distinguishing the experience
-- copy a generic page title when richer source-supported metadata is available
-- turn the title into a summary of the entire page
+The title is intended to distinguish experiences, so include every supported component from the six allowed fields. Do not omit a supported field merely to make the title shorter.
 
-The title may be generated/reformatted from source-supported metadata. It is not required to preserve the original page title verbatim.
+If only ROLE, COMPANY, and ROUND are supported, the title MUST be:
+"ROLE | COMPANY | ROUND"
 
-If useful metadata is unavailable, use the best concise source-supported title available rather than returning a generic "Interview Experience" or "Untitled interview experience".
+If only COMPANY is supported, the title MUST be:
+"COMPANY"
 
-The title must remain factual, compact, and information-dense.
-</experience_title_rules>>
+If no useful experience-level metadata is supported, use the best source-supported non-generic title, but do not invent metadata.
+
+The title must remain factual and source-grounded.
+</experience_title_rules>>>
 
 <experience_extraction>
 The response represents ONE crawled interview experience and its independently supported technical questions.
