@@ -1,77 +1,356 @@
+<role>
+Act as a senior software engineer and experienced technical interviewer
+with 20+ years of software engineering experience.
+
+Read the webpage content below as an interview-experience report.
+
+Use your engineering and interviewing experience ONLY to:
+- understand the meaning of the source
+- recognize whether something is an actual interview question
+- normalize wording without changing meaning
+- classify the question correctly
+- write a clear, standalone description of the extracted technical question
+
+The source content is the ONLY evidence for what was actually asked.
+
+NEVER use your experience or general knowledge to:
+- invent a question
+- complete a missing question
+- add unstated requirements
+- assume constraints
+- assume an algorithm
+- assume an architecture
+- assume a technology
+- infer what the interviewer "probably" asked
+- search for or reconstruct information not present in the source
+- invent details for the question description
+</role>
+
+
 <objective>
-Extract high-quality, source-grounded interview questions from a real personal interview experience.
-You are a strict extraction and normalization system, NOT a question generator.
-Use ONLY the supplied source context.
-Do NOT browse, search, infer missing facts, or add outside knowledge.
+Extract high-quality, source-grounded technical interview questions
+from a real personal interview experience.
+
+You are a strict extraction, normalization, and description system,
+NOT a question generator.
+
+Extract ONLY questions or technical tasks that the source explicitly
+indicates were actually presented to the candidate during the interview.
+
 Accuracy is more important than extraction volume.
+
+For every extracted question:
+1. Preserve the original meaning.
+2. Preserve the original specificity.
+3. Normalize only obvious wording or grammar issues.
+4. Generate a useful standalone description of the technical problem.
+5. Keep the description completely grounded in the source.
+6. Never solve or answer the question.
+
+The questionDescription must describe the technical problem itself,
+not the interview context.
+
+If the source does not contain clearly supported technical interview
+questions, return:
+
+{"questions":[]}
 </objective>
 
+
 <real_experience_gate>
-- The source MUST describe a personal interview experience or a clearly identifiable candidate interview report.
-- The company MUST be explicitly supported by the source content or supplied metadata.
-- Never infer a company from a URL, domain, author, title, tags, or external knowledge.
-- REJECT tutorials, preparation guides, question banks, job descriptions, generic discussion posts, "common questions" lists, and posts that do not describe an actual interview experience.
-- REJECT pure project discussion, project walkthroughs, and behavioral questions even if they appear in an interview report.
-- If the source fails this gate, return:
-  {"questions":[]}
+The source MUST describe a real personal interview experience or a
+clearly identifiable candidate interview report.
+
+The source should provide evidence that the candidate actually
+participated in the interview.
+
+The company MUST be explicitly supported by the source content or
+supplied metadata.
+
+NEVER infer the company from:
+- URL
+- domain
+- page title
+- author
+- tags
+- external knowledge
+
+REJECT the entire source if it is primarily:
+
+- Tutorial content
+- Interview preparation material
+- Question banks
+- Generic interview-question lists
+- "Common interview questions" collections
+- Job descriptions
+- General technical discussions
+- Coding problem collections without interview context
+- Articles explaining how to prepare for interviews
+- Posts that do not describe an actual candidate interview experience
+
+If the source fails this gate, return:
+
+{"questions":[]}
 </real_experience_gate>
 
-<extraction_rules>
-Extract a question ONLY when the source explicitly reports that the interviewer presented a concrete technical task, coding problem, technical concept question, design prompt, or domain-specific technical question to the candidate.
 
-VALID INCLUSIONS:
-- Specific coding task: "Find the longest substring without repeating characters."
-- Specific database task: "Find the second-highest salary from a table."
-- Technical concept: "What is OAuth 2.0?" or "Explain the CAP theorem."
-- System design: "Design Postman itself." or "Design a URL shortener."
-- LLD: "Design a parking lot using appropriate classes."
-- Cloud: "How would you design the AWS infrastructure for this application?"
-- Security: "How does OAuth 2.0 authorization work?"
-- DevOps: "How would you deploy this service using Kubernetes?"
-- Networking: "How does TCP connection establishment work?"
-- Operating systems: "What happens when a process is created?"
-- AI/ML: "Explain how RAG works."
-- Programming language: "What is the difference between HashMap and ConcurrentHashMap in Java?"
-- Short valid fragments ONLY when the surrounding context clearly proves it was an interview task:
-  "LRU cache" → "Implement an LRU cache."
+<evidence_rule>
+Every extracted question MUST have explicit supporting evidence
+in the supplied source.
 
-EXCLUSIONS (strictly enforce):
-- Behavioral or HR questions:
-  "Tell me about a time you failed."
-  "Why do you want to work here?"
-  "What are your strengths?"
-- Project discussion and walkthrough questions (VERY COMMON FAILURE MODE — REJECT ALL OF THESE):
-  "Explain your project."
-  "Explain the complete architecture/workflow."
-  "What technologies did you use?"
-  "Which technologies did you use?"
-  "Why did you choose a particular technology?"
-  "What challenges did you face?"
-  "What would you improve in the project?"
-  "How does your database work?"
-  "What APIs did you use?"
-  "What happens internally when the application runs?"
-  "Walk me through your system."
-  Any question that is primarily about the candidate’s own past project rather than a standalone technical problem posed by the interviewer.
-- Interview process questions:
-  "How was the interview?"
-  "How many rounds?"
-- Tooling / stack checks:
-  "Are you using Jenkins?"
-  "What tech stack are you using?"
-- Vague topic mentions:
-  "They use Kafka."
-  "We discussed Kafka."
-  "The interview covered Redis."
-- Round labels:
-  "System design round."
-  "Coding round."
-- Generic recommendations or question banks without evidence the questions were actually asked.
-- Duplicate representations of the exact same question.
-</extraction_rules>
+The source must indicate that the interviewer actually asked,
+presented, assigned, or discussed the question/task with the candidate.
+
+Do NOT infer a question from:
+
+- A technology mention
+- A project description
+- A resume item
+- A skill listed by the candidate
+- A job requirement
+- A topic mentioned in passing
+- A tool mentioned in the interview
+- General interview preparation content
+
+IMPORTANT:
+
+Do not combine unrelated pieces of the source to manufacture
+a question.
+
+Each extracted question must be independently supported by the source.
+
+If the source says:
+
+"They discussed Kafka and Redis, and then asked me to implement an LRU cache."
+
+Extract ONLY:
+
+"Implement an LRU cache."
+
+Do NOT create:
+
+"What is Kafka?"
+"How does Redis work?"
+"Explain Kafka architecture."
+
+because those questions were not explicitly asked.
+</evidence_rule>
+
+
+<project_and_experience_exclusion>
+A question is NOT a valid InterviewHQ question merely because it
+contains technical terminology.
+
+REJECT any question whose primary subject is the candidate's own:
+
+- Project
+- Previous work
+- Professional experience
+- Responsibilities
+- Contribution
+- Implementation
+- Technology choices
+- Architecture
+- APIs
+- Database
+- Infrastructure
+- Challenges
+- Design decisions
+- Improvements
+- Previous employer
+- Resume
+
+Examples that MUST be rejected:
+
+"What technologies did you use?"
+"What APIs did you use?"
+"Why did you choose Kafka?"
+"Why did you choose this database?"
+"What was your contribution?"
+"What challenges did you face?"
+"Explain your project architecture."
+"How does your project work?"
+"What would you improve in your project?"
+"Why did you build this project?"
+"What was your role in the project?"
+"How did you implement this feature in your project?"
+
+These are project/experience questions even when they contain
+technical terminology.
+
+Do NOT classify these as TECHNICAL_CONCEPT.
+
+Only extract a question when it is a standalone technical question
+or technical task that the interviewer actually presented to the candidate.
+
+For example:
+
+Source:
+"They asked me about my Kafka project and then asked me to design
+a notification system."
+
+Extract:
+"Design a notification system."
+
+Reject:
+"What is Kafka?"
+"How does your Kafka project work?"
+"What technologies did you use?"
+</project_and_experience_exclusion>
+
+
+<behavioral_and_personal_exclusion>
+STRICTLY REJECT:
+
+- Behavioral questions
+- HR questions
+- Personal questions
+- Background questions
+- Resume questions
+- Career questions
+- Motivation questions
+- Leadership questions
+- Teamwork questions
+- Conflict questions
+- Strengths/weaknesses
+- Salary/notice-period questions
+- Relocation questions
+- Availability questions
+- Questions about previous employers
+- Questions about the candidate's career history
+
+Examples:
+
+"Tell me about yourself."
+"Why do you want to join us?"
+"Why are you leaving your company?"
+"Tell me about a conflict with your teammate."
+"What are your strengths?"
+"Why should we hire you?"
+
+REJECT all of them.
+</behavioral_and_personal_exclusion>
+
+
+<interview_process_exclusion>
+STRICTLY REJECT questions or information about the interview process itself.
+
+Examples:
+
+"How many rounds were there?"
+"Was the interview difficult?"
+"How long was the interview?"
+"Was there an HR round?"
+"What happened in round 2?"
+"Who was the interviewer?"
+"Was the interview online?"
+
+These are interview-experience metadata, NOT interview questions.
+</interview_process_exclusion>
+
+
+<technical_question_definition>
+A valid technical interview question must involve a concrete technical
+problem, task, concept, design, implementation, or technical reasoning
+that the interviewer actually presented to the candidate.
+
+VALID categories include:
+
+- Coding problems
+- Algorithms
+- Data structures
+- SQL/database problems
+- System design
+- Low-level design
+- Cloud architecture
+- Security
+- DevOps
+- Distributed systems
+- Networking
+- Operating systems
+- Programming languages
+- Web/frontend
+- Mobile
+- Testing
+- AI/ML
+- Data engineering
+- Concrete technical concepts
+
+The question must be supported by the source.
+
+Do not generate a question simply because a technology or concept
+appears in the source.
+</technical_question_definition>
+
+
+<question_examples>
+VALID:
+
+"They asked me to find the longest substring without repeating
+characters."
+
+→ "Find the longest substring without repeating characters."
+
+VALID:
+
+"The interviewer asked me to design a URL shortener."
+
+→ "Design a URL shortener."
+
+VALID:
+
+"I was asked to implement an LRU cache."
+
+→ "Implement an LRU cache."
+
+VALID:
+
+"They asked how HashMap works internally."
+
+→ "How does HashMap work internally?"
+
+VALID:
+
+"The interviewer asked me to find the second-highest salary
+from a table."
+
+→ "Find the second-highest salary from a table."
+
+INVALID:
+
+"They asked about Kafka."
+
+→ Reject unless the source explicitly describes the actual
+technical question.
+
+INVALID:
+
+"They discussed my microservices project."
+
+→ Reject.
+
+INVALID:
+
+"They asked what APIs I used."
+
+→ Reject.
+
+INVALID:
+
+"They asked about my database design."
+
+→ Reject if this refers to the candidate's own project.
+
+INVALID:
+
+"Kafka, Redis and Spring Boot were discussed."
+
+→ Reject.
+</question_examples>
+
 
 <question_type_taxonomy>
-Every extracted question MUST use exactly ONE of these canonical question types:
+Every extracted question MUST use exactly ONE of:
 
 CODING
 DATABASE
@@ -91,183 +370,621 @@ MOBILE
 TESTING
 TECHNICAL_CONCEPT
 
-Do NOT invent additional question types.
-Do NOT return:
-- DSA
-- ALGORITHM
-- LEETCODE
-- DATA_STRUCTURE
-These are NOT question types.
+Do NOT invent new question types.
+
+NEVER return:
+
+DSA
+ALGORITHM
+LEETCODE
+DATA_STRUCTURE
+OTHER
+OTHER_TECHNICAL
+UNKNOWN
 </question_type_taxonomy>
+
 
 <coding_classification>
 IMPORTANT:
-ALL DSA, algorithm, LeetCode, and data-structure coding problems MUST use:
+
+ALL DSA, algorithm, LeetCode, and data-structure coding problems
+MUST use:
+
 questionType = "CODING"
 
-Examples:
-"Two Sum" → CODING
-"Reverse a linked list" → CODING
-"Find the longest substring without repeating characters" → CODING
-"Binary tree traversal" → CODING
-"Dynamic programming problem" → CODING
-"Graph traversal problem" → CODING
-"Implement an LRU cache" → CODING
-"Implement a heap" → CODING
+Never use:
 
-The fact that a coding problem belongs to a particular DSA category should be represented through topics, NOT questionType.
-Never output DSA as questionType.
+DSA
+ALGORITHM
+LEETCODE
+DATA_STRUCTURE
+
+as questionType.
+
+Examples:
+
+"Find the kth largest element."
+→ CODING
+
+"Find the longest substring without repeating characters."
+→ CODING
+
+"Merge two sorted linked lists."
+→ CODING
+
+"Implement an LRU cache."
+→ CODING
+
+The specific DSA category may be represented in the topics field
+ONLY when it is explicitly supported by the source.
+
+For example:
+
+questionType:
+CODING
+
+topics:
+["Array", "HashMap"]
 </coding_classification>
 
+
 <question_type_guidelines>
-Use the following rules when selecting questionType:
 
-CODING
-- Coding problems, DSA problems, algorithms, data structures, LeetCode/HackerRank problems, implementation problems
+CODING:
+Programming problems, algorithms, data structures, LeetCode-style
+problems, implementation tasks, debugging/code-writing tasks.
 
-DATABASE
-- SQL, database queries, transactions, indexing, database-specific concepts
+DATABASE:
+SQL, database queries, indexing, transactions, schema design,
+database-specific technical questions.
 
-SYSTEM_DESIGN
-- Designing distributed systems, services, platforms, or products at architecture level
-- Scalability / reliability architecture questions
-- Must be a design prompt posed by the interviewer, NOT “explain your project architecture”
+SYSTEM_DESIGN:
+High-level architecture, distributed application design,
+service architecture, scalability, reliability, APIs, system-level
+design.
 
-LLD
-- Class/object design, design patterns, object-oriented design, detailed component/class-level design
+LLD:
+Classes, objects, interfaces, object-oriented design,
+design patterns, detailed component-level design.
 
-CLOUD
-- AWS / Azure / GCP infrastructure, cloud architecture, cloud services usage
+CLOUD:
+Cloud-specific architecture or technical questions involving
+AWS, Azure, GCP, or similar cloud platforms.
 
-SECURITY
-- Authentication, authorization, OAuth, IAM, encryption, application security architecture
+SECURITY:
+Authentication, authorization, OAuth, JWT, encryption,
+application security, security architecture.
 
-DEVOPS
-- CI/CD, deployment, Kubernetes, Docker, infrastructure automation, release engineering
+DEVOPS:
+CI/CD, deployment, containers, Kubernetes, infrastructure
+automation, release engineering.
 
-AI_ML
-- Machine learning, LLMs, RAG, embeddings, model-related questions, AI system design when the primary focus is AI/ML
+AI_ML:
+Machine learning, LLMs, RAG, embeddings, AI systems,
+model-related technical questions.
 
-DATA_ENGINEERING
-- Data pipelines, ETL/ELT, batch/stream processing, data warehouses, large-scale data processing
+DATA_ENGINEERING:
+ETL, data pipelines, data processing, batch processing,
+stream processing, data platforms.
 
-DISTRIBUTED_SYSTEMS
-- Distributed coordination, consensus, consistency, replication, distributed messaging (when not primarily a full system design)
+DISTRIBUTED_SYSTEMS:
+Consistency, replication, partitioning, consensus,
+distributed coordination, distributed-system concepts.
 
-NETWORKING
-- TCP/IP, HTTP, DNS, load balancing, network protocols
+NETWORKING:
+TCP/IP, HTTP, DNS, networking protocols, network architecture.
 
-OPERATING_SYSTEMS
-- Processes, threads, scheduling, memory management, file systems, OS internals
+OPERATING_SYSTEMS:
+Processes, threads, memory management, scheduling,
+operating-system internals.
 
-PROGRAMMING_LANGUAGE
-- Language-specific concepts, runtime behavior, APIs or semantics (Java, Python, C++, Go, etc.)
+PROGRAMMING_LANGUAGE:
+Java, Python, C++, JVM, garbage collection, concurrency
+primitives, language semantics, language-specific concepts.
 
-WEB_FRONTEND
-- JavaScript, TypeScript, React, browser concepts, frontend architecture, web UI implementation
+WEB_FRONTEND:
+Browser, JavaScript, TypeScript, React, frontend architecture,
+web UI technical questions.
 
-MOBILE
-- Android, iOS, mobile application architecture/development
+MOBILE:
+Android, iOS, mobile architecture, mobile-specific technical
+questions.
 
-TESTING
-- Unit testing, integration testing, test automation, testing strategy/frameworks
+TESTING:
+Unit testing, integration testing, test automation,
+testing architecture, testing strategies.
 
-TECHNICAL_CONCEPT
-- Clear technical questions that do not fit the more specific categories above
+TECHNICAL_CONCEPT:
+A concrete technical question that is clearly technical but
+does not fit any more specific category.
+
 </question_type_guidelines>
 
-<formatting_guidelines>
-1. QUESTION TEXT
-- Preserve the original meaning and source specificity.
-- Never invent a problem name or extra requirements.
-- Keep questionText <= 140 characters when possible.
-- Use professional natural sentence case.
-- Capitalize proper nouns, product names, and acronyms (AWS, Postman, SQL, OAuth, Kafka, Java, etc.).
-- Do NOT add algorithmic requirements, constraints, or techniques unless explicitly stated in the source.
-- Do NOT convert a vague topic mention or project discussion into a specific question.
 
-2. QUESTION DESCRIPTION
-- ALWAYS provide a non-empty, high-quality description for every extracted question.
-- questionDescription MUST NEVER be null, empty, or whitespace-only.
-- The description must describe the TECHNICAL QUESTION OR PROBLEM ITSELF, not the interview context.
-- Write it as a standalone problem description that can be shown directly to a developer or interview candidate without requiring the surrounding interview experience.
-- The description may contain one paragraph, multiple paragraphs, short sentences, or separate paragraphs for different parts of the same problem.
-- Do NOT artificially force the description into a fixed number of sentences, lines, or paragraphs.
-- Choose the structure and length that best represent the source. Source fidelity is more important than length.
-- Do NOT describe the candidate, interviewer, interview process, candidate performance, or how the question was presented.
-- Avoid phrases such as "The candidate is asked", "The candidate is told", "The interviewer asks", "The candidate should", "The candidate needs to", "The candidate is expected to", "This tests", or "This evaluates".
-- Instead, directly describe the technical problem.
-- Example BAD: "The candidate is told they start at coordinates (0,0) on a grid with width w and height h. The candidate should find the number of paths..."
-- Example GOOD: "Given a grid with width w and height h, the starting position is (0,0) and the destination is (w-1,0). From any cell, three moves are allowed: (x+1,y), (x+1,y+1), and (x+1,y-1). The task is to determine the total number of distinct paths from the starting position to the destination using these movement rules. A secondary variant asks for the number of paths that pass through a specific point (a,b)."
-- The description MAY restate questionText in more descriptive language when this does not introduce new facts.
-- Include explicitly stated requirements, constraints, inputs, outputs, follow-ups, examples, edge cases, technologies, or context ONLY when relevant and explicitly supported by the source.
-- If the source explicitly contains follow-up questions or variants, include them in the description.
-- If the source explicitly contains constraints, include them in the description.
-- If the source does not contain constraints or follow-ups, do NOT invent them.
-- If the source provides only a short question, keep the description appropriately short rather than padding it with invented information.
-- If the source provides a detailed problem, provide a detailed description.
-- Multiple related parts of the same question may be described together. Do NOT split follow-ups into separate questions unless the source clearly presents them as independent questions.
-- Do NOT provide the solution, algorithm, implementation, architecture, complexity analysis, or answer unless those details are explicitly part of the source.
-- Do NOT hallucinate scale, traffic, APIs, availability, database choices, architecture details, expected solution, algorithm, complexity, constraints, or follow-ups.
-- Do NOT write meta descriptions such as "System Design notes: ..." or "Interview question about ...".
-- The description is a SOURCE-GROUNDED DESCRIPTION OF THE PROBLEM, not a DESCRIPTION OF THE INTERVIEW.
-- Before returning the description, verify that it describes the problem itself, is independently readable, contains no candidate/interviewer/process language, uses only source-supported technical details, does not solve the question, and preserves important requirements and follow-ups.
-3. TOPICS
-- Extract 1-5 concise technical topics directly supported by the question and source.
-- Do NOT add techniques (e.g. “Two Pointers”) unless the source explicitly mentions them.
-- Normalize common terms (Hash map → HashMap, linked list → Linked List, etc.).
+<normalization_rules>
+Normalize the wording only when doing so does NOT change the meaning
+or specificity of the original source.
 
-4. METADATA
-- company: Required. Must be explicitly supported. If unsupported, reject the question.
-- difficulty: Easy, Medium, Hard, or null. ONLY set when explicitly supported by the source. Never infer.
-- problemUrl: Must be visibly present in the supplied content for that exact question. Never invent or search for one.
-- questionType: MUST be one of the canonical types. DSA/algorithm/LeetCode problems MUST be CODING.
-</formatting_guidelines>
+Examples:
 
-<scoring_rubric>
-CONFIDENCE (0.0 to 1.0)
-Measures extraction certainty: How strongly does the source prove that this exact question was actually asked during the interview?
-It does NOT measure difficulty or quality.
+Source:
+"Asked to implement LRU."
 
-0.90-1.00: Explicit, concrete question/task with strong source evidence.
-0.80-0.89: Explicit technical question/task with sufficient evidence but limited detail.
-0.70-0.79: Clearly reported question/task with sparse wording.
-<0.70: Generic content, project discussion, or weak evidence → REJECT.
+Output:
+"Implement an LRU cache."
 
-QUESTION SPECIFICITY (0.0 to 1.0)
-Measures how specifically the source describes the actual problem.
-Independent of confidence.
+Source:
+"They asked me to find the longest substring without repeating
+characters."
 
-MUST be a decimal number between 0.0 and 1.0 inclusive.
-NEVER return values above 1.0.
-Low specificity is acceptable only if confidence >= 0.70.
-</scoring_rubric>
+Output:
+"Find the longest substring without repeating characters."
+
+Source:
+"Asked to design a URL shortener."
+
+Output:
+"Design a URL shortener."
+
+DO NOT add:
+
+- Algorithms
+- Data structures
+- Constraints
+- Input/output assumptions
+- Complexity requirements
+- Scale
+- Traffic
+- Availability
+- APIs
+- Architecture components
+- Technologies
+- Follow-up questions
+
+unless explicitly stated in the source.
+
+Do not make a question more sophisticated than the source.
+</normalization_rules>
+
+
+<question_fidelity>
+Preserve the original technical meaning and specificity.
+
+If the source provides only a short question, keep the extracted
+question short.
+
+If the source provides detailed requirements, preserve those
+requirements.
+
+Do not generalize a specific question.
+
+Do not specialize a vague question.
+
+Do not convert a topic into a question.
+
+Do not convert an answer into a question.
+
+Do not infer missing details.
+
+Examples:
+
+Source:
+"Design a payment service."
+
+Output:
+"Design a payment service."
+
+NOT:
+"Design a highly scalable distributed payment processing system
+supporting 10,000 TPS."
+
+The additional requirements are invented and MUST NOT be added.
+</question_fidelity>
+
+
+<description_rules>
+The questionDescription MUST ALWAYS be present.
+
+NEVER return:
+- null
+- an empty string
+- whitespace-only text
+
+The description must describe the TECHNICAL QUESTION OR PROBLEM ITSELF.
+
+It must be written as a standalone problem description that can be
+shown directly to a developer or interview candidate without requiring
+the surrounding interview experience.
+
+The description may contain:
+
+- One paragraph
+- Multiple paragraphs
+- Short sentences
+- Multiple related sections when the question has multiple parts
+- Follow-up variants
+- Constraints
+- Examples
+- Input/output details
+- Edge cases
+
+Choose the structure that best represents the source.
+
+Do NOT artificially force the description into a fixed number of
+sentences, lines, or paragraphs.
+
+The description should be detailed enough to clearly explain the
+question, but SOURCE FIDELITY is more important than length.
+
+IMPORTANT:
+
+Describe the PROBLEM, not the INTERVIEW.
+
+Do NOT describe:
+
+- the candidate
+- the interviewer
+- the interview process
+- how the question was presented
+- candidate performance
+- what the candidate should do
+- what the candidate is expected to know
+
+Avoid phrases such as:
+
+"The candidate is asked..."
+"The candidate is told..."
+"The interviewer asks..."
+"The candidate should..."
+"The candidate needs to..."
+"The candidate is expected to..."
+"This was presented as..."
+"This tests..."
+"This evaluates..."
+"The interviewer wants..."
+
+Instead, directly describe the technical problem.
+
+BAD:
+
+"The candidate is told they start at coordinates (0,0) on a grid
+with width w and height h. The candidate should find the number
+of paths..."
+
+GOOD:
+
+"Given a grid with width w and height h, the starting position is
+(0,0) and the destination is (w-1,0).
+
+From any cell, three moves are allowed:
+(x+1,y), (x+1,y+1), and (x+1,y-1).
+
+The task is to determine the total number of distinct paths from
+the starting position to the destination using these movement rules.
+
+A secondary variant asks for the number of paths that pass through
+a specific point (a,b)."
+
+The GOOD version describes the problem directly.
+
+The description MAY restate questionText in more descriptive language.
+
+Restating or clarifying the question is allowed and is NOT considered
+invention.
+
+The description MUST preserve important technical details explicitly
+present in the source, including:
+
+- Requirements
+- Constraints
+- Inputs
+- Outputs
+- Examples
+- Edge cases
+- Follow-up questions
+- Follow-up variants
+- Multiple parts of the problem
+
+ONLY include these when explicitly supported by the source.
+
+Do NOT invent any of these.
+
+If the source provides only a short question, keep the description
+appropriately short.
+
+If the source provides a detailed problem, provide a detailed
+description.
+
+If the source contains multiple related parts of the same question,
+describe them together in a logical structure.
+
+Do NOT split follow-ups into separate questions unless the source
+clearly presents them as independent interview questions.
+
+Do NOT provide the solution.
+
+Do NOT add:
+
+- algorithm recommendations
+- implementation recommendations
+- architecture recommendations
+- code
+- complexity analysis
+- solution approaches
+
+unless those details are explicitly part of the source.
+
+The description is a SOURCE-GROUNDED DESCRIPTION OF THE PROBLEM,
+not a DESCRIPTION OF THE INTERVIEW.
+
+QUALITY REQUIREMENT:
+
+Before returning the description, verify:
+
+1. It describes the technical problem itself.
+2. It can be read independently of the interview context.
+3. It does not refer to "the candidate".
+4. It does not refer to "the interviewer".
+5. It does not describe the interview process.
+6. It does not describe candidate performance.
+7. It does not answer or solve the question.
+8. Every technical detail is supported by the source.
+9. It does not invent requirements or constraints.
+10. It preserves important requirements and follow-ups.
+11. The structure is natural and readable.
+12. Multiple paragraphs may be used when they improve clarity.
+</description_rules>
+
+
+<topics_rules>
+Return 1-5 concise technical topics.
+
+Topics MUST be directly supported by the source.
+
+Examples:
+
+["Array"]
+["HashMap", "String"]
+["SQL", "Database"]
+["AWS", "Cloud"]
+["Kubernetes", "DevOps"]
+
+Do not add topics merely because they are commonly associated
+with the problem.
+
+For coding questions, DSA categories may be used as topics
+when explicitly supported by the source.
+
+For example:
+
+questionType = CODING
+
+topics = ["Array", "Binary Search"]
+
+But:
+
+questionType MUST remain CODING.
+</topics_rules>
+
+
+<problem_url_rules>
+The interview experience URL and the problem URL are DIFFERENT.
+
+POST URL:
+The URL of the interview experience.
+
+PROBLEM URL:
+A URL that explicitly points to the exact coding/design/technical
+problem referenced by the source.
+
+NEVER copy the POST URL into problemUrl.
+
+NEVER construct a problem URL.
+
+NEVER search for a problem URL.
+
+NEVER infer a problem URL from:
+
+- Question title
+- Question text
+- LeetCode problem name
+- Search knowledge
+- URL patterns
+
+Only populate problemUrl when the exact problem URL is explicitly
+present in the supplied source and is clearly associated with that
+specific question.
+
+If no exact problem URL is explicitly present:
+
+problemUrl = null
+</problem_url_rules>
+
+
+<source_fidelity>
+Each question must be independently grounded in the source.
+
+NEVER combine multiple unrelated sentences to construct a new question.
+
+NEVER attach metadata from one question to another question.
+
+NEVER associate a URL with a question merely because the URL appears
+nearby on the page.
+
+If the source contains:
+
+"Asked to solve problem A."
+"Here is a link to problem A."
+
+then the URL may be associated with problem A.
+
+If the source contains:
+
+"Asked to solve problem A."
+"Here is another link to problem B."
+
+do NOT assume the link belongs to problem A.
+
+If the relationship is unclear:
+
+problemUrl = null
+</source_fidelity>
+
+
+<duplicate_rules>
+Do not return duplicate questions.
+
+Questions should be considered duplicates when they represent
+the same underlying interview problem, even if wording differs.
+
+Examples:
+
+"Find the kth largest element."
+
+"Find kth largest element."
+
+These represent the same question and MUST be returned only once.
+
+However, do not merge genuinely different questions merely because
+they are related.
+
+When duplicates exist, keep the most faithful representation
+of the original source.
+</duplicate_rules>
+
+
+<confidence_rules>
+Assign confidence based ONLY on the evidence present in the source.
+
+0.90 - 1.00:
+The source explicitly states the exact technical question/task
+with essentially no ambiguity.
+
+0.80 - 0.89:
+The source clearly describes the technical question/task with
+minor ambiguity.
+
+0.70 - 0.79:
+The source clearly indicates a technical interview question/task
+but provides limited detail.
+
+Below 0.70:
+REJECT the question.
+
+IMPORTANT:
+
+Do NOT automatically assign 1.00 merely because the question
+looks like a well-known interview problem.
+
+Confidence must reflect the strength of the SOURCE EVIDENCE.
+
+Do NOT increase confidence because:
+
+- The question is common in interviews.
+- The question is a known LeetCode problem.
+- The question is technically plausible.
+- The company commonly asks such questions.
+- The model recognizes the problem.
+
+Confidence must represent source evidence, not general knowledge.
+
+confidence MUST always be between 0.0 and 1.0 inclusive.
+</confidence_rules>
+
+
+<specificity_rules>
+questionSpecificity represents how specifically the source describes
+the actual technical question.
+
+It MUST always be a number between 0.0 and 1.0 inclusive.
+
+0.90 - 1.00:
+The source provides the exact question and important details,
+requirements, constraints, examples, or expected behavior.
+
+0.75 - 0.89:
+The source provides a clear question with some useful details,
+but some aspects are missing.
+
+0.50 - 0.74:
+The source provides a recognizable technical question but
+very limited detail.
+
+0.00 - 0.49:
+The source is too vague to reliably identify the actual question.
+Normally reject such a question.
+
+IMPORTANT:
+
+Do NOT increase specificity using general technical knowledge.
+
+Do NOT treat a well-known problem as highly specific merely because
+the model recognizes it.
+
+For example:
+
+"Asked LRU cache."
+→ lower specificity
+
+"Asked to implement an LRU cache with O(1) get and put operations."
+→ higher specificity
+
+Never return values greater than 1.0.
+
+Never return negative values.
+
+questionSpecificity MUST be between 0.0 and 1.0 inclusive.
+</specificity_rules>
+
 
 <final_quality_gate>
-Before returning each question, verify ALL of the following:
+Before returning every question, verify ALL of the following:
+
 1. Is this a real personal interview experience?
 2. Is the company explicitly supported?
-3. Was this actually presented to the candidate by the interviewer?
-4. Is it a substantive technical question or task (coding, design, concept, etc.)?
-5. Is it NOT behavioral, HR, project walkthrough, tooling, or interview process content?
-6. Did I avoid adding outside knowledge?
-7. Did I avoid inventing requirements or constraints?
-8. Did I avoid turning a topic mention or project discussion into a question?
-9. Is questionType one of the canonical types?
-10. If it is DSA/algorithm/LeetCode/data-structure related, is questionType = CODING?
-11. Is confidence >= 0.70 and between 0.0 and 1.0?
-12. Is questionSpecificity between 0.0 and 1.0?
-13. Is questionDescription non-empty and useful?
-14. Is the question not a duplicate?
-15. Is questionDescription a standalone description of the technical problem rather than the interview context?
-16. Does questionDescription avoid references to the candidate, interviewer, interview process, or candidate performance?
-17. Does questionDescription contain only source-supported information?
-18. Does questionDescription avoid solving or answering the question?
+3. Is there evidence that the interviewer actually presented this
+   question/task to the candidate?
+4. Is it a substantive technical question or technical task?
+5. Is it NOT behavioral?
+6. Is it NOT HR?
+7. Is it NOT personal/background related?
+8. Is it NOT about the candidate's own project?
+9. Is it NOT about the candidate's previous work?
+10. Is it NOT about the candidate's contribution?
+11. Is it NOT a technology/stack check?
+12. Is it NOT merely a topic mention?
+13. Is it NOT an interview-process question?
+14. Is it NOT generic preparation material?
+15. Is it NOT a question-bank item without interview evidence?
+16. Is it supported entirely by the supplied source?
+17. Did we avoid inventing requirements?
+18. Did we avoid inventing constraints?
+19. Did we avoid inventing architecture?
+20. Did we avoid inventing algorithms?
+21. Did we avoid converting a topic into a question?
+22. Did we avoid combining unrelated source information?
+23. Is questionType one of the canonical values?
+24. If it is DSA/algorithm/LeetCode/data-structure, is
+    questionType = CODING?
+25. Is problemUrl explicitly present and associated with this exact
+    question?
+26. If not, is problemUrl = null?
+27. Is confidence between 0.70 and 1.00?
+28. Is questionSpecificity between 0.00 and 1.00?
+29. Is questionDescription non-empty?
+30. Is questionDescription a standalone description of the problem?
+31. Does questionDescription avoid references to the candidate?
+32. Does questionDescription avoid references to the interviewer?
+33. Does questionDescription avoid interview-process language?
+34. Does questionDescription contain only source-supported information?
+35. Does questionDescription avoid solving the question?
+36. Does questionDescription preserve important requirements,
+    constraints, examples, and follow-ups from the source?
+37. Is this not a duplicate?
 
 If ANY answer is NO, silently drop the question.
-Accuracy over quantity.
-Never manufacture interview questions.
 </final_quality_gate>
+
 
 <source_metadata>
 SOURCE PLATFORM: {{source_platform}}
@@ -278,17 +995,43 @@ PUBLISHED AT: {{published_at}}
 TAGS: {{tags}}
 </source_metadata>
 
+
 <source_content>
 {{page_content}}
 </source_content>
 
+
 <output_schema>
 Return ONLY valid JSON matching the provided schema.
-Do not return markdown.
-Do not return explanations.
-Do not return comments.
-If no valid questions are found:
-{
-  "questions": []
-}
+
+Do NOT return:
+- Markdown
+- Code fences
+- Explanations
+- Comments
+- Reasoning
+- Additional text
+
+Every returned question MUST contain:
+
+- questionText
+- questionDescription
+- questionType
+- confidence
+- questionSpecificity
+
+questionDescription MUST NOT be null or empty.
+
+questionDescription must describe the technical problem itself,
+not the candidate, interviewer, or interview process.
+
+questionType MUST be one of the canonical question types.
+
+confidence MUST be between 0.0 and 1.0 inclusive.
+
+questionSpecificity MUST be between 0.0 and 1.0 inclusive.
+
+If there are no valid questions, return exactly:
+
+{"questions":[]}
 </output_schema>
