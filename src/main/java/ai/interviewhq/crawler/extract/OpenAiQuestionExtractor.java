@@ -83,7 +83,7 @@ public class OpenAiQuestionExtractor {
 
             JsonNode extracted = objectMapper.readTree(cleanJson(output));
             JsonNode experience = extracted.path("experience");
-            String experienceTitle = firstNonBlank(nullableText(experience, "title"), title);
+            String experienceTitle = firstNonBlank(nullableText(experience, "title"), meaningfulTitle(title));
             String experienceAuthor = firstNonBlank(nullableText(experience, "author"), author);
             Instant experiencePostedAt = nullableInstant(experience, "postedAt");
             if (experiencePostedAt == null) experiencePostedAt = publishedAt;
@@ -112,7 +112,7 @@ public class OpenAiQuestionExtractor {
 
                 InterviewQuestion question = new InterviewQuestion();
                 question.setSourcePlatform(firstNonBlank(item.sourcePlatform(), source.getName()));
-                question.setExperienceTitle(experienceTitle);
+                question.setExperienceTitle(firstNonBlank(experienceTitle, buildExperienceTitle(item)));
                 question.setExperienceAuthor(experienceAuthor);
                 question.setExperiencePostedAt(experiencePostedAt != null ? experiencePostedAt : publishedAt);
                 question.setOriginalPostUrl(postUrl);
@@ -434,6 +434,33 @@ public class OpenAiQuestionExtractor {
         } catch (Exception ignored) {
             return null;
         }
+    }
+
+    private static String meaningfulTitle(String value) {
+        if (value == null || value.isBlank()) return null;
+        String normalized = value.trim().replaceAll("\\s+", " ");
+        if (normalized.equalsIgnoreCase("untitled interview experience")
+                || normalized.equalsIgnoreCase("interview experience")
+                || normalized.equalsIgnoreCase("untitled")) {
+            return null;
+        }
+        return normalized;
+    }
+
+    private static String buildExperienceTitle(ExtractedQuestion item) {
+        List<String> parts = new ArrayList<>();
+        if (item.level() != null && !item.level().isBlank()) parts.add(item.level().trim());
+        if (item.candidateYoE() != null && item.candidateYoE() > 0) {
+            parts.add(formatYoE(item.candidateYoE()) + " YOE");
+        }
+        if (item.location() != null && !item.location().isBlank()) parts.add(item.location().trim());
+        if (item.company() != null && !item.company().isBlank()) parts.add(item.company().trim());
+        return parts.isEmpty() ? null : String.join(" | ", parts);
+    }
+
+    private static String formatYoE(float value) {
+        if (value == Math.rint(value)) return String.valueOf((int) value);
+        return String.valueOf(value);
     }
 
     private static String firstNonBlank(String value, String fallback) {
