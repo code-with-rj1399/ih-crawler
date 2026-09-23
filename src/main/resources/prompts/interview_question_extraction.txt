@@ -1076,6 +1076,23 @@ If ANY answer is NO, silently drop the question.
 </final_quality_gate>
 
 
+<experience_extraction>
+The response represents ONE crawled interview experience and its independently supported technical questions.
+
+Extract experience-level metadata separately from question-level metadata.
+
+SOURCE METADATA PROVENANCE:
+- source.name MUST use the supplied SOURCE PLATFORM.
+- source.url MUST use the supplied POST URL exactly. Never construct or infer it.
+- experience.title MUST preserve the source page title with only obvious whitespace/HTML cleanup.
+- experience.postedAt MUST use the source-supported publication timestamp. Never use crawl time and never invent a timestamp. If unavailable, return null.
+- experience.author MUST use the source-supported author. If the source explicitly identifies the author as anonymous, use "anonymous". If unavailable, return null.
+
+The experience metadata describes the page itself. It must not be inferred from the questions.
+
+The page must pass the real_experience_gate before an experience object is returned.
+</experience_extraction>
+
 <source_metadata>
 SOURCE PLATFORM: {{source_platform}}
 POST URL: {{post_url}}
@@ -1092,36 +1109,34 @@ TAGS: {{tags}}
 
 
 <output_schema>
-Return ONLY valid JSON matching the provided schema.
+Return ONLY valid JSON matching the provided schema. The root object represents one interview experience.
 
-Do NOT return:
-- Markdown
-- Code fences
-- Explanations
-- Comments
-- Reasoning
-- Additional text
+Root object:
+{
+  "source": { "name": "...", "url": "..." },
+  "experience": { "title": "...", "postedAt": "... or null", "author": "... or null" },
+  "questions": []
+}
 
-Every returned question MUST contain:
+source.name and source.url are crawler-supplied provenance and MUST NOT be changed.
+experience.title, experience.postedAt, and experience.author must be grounded in the supplied source metadata/content.
+postedAt MUST be ISO-8601 when present.
 
+Every question MUST contain:
 - questionText
 - questionDescription
 - questionType
+- topics
+- problemUrl
 - confidence
 - questionSpecificity
 
 questionDescription MUST NOT be null or empty.
-
-questionDescription must describe the technical problem itself,
-not the candidate, interviewer, or interview process.
-
 questionType MUST be one of the exact human-readable database values defined in the question type taxonomy.
-
 confidence MUST be between 0.0 and 1.0 inclusive.
-
 questionSpecificity MUST be between 0.0 and 1.0 inclusive.
 
-If there are no valid questions, return exactly:
-
-{"questions":[]}
+If there are no valid questions but the page is a real interview experience, return the experience metadata with "questions":[].
+If the page fails the real_experience_gate, return exactly:
+{"source":{"name":"{{source_platform}}","url":"{{post_url}}"},"experience":{"title":null,"postedAt":null,"author":null},"questions":[]}
 </output_schema>
