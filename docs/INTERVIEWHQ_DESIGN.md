@@ -18,7 +18,6 @@ InterviewHQ solves this by:
 1. Discovering relevant content automatically.
 2. Filtering content based on publication time.
 3. Extracting actual interview questions from noisy content.
-4. Identifying company, role, round, topic, and difficulty.
 5. Deduplicating questions.
 6. Storing normalized questions.
 7. Providing a searchable interface.
@@ -134,7 +133,6 @@ All source-specific implementations eventually produce a common internal represe
 - author
 - publication timestamp
 - company
-- role
 - body text
 - content type
 - HTTP status
@@ -248,18 +246,15 @@ Only content that passes the hard freshness gate should reach the LLM.
                v
               LLM
 
-The LLM extracts structured interview information such as company, role, round, questions, topics, and difficulty.
 
 ## 13. Extraction Responsibilities
 
 The LLM should determine:
 
 - Company
-- Role
 - Interview round
 - Actual technical question
 - Topic
-- Difficulty
 
 Example rounds:
 - Coding
@@ -316,11 +311,9 @@ Conceptual InterviewQuestion fields:
 
 - id
 - company
-- role
 - round
 - question
 - topic
-- difficulty
 - source
 - sourceUrl
 - publishedAt
@@ -343,10 +336,8 @@ Examples:
 
 Filtering can include:
 - company
-- role
 - round
 - topic
-- difficulty
 - date
 
 ## 18. Frontend
@@ -365,15 +356,12 @@ Company
 ### Question page
 - Question
 - Company
-- Role
 - Round
-- Difficulty
 - Topic
 - Source
 - Published date
 
 ### Search
-Users can search by company, question, topic, role, and round.
 
 ## 19. Crawler Scheduling
 
@@ -543,9 +531,7 @@ Examples:
 - session cookies
 - external service credentials
 
-should be supplied through environment variables, AWS Secrets Manager, or IAM roles.
 
-For production AWS deployment, IAM roles should be preferred over static AWS access keys.
 
 ## 29. Deployment
 

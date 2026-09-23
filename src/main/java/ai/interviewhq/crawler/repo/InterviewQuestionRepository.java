@@ -53,6 +53,10 @@ public class InterviewQuestionRepository extends DynamoRepository<InterviewQuest
                 .toList();
     }
 
+    public int deleteAll() {
+        return db.deleteAllByEntityType(InterviewQuestion.class);
+    }
+
     protected void deleteKey(Integer id) {
         findById(id).ifPresent(e -> db.delete("QUESTION#" + e.getDedupeHash(), "ENTITY"));
     }

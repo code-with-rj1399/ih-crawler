@@ -18,7 +18,6 @@ public class InterviewQuestion {
     private LocalDate postDate;
 
     private String company;
-    private String role;
     private String level;
     private String location;
     private Float candidateYoE;
@@ -26,7 +25,6 @@ public class InterviewQuestion {
 
     private String roundType;
     private String questionType;
-    private String difficulty;
     private List<String> topics = new ArrayList<>();
 
     private String questionText;
@@ -68,9 +66,6 @@ public class InterviewQuestion {
     public String getCompany() { return company; }
     public void setCompany(String company) { this.company = company; }
 
-    public String getRole() { return role; }
-    public void setRole(String role) { this.role = role; }
-
     public String getLevel() { return level; }
     public void setLevel(String level) { this.level = level; }
 
@@ -88,9 +83,6 @@ public class InterviewQuestion {
 
     public String getQuestionType() { return questionType; }
     public void setQuestionType(String questionType) { this.questionType = questionType; }
-
-    public String getDifficulty() { return difficulty; }
-    public void setDifficulty(String difficulty) { this.difficulty = difficulty; }
 
     public List<String> getTopics() { return topics; }
     public void setTopics(List<String> topics) { this.topics = topics; }

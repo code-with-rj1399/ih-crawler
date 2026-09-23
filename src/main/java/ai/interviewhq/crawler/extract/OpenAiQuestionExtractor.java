@@ -42,12 +42,15 @@ public class OpenAiQuestionExtractor {
     private final ObjectMapper objectMapper;
     private final CrawlerSettings settings;
     private final String apiKey;
+    private final ExtractionPromptService promptService;
 
     public OpenAiQuestionExtractor(ObjectMapper objectMapper, CrawlerSettings settings,
+                                   ExtractionPromptService promptService,
                                    @Value("${OPENAI_API_KEY:}") String apiKey) {
         this.httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(15)).build();
         this.objectMapper = objectMapper;
         this.settings = settings;
+        this.promptService = promptService;
         this.apiKey = apiKey;
     }
 
@@ -63,7 +66,7 @@ public class OpenAiQuestionExtractor {
         }
 
         try {
-            String prompt = loadPrompt()
+            String prompt = promptService.getPrompt()
                     .replace("{{source_platform}}", source.getName())
                     .replace("{{post_url}}", postUrl)
                     .replace("{{title}}", title == null ? "" : title)
@@ -107,7 +110,6 @@ public class OpenAiQuestionExtractor {
                         ? item.postDate()
                         : publishedAt == null ? null : publishedAt.atZone(ZoneOffset.UTC).toLocalDate());
                 question.setCompany(item.company());
-                question.setRole(item.role());
                 question.setLevel(item.level());
                 question.setLocation(item.location());
                 question.setCandidateYoE(item.candidateYoE());
@@ -116,7 +118,6 @@ public class OpenAiQuestionExtractor {
                 question.setQuestionType(item.questionType());
                 question.setQuestionText(item.questionText().trim());
                 question.setQuestionDescription(item.questionDescription());
-                                question.setDifficulty(item.difficulty());
                 question.setTopics(item.topics() == null ? Collections.emptyList() : item.topics());
                 question.setConfidence(item.confidence());
                 question.setQuestionSpecificity(item.questionSpecificity());
@@ -203,15 +204,6 @@ public class OpenAiQuestionExtractor {
         return root;
     }
 
-    private String loadPrompt() {
-        try {
-            return new String(new ClassPathResource("prompts/interview_question_extraction.txt")
-                    .getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
-        } catch (Exception e) {
-            throw new IllegalStateException("Unable to load shared extraction prompt", e);
-        }
-    }
-
     private JsonNode questionExtractionSchema() {
         var format = objectMapper.createObjectNode()
                 .put("type", "json_schema")
@@ -224,7 +216,6 @@ public class OpenAiQuestionExtractor {
         properties.set("problemUrl", nullableStringSchema());
         properties.set("postDate", nullableStringSchema());
         properties.set("company", nullableStringSchema());
-        properties.set("role", nullableStringSchema());
         properties.set("level", nullableStringSchema());
         properties.set("location", nullableStringSchema());
         properties.set("candidateYoE", nullableNumberSchema());
@@ -233,18 +224,17 @@ public class OpenAiQuestionExtractor {
         properties.set("questionType", nullableStringSchema());
         properties.set("questionText", nullableStringSchema());
         properties.set("questionDescription", nullableStringSchema());
-                properties.set("difficulty", nullableStringSchema());
-        ObjectNode topicsSchema = objectMapper.createObjectNode().put("type", "array");
+                ObjectNode topicsSchema = objectMapper.createObjectNode().put("type", "array");
         topicsSchema.set("items", objectMapper.createObjectNode().put("type", "string"));
         properties.set("topics", topicsSchema);
         properties.set("confidence", nullableNumberSchema());
         properties.set("questionSpecificity", nullableNumberSchema());
         question.set("properties", properties);
         question.set("required", objectMapper.createArrayNode()
-                .add("sourcePlatform").add("problemUrl").add("postDate").add("company").add("role").add("level")
+                 .add("sourcePlatform").add("problemUrl").add("postDate").add("company").add("level")
                 .add("location").add("candidateYoE").add("outcome").add("roundType")
                 .add("questionType").add("questionText").add("questionDescription")
-                .add("difficulty").add("topics").add("confidence").add("questionSpecificity"));
+                .add("topics").add("confidence").add("questionSpecificity"));
 
         var schema = objectMapper.createObjectNode().put("type", "object").put("additionalProperties", false);
         ObjectNode schemaProperties = objectMapper.createObjectNode();
@@ -368,8 +358,8 @@ public class OpenAiQuestionExtractor {
     private record ExtractedQuestions(List<ExtractedQuestion> questions) {}
 
     private record ExtractedQuestion(String sourcePlatform, String originalPostUrl, String problemUrl, LocalDate postDate,
-                                     String company, String role, String level, String location, Float candidateYoE,
+                                     String company, String level, String location, Float candidateYoE,
                                      String outcome, String roundType, String questionType, String questionText,
-                                     String questionDescription, String difficulty,
+                                     String questionDescription,
                                      List<String> topics, Float confidence, Float questionSpecificity) {}
 }

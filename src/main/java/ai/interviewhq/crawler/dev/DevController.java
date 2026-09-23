@@ -3,6 +3,7 @@ package ai.interviewhq.crawler.dev;
 import ai.interviewhq.crawler.crawl.CrawlRunner;
 import ai.interviewhq.crawler.domain.CrawlSource;
 import ai.interviewhq.crawler.domain.InterviewQuestion;
+import ai.interviewhq.crawler.extract.ExtractionPromptService;
 import ai.interviewhq.crawler.repo.CrawlSourceRepository;
 import ai.interviewhq.crawler.repo.InterviewQuestionRepository;
 import org.springframework.context.annotation.Profile;
@@ -25,14 +26,17 @@ public class DevController {
     private final CrawlSourceRepository sourceRepository;
     private final InterviewQuestionRepository questionRepository;
     private final ObjectMapper objectMapper;
+    private final ExtractionPromptService promptService;
 
     public DevController(CrawlRunner crawlRunner, CrawlSourceRepository sourceRepository,
                          InterviewQuestionRepository questionRepository,
-                         ObjectMapper objectMapper) {
+                         ObjectMapper objectMapper,
+                         ExtractionPromptService promptService) {
         this.crawlRunner = crawlRunner;
         this.sourceRepository = sourceRepository;
         this.questionRepository = questionRepository;
         this.objectMapper = objectMapper;
+        this.promptService = promptService;
     }
 
     @GetMapping("/dev")
@@ -89,14 +93,31 @@ public class DevController {
         return sourceRepository.save(source);
     }
 
+    @GetMapping("/prompt")
+    public java.util.Map<String, String> getPrompt() {
+        return java.util.Map.of("prompt", promptService.getPrompt());
+    }
+
+    @PutMapping("/prompt")
+    public java.util.Map<String, String> updatePrompt(@RequestBody PromptRequest request) {
+        promptService.setPrompt(request == null ? null : request.prompt());
+        return java.util.Map.of("prompt", promptService.getPrompt());
+    }
+
+    @PostMapping("/prompt/reset")
+    public java.util.Map<String, String> resetPrompt() {
+        promptService.resetToDefault();
+        return java.util.Map.of("prompt", promptService.getPrompt());
+    }
+
     @DeleteMapping("/questions")
-    public void deleteAllQuestions() {
-        for (InterviewQuestion question : questionRepository.findAll()) {
-            if (question.getId() != null) questionRepository.deleteById(question.getId());
-        }
+    public ResponseEntity<java.util.Map<String, Object>> deleteAllQuestions() {
+        int deleted = questionRepository.deleteAll();
+        return ResponseEntity.ok(java.util.Map.of("deleted", deleted));
     }
 
     public record CreateSourceRequest(String name, String url, String sourceKind, Boolean enabled) {}
+    public record PromptRequest(String prompt) {}
 
     @GetMapping("/questions")
     public List<InterviewQuestion> questions() {
