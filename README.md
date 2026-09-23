@@ -145,3 +145,22 @@ When changing crawler behavior:
 ## Project Status
 
 The crawler is being developed incrementally. Current priorities include reliable source discovery, recent interview-experience crawling, high-quality question extraction, question-description fidelity, deduplication, efficient model usage, hq-API ingestion, DynamoDB persistence, and configurable crawl scheduling.
+## Experience Extraction Contract
+
+Each crawled interview-experience page is now extracted as an experience envelope plus independently grounded technical questions:
+
+```json
+{
+  "source": { "name": "LeetCode", "url": "https://leetcode.com/discuss/interview-experience/123" },
+  "experience": {
+    "title": "Google Interview Experience",
+    "postedAt": "2026-09-23T10:20:00Z",
+    "author": "anonymous"
+  },
+  "questions": []
+}
+```
+
+Crawler-controlled provenance (`source.name` and `source.url`) remains authoritative. Publication time (`postedAt`) is distinct from crawl/extraction time. Question metadata continues to use the canonical human-readable question types documented in the DynamoDB schema.
+
+The dev dashboard displays experience title, author, publication time, source, and the extracted questions together.
