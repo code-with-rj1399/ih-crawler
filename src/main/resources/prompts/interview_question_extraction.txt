@@ -1133,11 +1133,11 @@ Extract experience-level metadata separately from question-level metadata.
 SOURCE METADATA PROVENANCE:
 - source.name MUST use the supplied SOURCE PLATFORM.
 - source.url MUST use the supplied POST URL exactly. Never construct or infer it.
-- experience.title MUST preserve the source page title with only obvious whitespace/HTML cleanup.
+- experience.title MUST be a compact display title following <experience_title_rules>. Do NOT simply copy a generic page title such as "Interview Experience" when source-supported role, YOE, location, or company metadata is available.
 - experience.postedAt MUST use the source-supported publication timestamp. Never use crawl time and never invent a timestamp. If unavailable, return null.
 - experience.author MUST use the source-supported author. If the source explicitly identifies the author as anonymous, use "anonymous". If unavailable, return null.
 
-The experience metadata describes the page itself. It must not be inferred from the questions.
+The experience metadata describes the page itself. It may be assembled from source-supported candidate/interview metadata explicitly present in the supplied source. Never invent missing fields.
 
 The page must pass the real_experience_gate before an experience object is returned.
 </experience_extraction>
