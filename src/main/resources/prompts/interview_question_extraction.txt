@@ -738,9 +738,44 @@ current question.
 IMPORTANT:
 
 A cross-reference may contain technical information that is necessary
-to understand the current problem. Use that information ONLY when the
-referenced technical details are explicitly available in the supplied
-source content.
+to understand the current problem. When the referenced technical details
+are explicitly available anywhere in the SAME supplied source content,
+restate those details directly in the standalone description instead of
+preserving the cross-reference.
+
+IMPORTANT:
+
+Phrases such as:
+- "Using the same grid and moves as the previous problem"
+- "Using the same assumptions as above"
+- "As in the previous question"
+- "With the same input and constraints"
+- "Continuing from the earlier problem"
+- "Using the approach described above"
+
+are contextual cross-references and MUST NOT appear in the final
+questionDescription when their referenced technical information can be
+stated directly from the supplied source.
+
+For example, if the supplied source contains:
+
+"The first problem uses a grid with start (0,0), destination (w-1,0),
+and allowed moves (x+1,y), (x+1,y+1), and (x+1,y-1). The next problem,
+using the same grid and moves, asks for the number of paths that pass
+through (a,b)."
+
+produce a standalone description such as:
+
+"Determine the number of distinct paths from (0,0) to (w-1,0) using
+only the moves (x+1,y), (x+1,y+1), and (x+1,y-1). The path must pass
+through the intermediate point (a,b)."
+
+Do NOT output:
+
+"Using the same grid and moves as the previous problem, ..."
+
+because the technical information is available in the supplied source
+and can be restated directly.
 
 For example, if the source explicitly contains:
 
