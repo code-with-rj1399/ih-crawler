@@ -122,7 +122,7 @@ Testing
 Technical Concept
 ```
 
-DSA, algorithm, LeetCode, and data-structure coding problems are stored as **CODING**. Do not introduce a separate DSA type.
+DSA, algorithm, LeetCode, and data-structure coding problems are stored as **Coding**. Do not introduce a separate DSA type.
 
 ## 6. Question Description
 
@@ -419,7 +419,7 @@ Example:
     {
       "questionText": "Design a notification system.",
       "questionDescription": "Design a notification system that supports reliable delivery of notifications.",
-      "questionType": "SYSTEM_DESIGN",
+      "questionType": "System Design",
       "topics": ["Notifications"],
       "problemUrl": null,
       "confidence": 0.92,
