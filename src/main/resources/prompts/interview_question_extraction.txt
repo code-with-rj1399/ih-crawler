@@ -717,6 +717,71 @@ unless those details are explicitly part of the source.
 The description is a SOURCE-GROUNDED DESCRIPTION OF THE PROBLEM,
 not a DESCRIPTION OF THE INTERVIEW.
 
+
+<standalone_cross_reference_rules>
+A source may describe a technical question as an extension, follow-up,
+variant, or continuation of an earlier problem.
+
+The final questionDescription MUST still be understandable on its own.
+Do NOT preserve interview-context references such as:
+
+- "Extending the previous problem"
+- "As discussed earlier"
+- "Continuing from the previous question"
+- "Same as above, but..."
+- "In the next round"
+- "For the follow-up"
+
+Instead, directly describe the technical problem represented by the
+current question.
+
+IMPORTANT:
+
+A cross-reference may contain technical information that is necessary
+to understand the current problem. Use that information ONLY when the
+referenced technical details are explicitly available in the supplied
+source content.
+
+For example, if the source explicitly contains:
+
+"Find the number of paths from (0,0) to (W-1,0) using the moves
+(x+1,y), (x+1,y+1), and (x+1,y-1). Extending the previous problem,
+count the paths that pass through (A,B)."
+
+the description may be normalized to:
+
+"Count the number of distinct paths from (0,0) to the destination
+(W-1,0) on a W × H grid using only the moves (x+1,y), (x+1,y+1),
+and (x+1,y-1).
+
+The path must pass through the specified intermediate point (A,B)."
+
+The phrase "Extending the previous problem" is removed because it is
+interview context, while the explicitly stated grid, destination,
+allowed moves, and intermediate point are preserved.
+
+If the referenced earlier problem is NOT explicitly described in the
+supplied source, do NOT reconstruct it from general knowledge or from
+the model's knowledge of a common interview problem.
+
+In that case:
+- describe only the technical information explicitly available for the
+  current question;
+- do not invent missing constraints or movement rules;
+- do not claim details from an unavailable "previous problem";
+- remove the cross-reference itself from the final description when it
+  does not add technical information that can be independently stated.
+
+A standalone description may use technical details from an earlier
+part of the SAME supplied source when those details are clearly part
+of the current question's definition. This is source-supported
+normalization, not invention.
+
+Do NOT use information from another webpage, another question, external
+knowledge, or an assumed earlier interview question to resolve a
+cross-reference.
+</standalone_cross_reference_rules>
+
 QUALITY REQUIREMENT:
 
 Before returning the description, verify:
