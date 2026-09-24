@@ -40,7 +40,7 @@ public class DevPromptTester {
 
         ObjectNode request = objectMapper.createObjectNode();
         request.put("model", model);
-        request.put("input", prompt + "\n\nReturn ONLY valid JSON. Do not use Markdown fences or explanatory text.");
+        request.put("input", prompt);
         request.put("store", false);
         ObjectNode reasoning = objectMapper.createObjectNode();
         reasoning.put("effort", reasoningEffort);
