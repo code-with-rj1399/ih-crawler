@@ -119,6 +119,7 @@ public class DevController {
         String prompt = promptService.getExperiencePrompt();
         if (request != null && request.prompt() != null && !request.prompt().isBlank()) prompt = request.prompt();
         prompt = prompt.replace("{{page_title}}", safe(request == null ? null : request.pageTitle()))
+                .replace("{{title}}", safe(request == null ? null : request.pageTitle()))
                 .replace("{{page_content}}", safe(request == null ? null : request.pageContent()));
         return promptTester.test(prompt);
     }
