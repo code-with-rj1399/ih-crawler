@@ -78,7 +78,7 @@ Example:
   "postedAt": "2026-09-23T10:20:00Z",
   "crawledAt": "2026-09-23T12:00:00Z",
   "confidence": 0.92,
-  "questionSpecificity": 0.88,
+  "questionGranularity": 0.88,
   "createdAt": "2026-09-23T12:00:00Z",
   "updatedAt": "2026-09-23T12:00:00Z"
 }
@@ -423,7 +423,7 @@ Example:
       "topics": ["Notifications"],
       "problemUrl": null,
       "confidence": 0.92,
-      "questionSpecificity": 0.86
+      "questionGranularity": 0.86
     }
   ]
 }
@@ -447,8 +447,8 @@ questionType ∈ canonical enum
 confidence >= 0
 confidence <= 1
 
-questionSpecificity >= 0
-questionSpecificity <= 1
+questionGranularity >= 0
+questionGranularity <= 1
 ```
 
 Invalid records should be rejected or quarantined rather than persisted as canonical questions.

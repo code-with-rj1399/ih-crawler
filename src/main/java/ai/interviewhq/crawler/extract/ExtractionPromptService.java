@@ -28,7 +28,7 @@ public class ExtractionPromptService {
         if (prompt == null || prompt.isBlank()) {
             throw new IllegalArgumentException("Extraction prompt cannot be blank");
         }
-        this.prompt = prompt;
+        this.prompt = normalizeGranularityField(prompt);
     }
 
     public void resetToDefault() {
@@ -37,12 +37,24 @@ public class ExtractionPromptService {
 
     private static String loadDefaultPrompt() {
         try {
-            return new String(
+            String prompt = new String(
                     new ClassPathResource("prompts/interview_question_extraction.txt")
                             .getInputStream().readAllBytes(),
                     StandardCharsets.UTF_8);
+            return normalizeGranularityField(prompt);
         } catch (Exception e) {
             throw new IllegalStateException("Unable to load shared extraction prompt", e);
         }
+    }
+
+    /**
+     * Keep runtime/default prompts aligned with the canonical questionGranularity field.
+     * This also protects against stale prompt text during rolling deployments.
+     */
+    private static String normalizeGranularityField(String prompt) {
+        return prompt
+                .replace("questionSpecificity", "questionGranularity")
+                .replace("QuestionSpecificity", "QuestionGranularity")
+                .replace("specificity_rules", "granularity_rules");
     }
 }

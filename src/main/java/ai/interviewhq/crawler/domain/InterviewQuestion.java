@@ -13,6 +13,9 @@ public class InterviewQuestion {
     private Integer postId;
 
     private String sourcePlatform;
+    private String experienceTitle;
+    private String experienceAuthor;
+    private Instant experiencePostedAt;
     private String originalPostUrl;
     private String problemUrl;
     private LocalDate postDate;
@@ -31,7 +34,7 @@ public class InterviewQuestion {
     private String questionDescription;
     private String candidateApproach;
     private Float confidence;
-    private Float questionSpecificity;
+    private Float questionGranularity;
 
     private String modelName;
     private String dedupeHash;
@@ -52,6 +55,12 @@ public class InterviewQuestion {
     public void setPostId(Integer postId) { this.postId = postId; }
 
     public String getSourcePlatform() { return sourcePlatform; }
+    public String getExperienceTitle() { return experienceTitle; }
+    public void setExperienceTitle(String experienceTitle) { this.experienceTitle = experienceTitle; }
+    public String getExperienceAuthor() { return experienceAuthor; }
+    public void setExperienceAuthor(String experienceAuthor) { this.experienceAuthor = experienceAuthor; }
+    public Instant getExperiencePostedAt() { return experiencePostedAt; }
+    public void setExperiencePostedAt(Instant experiencePostedAt) { this.experiencePostedAt = experiencePostedAt; }
     public void setSourcePlatform(String sourcePlatform) { this.sourcePlatform = sourcePlatform; }
 
     public String getOriginalPostUrl() { return originalPostUrl; }
@@ -99,8 +108,8 @@ public class InterviewQuestion {
     public Float getConfidence() { return confidence; }
     public void setConfidence(Float confidence) { this.confidence = confidence; }
 
-    public Float getQuestionSpecificity() { return questionSpecificity; }
-    public void setQuestionSpecificity(Float questionSpecificity) { this.questionSpecificity = questionSpecificity; }
+    public Float getQuestionGranularity() { return questionGranularity; }
+    public void setQuestionGranularity(Float questionGranularity) { this.questionGranularity = questionGranularity; }
 
     public String getModelName() { return modelName; }
     public void setModelName(String modelName) { this.modelName = modelName; }

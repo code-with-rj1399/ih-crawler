@@ -154,6 +154,14 @@ public class CrawlRunner {
                     );
                     aiCalls[0]++;
 
+                    if (questions.isEmpty()) {
+                        skipped[0]++;
+                        log.info("Discarding interview experience with no extracted questions: source={} url={}",
+                                source.getSlug(),
+                                entry.canonicalUrl() != null ? entry.canonicalUrl() : entry.url());
+                        return;
+                    }
+
                     for (InterviewQuestion question : questions) {
                         String dedupeHash = question.getDedupeHash();
 
@@ -198,6 +206,13 @@ public class CrawlRunner {
                             entry.bodyText()
                     );
                     aiCalls[0]++;
+                    if (questions.isEmpty()) {
+                        skipped[0]++;
+                        log.info("Discarding interview experience with no extracted questions: source={} url={}",
+                                source.getSlug(),
+                                entry.canonicalUrl() != null ? entry.canonicalUrl() : entry.url());
+                        return;
+                    }
                     for (InterviewQuestion question : questions) {
                         String dedupeHash = question.getDedupeHash();
                         if (dedupeHash == null || dedupeHash.isBlank()

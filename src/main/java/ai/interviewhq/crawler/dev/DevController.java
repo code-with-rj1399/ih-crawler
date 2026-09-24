@@ -12,11 +12,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.nio.charset.StandardCharsets;
 import org.springframework.web.servlet.view.RedirectView;
-
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/dev/api")
@@ -40,19 +39,22 @@ public class DevController {
     }
 
     @GetMapping("/dev")
-    public RedirectView page() {
-        return new RedirectView("/dev/index.html");
+    public RedirectView page() { return new RedirectView("/dev/index.html"); }
+
+    @GetMapping("/config")
+    public Map<String, String> config() {
+        return Map.of(
+                "model", System.getenv().getOrDefault("OPENAI_MODEL", "gpt-5.6-terra"),
+                "reasoningEffort", System.getenv().getOrDefault("OPENAI_REASONING_EFFORT", "high")
+        );
     }
 
     @GetMapping("/sources")
-    public List<CrawlSource> sources() {
-        return sourceRepository.findAll();
-    }
+    public List<CrawlSource> sources() { return sourceRepository.findAll(); }
 
     @PatchMapping("/sources/{id}/enabled")
     public CrawlSource setSourceEnabled(@PathVariable Integer id, @RequestParam boolean enabled) {
-        CrawlSource source = sourceRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Source not found: " + id));
+        CrawlSource source = sourceRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Source not found: " + id));
         source.setEnabled(enabled);
         return sourceRepository.save(source);
     }
@@ -60,60 +62,41 @@ public class DevController {
     @PostMapping("/sources/disable-all")
     public void disableAllSources() {
         for (CrawlSource source : sourceRepository.findAll()) {
-            if (source.isEnabled()) {
-                source.setEnabled(false);
-                sourceRepository.save(source);
-            }
+            if (source.isEnabled()) { source.setEnabled(false); sourceRepository.save(source); }
         }
     }
 
     @PostMapping("/sources")
     public CrawlSource addSource(@RequestBody CreateSourceRequest request) {
-        if (request == null || request.name() == null || request.name().isBlank()
-                || request.url() == null || request.url().isBlank()) {
+        if (request == null || request.name() == null || request.name().isBlank() || request.url() == null || request.url().isBlank()) {
             throw new IllegalArgumentException("Name and URL are required");
         }
-        String slug = request.name().toLowerCase(java.util.Locale.ROOT)
-                .replaceAll("[^a-z0-9]+", "-").replaceAll("^-+|-+$", "");
+        String slug = request.name().toLowerCase(java.util.Locale.ROOT).replaceAll("[^a-z0-9]+", "-").replaceAll("^-+|-+$", "");
         if (slug.isBlank()) slug = "seed-" + System.currentTimeMillis();
-        if (sourceRepository.findBySlug(slug).isPresent()) {
-            throw new IllegalArgumentException("A seed with slug already exists: " + slug);
-        }
+        if (sourceRepository.findBySlug(slug).isPresent()) throw new IllegalArgumentException("A seed with slug already exists: " + slug);
         CrawlSource source = new CrawlSource();
-        source.setSlug(slug);
-        source.setName(request.name().trim());
-        source.setUrl(request.url().trim());
+        source.setSlug(slug); source.setName(request.name().trim()); source.setUrl(request.url().trim());
         source.setSourceKind(request.sourceKind() == null || request.sourceKind().isBlank() ? "html" : request.sourceKind().trim());
-        source.setEnabled(request.enabled() == null || request.enabled());
-        source.setRateLimitRpm(12);
-        source.setCrawlDelayMs(2000);
-        source.setPerHostConcurrency(1);
-        source.setRobotsMode("honor");
-        source.setNotes("Added from dev dashboard.");
+        source.setEnabled(request.enabled() == null || request.enabled()); source.setRateLimitRpm(12); source.setCrawlDelayMs(2000);
+        source.setPerHostConcurrency(1); source.setRobotsMode("honor"); source.setNotes("Added from dev dashboard.");
         return sourceRepository.save(source);
     }
 
     @GetMapping("/prompt")
-    public java.util.Map<String, String> getPrompt() {
-        return java.util.Map.of("prompt", promptService.getPrompt());
-    }
+    public Map<String, String> getPrompt() { return Map.of("prompt", promptService.getPrompt()); }
 
     @PutMapping("/prompt")
-    public java.util.Map<String, String> updatePrompt(@RequestBody PromptRequest request) {
+    public Map<String, String> updatePrompt(@RequestBody PromptRequest request) {
         promptService.setPrompt(request == null ? null : request.prompt());
-        return java.util.Map.of("prompt", promptService.getPrompt());
+        return Map.of("prompt", promptService.getPrompt());
     }
 
     @PostMapping("/prompt/reset")
-    public java.util.Map<String, String> resetPrompt() {
-        promptService.resetToDefault();
-        return java.util.Map.of("prompt", promptService.getPrompt());
-    }
+    public Map<String, String> resetPrompt() { promptService.resetToDefault(); return Map.of("prompt", promptService.getPrompt()); }
 
     @DeleteMapping("/questions")
-    public ResponseEntity<java.util.Map<String, Object>> deleteAllQuestions() {
-        int deleted = questionRepository.deleteAll();
-        return ResponseEntity.ok(java.util.Map.of("deleted", deleted));
+    public ResponseEntity<Map<String, Object>> deleteAllQuestions() {
+        int deleted = questionRepository.deleteAll(); return ResponseEntity.ok(Map.of("deleted", deleted));
     }
 
     public record CreateSourceRequest(String name, String url, String sourceKind, Boolean enabled) {}
@@ -121,28 +104,16 @@ public class DevController {
 
     @GetMapping("/questions")
     public List<InterviewQuestion> questions() {
-        return questionRepository.findAll().stream()
-                .sorted((a, b) -> Integer.compare(
-                        b.getId() == null ? 0 : b.getId(),
-                        a.getId() == null ? 0 : a.getId()))
-                .limit(100)
-                .toList();
+        return questionRepository.findAll().stream().sorted((a, b) -> Integer.compare(b.getId() == null ? 0 : b.getId(), a.getId() == null ? 0 : a.getId())).limit(100).toList();
     }
 
     @GetMapping("/download")
     public ResponseEntity<byte[]> download() throws Exception {
-        java.util.Map<String, Object> data = new java.util.LinkedHashMap<>();
-        data.put("sources", sourceRepository.findAll());
-        data.put("questions", questionRepository.findAll());
+        Map<String, Object> data = new java.util.LinkedHashMap<>(); data.put("sources", sourceRepository.findAll()); data.put("questions", questionRepository.findAll());
         byte[] json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(data).getBytes(StandardCharsets.UTF_8);
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=interviewhq-dynamodb-data.json")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(json);
+        return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=interviewhq-dynamodb-data.json").contentType(MediaType.APPLICATION_JSON).body(json);
     }
 
     @PostMapping("/crawl")
-    public void crawl() {
-        crawlRunner.runOnce();
-    }
+    public void crawl() { crawlRunner.runOnce(); }
 }

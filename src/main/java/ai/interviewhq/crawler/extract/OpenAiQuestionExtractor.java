@@ -11,7 +11,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
@@ -25,8 +24,6 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
-import java.util.Set;
 
 /**
  * Model is used only to structure questions from page text the crawler already
@@ -50,8 +47,8 @@ public class OpenAiQuestionExtractor {
         this.httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(15)).build();
         this.objectMapper = objectMapper;
         this.settings = settings;
-        this.promptService = promptService;
         this.apiKey = apiKey;
+        this.promptService = promptService;
     }
 
     public List<InterviewQuestion> extractQuestionsFromContent(CrawlSource source, String postUrl,
@@ -81,29 +78,30 @@ public class OpenAiQuestionExtractor {
                 return Collections.emptyList();
             }
 
-            ExtractedQuestions extracted = objectMapper.readValue(cleanJson(output), ExtractedQuestions.class);
-            if (extracted.questions() == null) {
+            JsonNode extracted = objectMapper.readTree(cleanJson(output));
+            JsonNode experience = extracted.path("experience");
+            String experienceTitle = firstNonBlank(nullableText(experience, "title"), meaningfulTitle(title));
+            String experienceAuthor = firstNonBlank(nullableText(experience, "author"), author);
+            Instant experiencePostedAt = nullableInstant(experience, "postedAt");
+            if (experiencePostedAt == null) experiencePostedAt = publishedAt;
+
+            JsonNode questionsNode = extracted.path("questions");
+            if (!questionsNode.isArray()) {
                 return Collections.emptyList();
             }
 
             List<InterviewQuestion> questions = new ArrayList<>();
-            for (ExtractedQuestion item : extracted.questions()) {
+            for (JsonNode node : questionsNode) {
+                ExtractedQuestion item = objectMapper.treeToValue(node, ExtractedQuestion.class);
                 if (item == null || item.questionText() == null || item.questionText().isBlank()) {
-                    continue;
-                }
-                if (item.company() == null || item.company().isBlank()) {
-                    log.info("Rejecting extracted question without company: source={}, postUrl={}",
-                            source.getSlug(), postUrl);
-                    continue;
-                }
-
-                if (!isHighQualityQuestion(item)) {
-                    log.info("Rejecting low-quality extracted question: source={} postUrl={} question={}", source.getSlug(), postUrl, item.questionText());
                     continue;
                 }
 
                 InterviewQuestion question = new InterviewQuestion();
                 question.setSourcePlatform(firstNonBlank(item.sourcePlatform(), source.getName()));
+                question.setExperienceTitle(firstNonBlank(experienceTitle, buildExperienceTitle(item)));
+                question.setExperienceAuthor(experienceAuthor);
+                question.setExperiencePostedAt(experiencePostedAt != null ? experiencePostedAt : publishedAt);
                 question.setOriginalPostUrl(postUrl);
                 question.setProblemUrl(normalizeProblemUrl(item.problemUrl()));
                 question.setPostDate(item.postDate() != null
@@ -120,7 +118,7 @@ public class OpenAiQuestionExtractor {
                 question.setQuestionDescription(item.questionDescription());
                 question.setTopics(item.topics() == null ? Collections.emptyList() : item.topics());
                 question.setConfidence(item.confidence());
-                question.setQuestionSpecificity(item.questionSpecificity());
+                question.setQuestionGranularity(item.questionGranularity());
                 question.setModelName(settings.extractModel());
                 question.setExtractedAt(Instant.now());
                 question.setDedupeHash(Hashing.questionDedupeHash(
@@ -134,35 +132,11 @@ public class OpenAiQuestionExtractor {
         }
     }
 
-
-    /** Deterministic quality gate: LLM output is a candidate, not truth. */
-    private boolean isHighQualityQuestion(ExtractedQuestion item) {
-        String text = item.questionText() == null ? "" : item.questionText().trim();
-        if (text.isBlank() || text.length() < 8 || text.length() > 140) return false;
-        float confidence = item.confidence() == null ? 0f : item.confidence();
-        if (confidence < 0.70f) return false;
-        String normalized = text.toLowerCase(Locale.ROOT)
-                .replaceAll("[^a-z0-9\\s]", " ").replaceAll("\\s+", " ").trim();
-        Set<String> weakExact = Set.of(
-                "explain your project", "explain your project architecture",
-                "tell me about your project", "tell me about yourself",
-                "introduce yourself", "what is your project",
-                "what are you working on", "how was your interview",
-                "how did the interview go");
-        if (weakExact.contains(normalized)) return false;
-        String[] weakStarts = {"are you using ", "do you use ", "have you used ",
-                "have you worked with ", "what tools do you use ",
-                "what technology do you use ", "what tech stack ",
-                "what is your experience with "};
-        for (String prefix : weakStarts) if (normalized.startsWith(prefix)) return false;
-        return true;
-    }
     private JsonNode callOpenAi(String prompt, JsonNode schema, CrawlSource source) throws Exception {
         ObjectNode request = objectMapper.createObjectNode();
         request.put("model", settings.extractModel());
         request.put("input", prompt);
         request.put("max_output_tokens", settings.extractMaxTokens());
-        // Explicitly empty — never enable web_search / browsing tools.
         request.set("tools", objectMapper.createArrayNode());
         request.put("store", false);
 
@@ -213,6 +187,7 @@ public class OpenAiQuestionExtractor {
         var question = objectMapper.createObjectNode().put("type", "object").put("additionalProperties", false);
         var properties = objectMapper.createObjectNode();
         properties.set("sourcePlatform", nullableStringSchema());
+        properties.set("originalPostUrl", nullableStringSchema());
         properties.set("problemUrl", nullableStringSchema());
         properties.set("postDate", nullableStringSchema());
         properties.set("company", nullableStringSchema());
@@ -224,25 +199,46 @@ public class OpenAiQuestionExtractor {
         properties.set("questionType", nullableStringSchema());
         properties.set("questionText", nullableStringSchema());
         properties.set("questionDescription", nullableStringSchema());
-                ObjectNode topicsSchema = objectMapper.createObjectNode().put("type", "array");
+        ObjectNode topicsSchema = objectMapper.createObjectNode().put("type", "array");
         topicsSchema.set("items", objectMapper.createObjectNode().put("type", "string"));
         properties.set("topics", topicsSchema);
         properties.set("confidence", nullableNumberSchema());
-        properties.set("questionSpecificity", nullableNumberSchema());
+        properties.set("questionGranularity", nullableNumberSchema());
         question.set("properties", properties);
         question.set("required", objectMapper.createArrayNode()
-                 .add("sourcePlatform").add("problemUrl").add("postDate").add("company").add("level")
+                .add("sourcePlatform").add("originalPostUrl").add("problemUrl").add("postDate").add("company").add("level")
                 .add("location").add("candidateYoE").add("outcome").add("roundType")
                 .add("questionType").add("questionText").add("questionDescription")
-                .add("topics").add("confidence").add("questionSpecificity"));
+                .add("topics").add("confidence").add("questionGranularity"));
 
         var schema = objectMapper.createObjectNode().put("type", "object").put("additionalProperties", false);
         ObjectNode schemaProperties = objectMapper.createObjectNode();
+
+        ObjectNode sourceSchema = objectMapper.createObjectNode()
+                .put("type", "object").put("additionalProperties", false);
+        ObjectNode sourceProperties = objectMapper.createObjectNode();
+        sourceProperties.set("name", objectMapper.createObjectNode().put("type", "string"));
+        sourceProperties.set("url", objectMapper.createObjectNode().put("type", "string"));
+        sourceSchema.set("properties", sourceProperties);
+        sourceSchema.set("required", objectMapper.createArrayNode().add("name").add("url"));
+
+        ObjectNode experienceSchema = objectMapper.createObjectNode()
+                .put("type", "object").put("additionalProperties", false);
+        ObjectNode experienceProperties = objectMapper.createObjectNode();
+        experienceProperties.set("title", nullableStringSchema());
+        experienceProperties.set("postedAt", nullableStringSchema());
+        experienceProperties.set("author", nullableStringSchema());
+        experienceSchema.set("properties", experienceProperties);
+        experienceSchema.set("required", objectMapper.createArrayNode().add("title").add("postedAt").add("author"));
+
         ObjectNode questionsSchema = objectMapper.createObjectNode().put("type", "array");
         questionsSchema.set("items", question);
+
+        schemaProperties.set("source", sourceSchema);
+        schemaProperties.set("experience", experienceSchema);
         schemaProperties.set("questions", questionsSchema);
         schema.set("properties", schemaProperties);
-        schema.set("required", objectMapper.createArrayNode().add("questions"));
+        schema.set("required", objectMapper.createArrayNode().add("source").add("experience").add("questions"));
         format.set("schema", schema);
         return objectMapper.createObjectNode().set("format", format);
     }
@@ -331,62 +327,62 @@ public class OpenAiQuestionExtractor {
         return value;
     }
 
+    private static String firstNonBlank(String first, String second) {
+        return first != null && !first.isBlank() ? first : second;
+    }
+
+    private static String nullableText(JsonNode node, String field) {
+        if (node == null || node.isMissingNode() || node.isNull()) return null;
+        String value = node.path(field).asText(null);
+        return value == null || value.isBlank() ? null : value;
+    }
+
+    private static Instant nullableInstant(JsonNode node, String field) {
+        String value = nullableText(node, field);
+        if (value == null) return null;
+        try {
+            return Instant.parse(value);
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    private static String meaningfulTitle(String title) {
+        return title == null || title.isBlank() ? "Interview Experience" : title.trim();
+    }
+
+    private static String buildExperienceTitle(ExtractedQuestion item) {
+        if (item.company() != null && !item.company().isBlank()) {
+            return item.company().trim() + " Interview Experience";
+        }
+        return "Interview Experience";
+    }
+
+    private static String normalizeProblemUrl(String problemUrl) {
+        return problemUrl == null || problemUrl.isBlank() ? null : problemUrl.trim();
+    }
+
     private static String normalizeQuestionType(String value) {
-        if (value == null || value.isBlank()) {
-            return null;
-        }
-        String normalized = value.trim().replace('-', '_').replace(' ', '_').toUpperCase(Locale.ROOT);
-        return switch (normalized) {
-            case "CODING" -> "Coding";
-            case "DATABASE" -> "Database";
-            case "SYSTEM_DESIGN" -> "System Design";
-            case "LLD" -> "LLD";
-            case "CLOUD" -> "Cloud";
-            case "SECURITY" -> "Security";
-            case "DEVOPS" -> "DevOps";
-            case "AI_ML", "AIML" -> "AI/ML";
-            case "DATA_ENGINEERING" -> "Data Engineering";
-            case "DISTRIBUTED_SYSTEMS" -> "Distributed Systems";
-            case "NETWORKING" -> "Networking";
-            case "OPERATING_SYSTEMS" -> "Operating Systems";
-            case "PROGRAMMING_LANGUAGE" -> "Programming Language";
-            case "WEB_FRONTEND" -> "Web Frontend";
-            case "MOBILE" -> "Mobile";
-            case "TESTING" -> "Testing";
-            case "TECHNICAL_CONCEPT" -> "Technical Concept";
-            default -> value.trim();
-        };
+        if (value == null || value.isBlank()) return "Other";
+        return value.trim();
     }
 
-    private static String normalizeProblemUrl(String value) {
-        if (value == null || value.isBlank()) {
-            return null;
-        }
-        String url = value.trim();
-        if (!url.startsWith("https://leetcode.com/problems/")) {
-            return url;
-        }
-        int query = url.indexOf("?");
-        int fragment = url.indexOf("#");
-        int end = url.length();
-        if (query >= 0) {
-            end = Math.min(end, query);
-        }
-        if (fragment >= 0) {
-            end = Math.min(end, fragment);
-        }
-        return url.substring(0, end);
-    }
-
-    private static String firstNonBlank(String value, String fallback) {
-        return value != null && !value.isBlank() ? value : fallback;
-    }
-
-    private record ExtractedQuestions(List<ExtractedQuestion> questions) {}
-
-    private record ExtractedQuestion(String sourcePlatform, String originalPostUrl, String problemUrl, LocalDate postDate,
-                                     String company, String level, String location, Float candidateYoE,
-                                     String outcome, String roundType, String questionType, String questionText,
-                                     String questionDescription,
-                                     List<String> topics, Float confidence, Float questionSpecificity) {}
+    private record ExtractedQuestion(
+            String sourcePlatform,
+            String originalPostUrl,
+            String problemUrl,
+            LocalDate postDate,
+            String company,
+            String level,
+            String location,
+            Float candidateYoE,
+            String outcome,
+            String roundType,
+            String questionType,
+            String questionText,
+            String questionDescription,
+            List<String> topics,
+            Float confidence,
+            Float questionGranularity
+    ) {}
 }
