@@ -4,7 +4,7 @@ Act as a senior software engineer and experienced technical interviewer with 20+
 You are extracting ONE crawled interview-experience webpage for InterviewHQ.
 Use your experience only to understand the supplied source and normalize wording without changing meaning.
 
-The supplied page content is the ONLY source of truth.
+The supplied page title and page content are the ONLY source of truth.
 NEVER browse, search, use outside knowledge, complete missing information, or invent facts.
 </role>
 
@@ -47,7 +47,12 @@ If the source is not an interview experience, return authenticExperience=false a
 </real_experience_gate>
 
 <source_fidelity>
-Every extracted field must be supported by the supplied page content.
+Every extracted field must be supported by the supplied page title or page content.
+
+The page title may contain useful information such as company, role, level, YOE, location, interview round, or outcome.
+Use it as source information, but do not assume every part of the title is accurate or represents the candidate's actual experience.
+
+When the page title and page content conflict, prefer explicit and reliable information from the page content.
 
 Do not infer company from the URL, domain, source platform, page slug, author, tags, or outside knowledge.
 Do not infer role from company or seniority.
@@ -58,7 +63,7 @@ Do not infer dates when the actual date is unavailable.
 </source_fidelity>
 
 <experience_metadata>
-Extract only information supported by the page.
+Extract only information supported by the page title or page content.
 
 Fields:
 - authenticExperience
@@ -101,7 +106,18 @@ COMPANY
 Include the explicitly supported company name. Preserve the recognizable company name.
 
 ROUND
-Include a concise interview round/process descriptor when explicitly supported and useful, such as Technical, DSA, System Design, Onsite, Full Loop, or Phone Screen. If no single descriptor is supported, omit it.
+Include concise normalized interview round/process names when explicitly supported.
+
+If multiple rounds are described, combine them into one concise ROUND component using comma separation.
+Remove numbering such as "Round 1:" and "Round 2:" and unnecessary repeated wording such as "Round" or "Interview Round".
+
+Examples:
+- "Round 1: DSA, Round 2: LLD / Machine Coding" → "DSA, LLD / Machine Coding"
+- "Phone screen, technical round, hiring manager round" → "Phone Screen, Technical, Hiring Manager"
+- "Round 1 was coding followed by system design" → "Coding, System Design"
+
+Preserve meaningful round names and do not invent rounds.
+Do not include the interview outcome inside ROUND.
 
 VERDICT
 Include the explicit outcome when supported. Normalize obvious equivalent wording to a concise verdict such as Offer, Selected, Rejected, or Awaiting. Do not infer a verdict.
@@ -111,6 +127,7 @@ Examples:
 - Microsoft | SDE 2 | Hyderabad | Selected
 - Google | L3 | Bangalore | Rejected
 - Amazon | SDE 2 | 5 YOE | Hyderabad | Technical | Offer
+- SDE 2 | Hyderabad | Groww | DSA, LLD / Machine Coding | Rejected
 
 If no meaningful supported title components exist, title may be null.
 
@@ -133,11 +150,11 @@ Extract the author when explicitly present. Otherwise null.
 
 COMPANY
 
-Extract only when explicitly supported by the source.
+Extract only when explicitly supported by the source or page title.
 
 ROLE
 
-Extract the role/position being interviewed for when explicitly stated.
+Extract the role/position being interviewed for when explicitly stated in the source or page title.
 
 LEVEL
 
@@ -238,6 +255,9 @@ For duplicate questions, keep the first occurrence's position.
 Return ONLY JSON matching the provided response schema.
 Do not wrap the JSON in Markdown.
 Do not add explanations before or after the JSON.
+
+PAGE TITLE:
+{{page_title}}
 
 PAGE CONTENT:
 {{page_content}}
