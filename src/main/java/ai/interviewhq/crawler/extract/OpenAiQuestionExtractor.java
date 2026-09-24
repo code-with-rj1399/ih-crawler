@@ -19,13 +19,10 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
-import java.util.Set;
 
 /**
  * Model is used only to structure questions from page text the crawler already
@@ -49,8 +46,8 @@ public class OpenAiQuestionExtractor {
         this.httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(15)).build();
         this.objectMapper = objectMapper;
         this.settings = settings;
-        this.promptService = promptService;
         this.apiKey = apiKey;
+        this.promptService = promptService;
     }
 
     public List<InterviewQuestion> extractQuestionsFromContent(CrawlSource source, String postUrl,
@@ -98,16 +95,6 @@ public class OpenAiQuestionExtractor {
                 if (item == null || item.questionText() == null || item.questionText().isBlank()) {
                     continue;
                 }
-                if (item.company() == null || item.company().isBlank()) {
-                    log.info("Rejecting extracted question without company: source={}, postUrl={}",
-                            source.getSlug(), postUrl);
-                    continue;
-                }
-
-                if (!isHighQualityQuestion(item)) {
-                    log.info("Rejecting low-quality extracted question: source={} postUrl={} question={}", source.getSlug(), postUrl, item.questionText());
-                    continue;
-                }
 
                 InterviewQuestion question = new InterviewQuestion();
                 question.setSourcePlatform(firstNonBlank(item.sourcePlatform(), source.getName()));
@@ -144,40 +131,11 @@ public class OpenAiQuestionExtractor {
         }
     }
 
-
-    /** Deterministic quality gate: LLM output is a candidate, not truth. */
-    private boolean isHighQualityQuestion(ExtractedQuestion item) {
-        String text = item.questionText() == null ? "" : item.questionText().trim();
-        if (text.isBlank() || text.length() < 8 || text.length() > 140) return false;
-        String description = item.questionDescription() == null ? "" : item.questionDescription().trim();
-        if (description.isBlank()) return false;
-        float confidence = item.confidence() == null ? 0f : item.confidence();
-        if (confidence < 0.50f || confidence > 1.0f) return false;
-        float granularity = item.questionGranularity() == null ? -1f : item.questionGranularity();
-        if (granularity < 0.0f || granularity > 1.0f) return false;
-        String canonicalType = normalizeQuestionType(item.questionType());
-        if (!Set.of("Coding", "Database", "System Design", "LLD", "Cloud", "Security", "DevOps",
-                "AI/ML", "Data Engineering", "Distributed Systems", "Networking", "Operating Systems",
-                "Programming Language", "Web Frontend", "Mobile", "Testing", "Technical Concept",
-                "Behavioral", "HR", "Personal / Background", "Resume / Project", "Interview Process", "Other")
-                .contains(canonicalType)) return false;
-        String normalized = text.toLowerCase(Locale.ROOT)
-                .replaceAll("[^a-z0-9\\s]", " ").replaceAll("\\s+", " ").trim();
-        Set<String> weakExact = Set.of(
-                "explain your project", "explain your project architecture",
-                "tell me about your project", "tell me about yourself",
-                "introduce yourself", "what is your project",
-                "what are you working on", "how was your interview",
-                "how did the interview go");
-        if (weakExact.contains(normalized)) return false;
-        return true;
-    }
     private JsonNode callOpenAi(String prompt, JsonNode schema, CrawlSource source) throws Exception {
         ObjectNode request = objectMapper.createObjectNode();
         request.put("model", settings.extractModel());
         request.put("input", prompt);
         request.put("max_output_tokens", settings.extractMaxTokens());
-        // Explicitly empty — never enable web_search / browsing tools.
         request.set("tools", objectMapper.createArrayNode());
         request.put("store", false);
 
@@ -368,57 +326,16 @@ public class OpenAiQuestionExtractor {
         return value;
     }
 
-    private static String normalizeQuestionType(String value) {
-        if (value == null || value.isBlank()) {
-            return null;
-        }
-        String normalized = value.trim().replace('-', '_').replace(' ', '_').toUpperCase(Locale.ROOT);
-        return switch (normalized) {
-            case "CODING" -> "Coding";
-            case "DATABASE" -> "Database";
-            case "SYSTEM_DESIGN" -> "System Design";
-            case "LLD" -> "LLD";
-            case "CLOUD" -> "Cloud";
-            case "SECURITY" -> "Security";
-            case "DEVOPS" -> "DevOps";
-            case "AI_ML", "AIML" -> "AI/ML";
-            case "DATA_ENGINEERING" -> "Data Engineering";
-            case "DISTRIBUTED_SYSTEMS" -> "Distributed Systems";
-            case "NETWORKING" -> "Networking";
-            case "OPERATING_SYSTEMS" -> "Operating Systems";
-            case "PROGRAMMING_LANGUAGE" -> "Programming Language";
-            case "WEB_FRONTEND" -> "Web Frontend";
-            case "MOBILE" -> "Mobile";
-            case "TESTING" -> "Testing";
-            case "TECHNICAL_CONCEPT" -> "Technical Concept";
-            default -> value.trim();
-        };
-    }
-
-    private static String normalizeProblemUrl(String value) {
-        if (value == null || value.isBlank()) {
-            return null;
-        }
-        String url = value.trim();
-        if (!url.startsWith("https://leetcode.com/problems/")) {
-            return url;
-        }
-        int query = url.indexOf("?");
-        int fragment = url.indexOf("#");
-        int end = url.length();
-        if (query >= 0) {
-            end = Math.min(end, query);
-        }
-        if (fragment >= 0) {
-            end = Math.min(end, fragment);
-        }
-        return url.substring(0, end);
+    private static String firstNonBlank(String first, String second) {
+        return first != null && !first.isBlank() ? first : second;
     }
 
     private static String nullableText(JsonNode node, String field) {
-        JsonNode value = node.get(field);
-        return value == null || value.isNull() || !value.isTextual() || value.asText().isBlank()
-                ? null : value.asText().trim();
+        if (node == null || node.isMissingNode() || node.isNull()) {
+            return null;
+        }
+        String value = node.path(field).asText(null);
+        return value == null || value.isBlank() ? null : value;
     }
 
     private static Instant nullableInstant(JsonNode node, String field) {
@@ -431,40 +348,23 @@ public class OpenAiQuestionExtractor {
         }
     }
 
-    private static String meaningfulTitle(String value) {
-        if (value == null || value.isBlank()) return null;
-        String normalized = value.trim().replaceAll("\\s+", " ");
-        if (normalized.equalsIgnoreCase("untitled interview experience")
-                || normalized.equalsIgnoreCase("interview experience")
-                || normalized.equalsIgnoreCase("untitled")) {
-            return null;
-        }
-        return normalized;
+    private static String meaningfulTitle(String title) {
+        return title == null || title.isBlank() ? "Interview Experience" : title.trim();
     }
 
     private static String buildExperienceTitle(ExtractedQuestion item) {
-        List<String> parts = new ArrayList<>();
-        if (item.level() != null && !item.level().isBlank()) parts.add(item.level().trim());
-        if (item.candidateYoE() != null && item.candidateYoE() > 0) {
-            parts.add(formatYoE(item.candidateYoE()) + " YOE");
+        if (item.company() != null && !item.company().isBlank()) {
+            return item.company().trim() + " Interview Experience";
         }
-        if (item.location() != null && !item.location().isBlank()) parts.add(item.location().trim());
-        if (item.company() != null && !item.company().isBlank()) parts.add(item.company().trim());
-        return parts.isEmpty() ? null : String.join(" | ", parts);
+        return "Interview Experience";
     }
 
-    private static String formatYoE(float value) {
-        if (value == Math.rint(value)) return String.valueOf((int) value);
-        return String.valueOf(value);
+    private static String normalizeProblemUrl(String problemUrl) {
+        return problemUrl == null || problemUrl.isBlank() ? null : problemUrl.trim();
     }
 
-    private static String firstNonBlank(String value, String fallback) {
-        return value != null && !value.isBlank() ? value : fallback;
+    private static String normalizeQuestionType(String value) {
+        if (value == null || value.isBlank()) return "Other";
+        return value.trim();
     }
-
-    private record ExtractedQuestion(String sourcePlatform, String originalPostUrl, String problemUrl, LocalDate postDate,
-                                     String company, String level, String location, Float candidateYoE,
-                                     String outcome, String roundType, String questionType, String questionText,
-                                     String questionDescription,
-                                     List<String> topics, Float confidence, Float questionGranularity) {}
 }
