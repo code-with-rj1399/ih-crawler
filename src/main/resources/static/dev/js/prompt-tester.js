@@ -23,6 +23,11 @@ function showOutput(id, value, error = false) {
   element.classList.toggle('output-error', error);
 }
 
+function showSummary(value, error = false) {
+  const element = document.getElementById('step1Summary');
+  element.textContent = error ? `ERROR\n${value}` : (value?.experience?.summary || 'No summary returned.');
+}
+
 async function load() {
   const prompts = await getJson('/dev/api/prompts');
   document.getElementById('step1Prompt').value = prompts.experiencePrompt || '';
@@ -39,8 +44,10 @@ async function runStep1() {
       pageTitle: document.getElementById('pageTitle').value,
       pageContent: document.getElementById('pageContent').value
     });
+    showSummary(result);
     showOutput('step1Output', result);
   } catch (error) {
+    showSummary(error.message, true);
     showOutput('step1Output', error.message, true);
   } finally {
     button.disabled = false;
@@ -72,6 +79,7 @@ document.getElementById('runStep1').addEventListener('click', runStep1);
 document.getElementById('runStep2').addEventListener('click', runStep2);
 
 load().catch(error => {
+  showSummary(error.message, true);
   showOutput('step1Output', error.message, true);
   showOutput('step2Output', error.message, true);
 });
