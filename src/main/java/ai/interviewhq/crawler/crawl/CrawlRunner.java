@@ -177,76 +177,47 @@ public class CrawlRunner {
                     entry.bodyText());
 
             ExperienceExtraction experience = result.experience();
-            modelCalls[0] += 1 + result.questions().size();
+            // Exactly two model calls per eligible page when Step 1 finds questions:
+            // one experience extraction call and one page-scoped question metadata call.
+            modelCalls[0] += experience != null && !experience.questions().isEmpty() ? 2 : 1;
 
-            if (!experience.authenticExperience()) {
+            if (experience == null || !experience.authenticExperience()) {
                 skipped[0]++;
-                log.info("Rejected non-experience page: source={} url={}", source.getSlug(), postUrl);
                 return;
             }
 
-            InterviewPost post = saveExperience(source, entry, experience, postUrl);
+            InterviewPost post = new InterviewPost();
+            post.setUrl(postUrl);
+            post.setSourcePlatform(source.getName());
+            post.setTitle(experience.title());
+            post.setAuthor(experience.author());
+            post.setPublishedAt(experience.postedAt() != null ? experience.postedAt() : entry.publishedAt());
+            post.setSummary(experience.summary());
+            post.setCompany(experience.company());
+            post.setRole(experience.role());
+            post.setLevel(experience.level());
+            post.setLocation(experience.location());
+            post.setCandidateYoE(experience.candidateYoE());
+            post.setOutcome(experience.outcome());
+            post.setRounds(experience.rounds());
+            postRepository.save(post);
             savedPosts[0]++;
 
             for (InterviewQuestion question : result.questions()) {
-                question.setPostId(post.getId());
-                String dedupeHash = question.getDedupeHash();
-                if (dedupeHash == null || dedupeHash.isBlank()
-                        || !seenHashes.add(dedupeHash)
-                        || questionRepository.findByDedupeHash(dedupeHash).isPresent()) {
-                    skipped[0]++;
+                String hash = question.getDedupeHash();
+                if (hash != null && !seenHashes.add(hash)) {
                     continue;
                 }
-
                 questionRepository.save(question);
                 savedQuestions[0]++;
             }
-
-            log.info("Two-step extraction completed: source={} url={} questions={} modelCalls={} savedQuestions={}",
-                    source.getSlug(), postUrl, result.questions().size(),
-                    1 + result.questions().size(), savedQuestions[0]);
         } catch (Exception e) {
+            log.error("AI extraction failed for {}", postUrl, e);
             skipped[0]++;
-            log.error("Two-step extraction failed: source={} url={}", source.getSlug(), postUrl, e);
         }
-    }
-
-    private InterviewPost saveExperience(CrawlSource source,
-                                         ParsedEntry entry,
-                                         ExperienceExtraction experience,
-                                         String postUrl) {
-        InterviewPost post = postRepository.findBySourceIdAndUrl(source.getId(), postUrl)
-                .orElseGet(InterviewPost::new);
-
-        post.setSourceId(source.getId());
-        post.setUrl(postUrl);
-        post.setTitle(experience.title() != null ? experience.title() : entry.title());
-        post.setAuthor(experience.author() != null ? experience.author() : entry.author());
-        post.setPostedAt(experience.postedAt() != null ? experience.postedAt() : entry.publishedAt());
-        post.setSummary(experience.summary());
-        post.setRawCompany(experience.company());
-        post.setRawRole(experience.role());
-        post.setExperienceLevel(experience.level());
-        post.setLocation(experience.location());
-        post.setCandidateYoE(experience.candidateYoE());
-        post.setOutcome(experience.outcome());
-        post.setRounds(experience.rounds());
-        post.setBodyText(entry.bodyText());
-        post.setExtracted(true);
-        return postRepository.save(post);
     }
 
     private boolean isEligible(ParsedEntry entry, Instant cutoff) {
-        if (entry == null) return false;
-        if (entry.publishedAt() == null) {
-            log.info("24h gate rejected undated candidate: url={}", entry.url());
-            return false;
-        }
-        boolean eligible = !entry.publishedAt().isBefore(cutoff);
-        if (!eligible) {
-            log.info("24h gate rejected old candidate: url={} publishedAt={} cutoff={}",
-                    entry.url(), entry.publishedAt(), cutoff);
-        }
-        return eligible;
+        return entry.publishedAt() != null && !entry.publishedAt().isBefore(cutoff);
     }
 }
