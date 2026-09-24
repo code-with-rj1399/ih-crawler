@@ -14,6 +14,7 @@ public class InterviewQuestion {
 
     private String sourcePlatform;
     private String experienceTitle;
+    private String experienceSummary;
     private String experienceAuthor;
     private Instant experiencePostedAt;
     private String originalPostUrl;
@@ -24,9 +25,7 @@ public class InterviewQuestion {
     private String level;
     private String location;
     private Float candidateYoE;
-    private String outcome;
 
-    private String roundType;
     private String questionType;
     private String difficulty;
     private List<String> topics = new ArrayList<>();
@@ -57,6 +56,8 @@ public class InterviewQuestion {
     public void setSourcePlatform(String sourcePlatform) { this.sourcePlatform = sourcePlatform; }
     public String getExperienceTitle() { return experienceTitle; }
     public void setExperienceTitle(String experienceTitle) { this.experienceTitle = experienceTitle; }
+    public String getExperienceSummary() { return experienceSummary; }
+    public void setExperienceSummary(String experienceSummary) { this.experienceSummary = experienceSummary; }
     public String getExperienceAuthor() { return experienceAuthor; }
     public void setExperienceAuthor(String experienceAuthor) { this.experienceAuthor = experienceAuthor; }
     public Instant getExperiencePostedAt() { return experiencePostedAt; }
@@ -75,10 +76,6 @@ public class InterviewQuestion {
     public void setLocation(String location) { this.location = location; }
     public Float getCandidateYoE() { return candidateYoE; }
     public void setCandidateYoE(Float candidateYoE) { this.candidateYoE = candidateYoE; }
-    public String getOutcome() { return outcome; }
-    public void setOutcome(String outcome) { this.outcome = outcome; }
-    public String getRoundType() { return roundType; }
-    public void setRoundType(String roundType) { this.roundType = roundType; }
     public String getQuestionType() { return questionType; }
     public void setQuestionType(String questionType) { this.questionType = questionType; }
     public String getDifficulty() { return difficulty; }
