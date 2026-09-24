@@ -1,1 +1,38 @@
-import {getPrompt,updatePrompt,resetPrompt} from './api.js';import {estimateTokens} from './utils.js';function setTokenCount(){const n=estimateTokens(document.getElementById('extractionPrompt').value);document.getElementById('promptTokenCount').textContent='Estimated tokens: '+n.toLocaleString();document.getElementById('configPromptTokens').textContent=n.toLocaleString()}export async function loadPrompt(){try{const data=await getPrompt();document.getElementById('extractionPrompt').value=data.prompt||'';setTokenCount()}catch{document.getElementById('promptStatus').textContent='Failed to load prompt'}}export async function savePromptAction(){const prompt=document.getElementById('extractionPrompt').value;if(!prompt.trim()){document.getElementById('promptStatus').textContent='Prompt cannot be empty';return}try{const data=await updatePrompt(prompt);document.getElementById('extractionPrompt').value=data.prompt||prompt;setTokenCount();document.getElementById('promptStatus').textContent='Prompt saved'}catch(error){document.getElementById('promptStatus').textContent='Failed to save prompt: '+error.message}}export async function resetPromptAction(){if(!confirm('Reset the runtime prompt to the bundled default?'))return;try{const data=await resetPrompt();document.getElementById('extractionPrompt').value=data.prompt||'';setTokenCount();document.getElementById('promptStatus').textContent='Prompt reset'}catch{document.getElementById('promptStatus').textContent='Failed to reset prompt'}}export function bindPrompt(){document.getElementById('extractionPrompt').addEventListener('input',setTokenCount)}
+import {getPrompts,updateExperiencePrompt,updateQuestionMetadataPrompt,resetPrompts,getConfig} from './api.js';
+import {estimateTokens} from './utils.js';
+
+function setTokenCount(id,countId){const n=estimateTokens(document.getElementById(id).value);document.getElementById(countId).textContent='Estimated tokens: '+n.toLocaleString()}
+function refreshCounts(){setTokenCount('experiencePrompt','experiencePromptTokenCount');setTokenCount('questionMetadataPrompt','questionMetadataPromptTokenCount')}
+
+export async function loadPrompts(){
+  try{
+    const [prompts,config]=await Promise.all([getPrompts(),getConfig()]);
+    document.getElementById('experiencePrompt').value=prompts.experiencePrompt||'';
+    document.getElementById('questionMetadataPrompt').value=prompts.questionMetadataPrompt||'';
+    document.getElementById('modelName').textContent=config.model||'gpt-5-nano';
+    document.getElementById('reasoningName').textContent=config.reasoningEffort||'low';
+    refreshCounts();
+  }catch(error){document.getElementById('promptStatus').textContent='Failed to load prompts: '+error.message}
+}
+
+export async function saveExperiencePromptAction(){
+  const prompt=document.getElementById('experiencePrompt').value;
+  if(!prompt.trim()){document.getElementById('experiencePromptStatus').textContent='Prompt cannot be empty';return}
+  try{const data=await updateExperiencePrompt(prompt);document.getElementById('experiencePrompt').value=data.prompt||prompt;refreshCounts();document.getElementById('experiencePromptStatus').textContent='Saved'}catch(error){document.getElementById('experiencePromptStatus').textContent='Failed: '+error.message}
+}
+
+export async function saveQuestionMetadataPromptAction(){
+  const prompt=document.getElementById('questionMetadataPrompt').value;
+  if(!prompt.trim()){document.getElementById('questionMetadataPromptStatus').textContent='Prompt cannot be empty';return}
+  try{const data=await updateQuestionMetadataPrompt(prompt);document.getElementById('questionMetadataPrompt').value=data.prompt||prompt;refreshCounts();document.getElementById('questionMetadataPromptStatus').textContent='Saved'}catch(error){document.getElementById('questionMetadataPromptStatus').textContent='Failed: '+error.message}
+}
+
+export async function resetPromptsAction(){
+  if(!confirm('Reset both extraction prompts to their bundled defaults?'))return;
+  try{const data=await resetPrompts();document.getElementById('experiencePrompt').value=data.experiencePrompt||'';document.getElementById('questionMetadataPrompt').value=data.questionMetadataPrompt||'';refreshCounts();document.getElementById('promptStatus').textContent='Both prompts reset'}catch(error){document.getElementById('promptStatus').textContent='Failed to reset prompts: '+error.message}
+}
+
+export function bindPrompt(){
+  document.getElementById('experiencePrompt').addEventListener('input',refreshCounts);
+  document.getElementById('questionMetadataPrompt').addEventListener('input',refreshCounts);
+}
