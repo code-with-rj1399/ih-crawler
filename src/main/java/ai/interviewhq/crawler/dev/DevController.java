@@ -13,7 +13,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
-import org.springframework.web.servlet.view.RedirectView;
 import java.util.List;
 import java.util.Map;
 
@@ -39,13 +38,13 @@ public class DevController {
     }
 
     @GetMapping("/dev")
-    public RedirectView page() { return new RedirectView("/dev/index.html"); }
+    public org.springframework.web.servlet.view.RedirectView page() { return new org.springframework.web.servlet.view.RedirectView("/dev/index.html"); }
 
     @GetMapping("/config")
     public Map<String, String> config() {
         return Map.of(
-                "model", System.getenv().getOrDefault("OPENAI_MODEL", "gpt-5.6-terra"),
-                "reasoningEffort", System.getenv().getOrDefault("OPENAI_REASONING_EFFORT", "high")
+                "model", System.getenv().getOrDefault("OPENAI_MODEL", "gpt-5-nano"),
+                "reasoningEffort", System.getenv().getOrDefault("OPENAI_REASONING_EFFORT", "low")
         );
     }
 
@@ -82,29 +81,43 @@ public class DevController {
         return sourceRepository.save(source);
     }
 
-    @GetMapping("/prompt")
-    public Map<String, String> getPrompt() { return Map.of("prompt", promptService.getPrompt()); }
-
-    @PutMapping("/prompt")
-    public Map<String, String> updatePrompt(@RequestBody PromptRequest request) {
-        promptService.setPrompt(request == null ? null : request.prompt());
-        return Map.of("prompt", promptService.getPrompt());
+    @GetMapping("/prompts")
+    public Map<String, String> getPrompts() {
+        return Map.of(
+                "experiencePrompt", promptService.getExperiencePrompt(),
+                "questionMetadataPrompt", promptService.getQuestionMetadataPrompt()
+        );
     }
 
-    @PostMapping("/prompt/reset")
-    public Map<String, String> resetPrompt() { promptService.resetToDefault(); return Map.of("prompt", promptService.getPrompt()); }
-
-    @DeleteMapping("/questions")
-    public ResponseEntity<Map<String, Object>> deleteAllQuestions() {
-        int deleted = questionRepository.deleteAll(); return ResponseEntity.ok(Map.of("deleted", deleted));
+    @PutMapping("/prompts/experience")
+    public Map<String, String> updateExperiencePrompt(@RequestBody PromptRequest request) {
+        promptService.setExperiencePrompt(request == null ? null : request.prompt());
+        return Map.of("prompt", promptService.getExperiencePrompt());
     }
 
-    public record CreateSourceRequest(String name, String url, String sourceKind, Boolean enabled) {}
-    public record PromptRequest(String prompt) {}
+    @PutMapping("/prompts/question-metadata")
+    public Map<String, String> updateQuestionMetadataPrompt(@RequestBody PromptRequest request) {
+        promptService.setQuestionMetadataPrompt(request == null ? null : request.prompt());
+        return Map.of("prompt", promptService.getQuestionMetadataPrompt());
+    }
+
+    @PostMapping("/prompts/reset")
+    public Map<String, String> resetPrompts() {
+        promptService.resetToDefault();
+        return Map.of(
+                "experiencePrompt", promptService.getExperiencePrompt(),
+                "questionMetadataPrompt", promptService.getQuestionMetadataPrompt()
+        );
+    }
 
     @GetMapping("/questions")
     public List<InterviewQuestion> questions() {
         return questionRepository.findAll().stream().sorted((a, b) -> Integer.compare(b.getId() == null ? 0 : b.getId(), a.getId() == null ? 0 : a.getId())).limit(100).toList();
+    }
+
+    @DeleteMapping("/questions")
+    public ResponseEntity<Map<String, Object>> deleteAllQuestions() {
+        int deleted = questionRepository.deleteAll(); return ResponseEntity.ok(Map.of("deleted", deleted));
     }
 
     @GetMapping("/download")
@@ -116,4 +129,7 @@ public class DevController {
 
     @PostMapping("/crawl")
     public void crawl() { crawlRunner.runOnce(); }
+
+    public record CreateSourceRequest(String name, String url, String sourceKind, Boolean enabled) {}
+    public record PromptRequest(String prompt) {}
 }
