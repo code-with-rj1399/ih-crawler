@@ -8,7 +8,7 @@ from typing import Any
 
 from openai import OpenAI
 
-MODEL = os.getenv("OPENAI_MODEL", "gpt-5-nano")
+MODEL = os.getenv("OPENAI_MODEL", "gpt-5.6-terra")
 INPUT_LIMIT = int(os.getenv("INPUT_LIMIT", "5"))
 MAX_CONTENT_CHARS = int(os.getenv("MAX_CONTENT_CHARS", "30000"))
 
@@ -123,7 +123,7 @@ def call_json(prompt: str, schema: dict[str, Any], schema_name: str, max_output_
     response = client.responses.create(
         model=MODEL,
         input=prompt,
-        reasoning={"effort": "minimal"},
+        reasoning={"effort": "high"},
         text={
             "format": {
                 "type": "json_schema",
@@ -171,7 +171,7 @@ def main() -> None:
     limit = max(1, args.limit)
     records = load_records(args.input, limit)
 
-    print(f"Loaded {len(records)} records (limit={limit}, model={MODEL}, single-prompt=true)")
+    print(f"Loaded {len(records)} records (limit={limit}, model={MODEL}, reasoning=high, single-prompt=true)")
 
     for i, record in enumerate(records, 1):
         try:
