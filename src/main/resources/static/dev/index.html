@@ -140,19 +140,19 @@ function renderQuestions(rows){
    html+='<div class="experience-card">'+
      '<button class="experience-header" onclick="toggleExperience(\''+id+'\',this)">'+
        '<span class="expand-icon">▶</span>'+
-       '<span class="experience-main"><strong>'+esc(title)+'</strong><span class="experience-meta">'+esc(company)+' · '+esc(source)+' · '+esc(author)+' · '+esc(posted)+'</span></span>'+
-       '<span class="badge">'+g.questions.length+' question'+(g.questions.length===1?'':'s')+'</span>'+
-     '</button>'+
-     '<div id="'+id+'" class="experience-questions">'+
-       '<div class="experience-source">'+(x.originalPostUrl?'<a href="'+esc(x.originalPostUrl)+'" target="_blank" rel="noopener">Open interview experience ↗</a>':"")+'</div>'+
-       '<table><thead><tr><th>Question</th><th>Type</th><th>Topics</th><th>Confidence</th><th>Specificity</th><th></th><th>Links</th></tr></thead><tbody>';
+       '<span class="experience-main"><strong>'+esc(title)+'</strong><span class="experience-meta">'+esc(company)+' · '+esc(source)+' · '+esc(author)+' · '+esc(posted)+'</span></span>'+ 
+       '<span class="badge">'+g.questions.length+' question'+(g.questions.length===1?'':'s')+'</span>'+ 
+     '</button>'+ 
+     '<div id="'+id+'" class="experience-questions">'+ 
+       '<div class="experience-source">'+(x.originalPostUrl?'<a href="'+esc(x.originalPostUrl)+'" target="_blank" rel="noopener">Open interview experience ↗</a>':"")+'</div>'+ 
+       '<table><thead><tr><th>Question</th><th>Type</th><th>Topics</th><th>Confidence</th><th>Granularity</th><th></th><th>Links</th></tr></thead><tbody>';
    for(const q of g.questions){
-     html+='<tr><td class="question">'+esc(q.questionText||"—")+'</td>'+
-       '<td>'+esc(formatQuestionType(q.questionType))+'</td>'+
-       '<td>'+(q.topics||[]).map(t=>'<span class="pill">'+esc(t)+'</span>').join("")+'</td>'+
-       '<td><span class="badge">'+((q.confidence===null||q.confidence===undefined||q.confidence==="")?"—":Number(q.confidence).toFixed(2))+'</span></td>'+
-       '<td><span class="badge">'+((q.questionSpecificity===null||q.questionSpecificity===undefined||q.questionSpecificity==="")?"—":Number(q.questionSpecificity).toFixed(2))+'</span></td>'+
-       '<td><button class="secondary details-btn" onclick="showDetails('+q._index+')">Details</button></td>'+
+     html+='<tr><td class="question">'+esc(q.questionText||"—")+'</td>'+ 
+       '<td>'+esc(formatQuestionType(q.questionType))+'</td>'+ 
+       '<td>'+(q.topics||[]).map(t=>'<span class="pill">'+esc(t)+'</span>').join("")+'</td>'+ 
+       '<td><span class="badge">'+((q.confidence===null||q.confidence===undefined||q.confidence==="")?"—":Number(q.confidence).toFixed(2))+'</span></td>'+ 
+       '<td><span class="badge">'+((q.questionGranularity===null||q.questionGranularity===undefined||q.questionGranularity==="")?"—":Number(q.questionGranularity).toFixed(2))+'</span></td>'+ 
+       '<td><button class="secondary details-btn" onclick="showDetails('+q._index+')">Details</button></td>'+ 
        '<td>'+(q.problemUrl?'<a href="'+esc(q.problemUrl)+'" target="_blank" rel="noopener">Problem ↗</a>':"—")+'</td></tr>';
    }
    html+='</tbody></table></div></div>';
