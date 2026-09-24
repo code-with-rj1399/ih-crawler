@@ -18,17 +18,15 @@ public record ExperienceExtraction(
         String location,
         Float candidateYoE,
         String outcome,
-        List<String> rounds,
         List<QuestionCandidate> questions
 ) {
     public ExperienceExtraction {
-        rounds = rounds == null ? List.of() : List.copyOf(rounds);
         questions = questions == null ? List.of() : List.copyOf(questions);
     }
 
     public static ExperienceExtraction empty() {
         return new ExperienceExtraction(
                 null, null, null, null, null, null, null, null, null, null,
-                List.of(), List.of());
+                List.of());
     }
 }
