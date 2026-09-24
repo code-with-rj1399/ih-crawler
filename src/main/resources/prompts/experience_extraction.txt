@@ -257,7 +257,7 @@ Do not wrap the JSON in Markdown.
 Do not add explanations before or after the JSON.
 
 PAGE TITLE:
-{{page_title}}
+{{title}}
 
 PAGE CONTENT:
 {{page_content}}
