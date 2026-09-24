@@ -11,7 +11,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
@@ -131,7 +130,7 @@ public class OpenAiQuestionExtractor {
                 question.setQuestionDescription(item.questionDescription());
                 question.setTopics(item.topics() == null ? Collections.emptyList() : item.topics());
                 question.setConfidence(item.confidence());
-                question.setQuestionSpecificity(item.questionSpecificity());
+                question.setQuestionGranularity(item.questionGranularity());
                 question.setModelName(settings.extractModel());
                 question.setExtractedAt(Instant.now());
                 question.setDedupeHash(Hashing.questionDedupeHash(
@@ -154,8 +153,8 @@ public class OpenAiQuestionExtractor {
         if (description.isBlank()) return false;
         float confidence = item.confidence() == null ? 0f : item.confidence();
         if (confidence < 0.50f || confidence > 1.0f) return false;
-        float specificity = item.questionSpecificity() == null ? -1f : item.questionSpecificity();
-        if (specificity < 0.0f || specificity > 1.0f) return false;
+        float granularity = item.questionGranularity() == null ? -1f : item.questionGranularity();
+        if (granularity < 0.0f || granularity > 1.0f) return false;
         String canonicalType = normalizeQuestionType(item.questionType());
         if (!Set.of("Coding", "Database", "System Design", "LLD", "Cloud", "Security", "DevOps",
                 "AI/ML", "Data Engineering", "Distributed Systems", "Networking", "Operating Systems",
@@ -241,17 +240,17 @@ public class OpenAiQuestionExtractor {
         properties.set("questionType", nullableStringSchema());
         properties.set("questionText", nullableStringSchema());
         properties.set("questionDescription", nullableStringSchema());
-                ObjectNode topicsSchema = objectMapper.createObjectNode().put("type", "array");
+        ObjectNode topicsSchema = objectMapper.createObjectNode().put("type", "array");
         topicsSchema.set("items", objectMapper.createObjectNode().put("type", "string"));
         properties.set("topics", topicsSchema);
         properties.set("confidence", nullableNumberSchema());
-        properties.set("questionSpecificity", nullableNumberSchema());
+        properties.set("questionGranularity", nullableNumberSchema());
         question.set("properties", properties);
         question.set("required", objectMapper.createArrayNode()
-                 .add("sourcePlatform").add("originalPostUrl").add("problemUrl").add("postDate").add("company").add("level")
+                .add("sourcePlatform").add("originalPostUrl").add("problemUrl").add("postDate").add("company").add("level")
                 .add("location").add("candidateYoE").add("outcome").add("roundType")
                 .add("questionType").add("questionText").add("questionDescription")
-                .add("topics").add("confidence").add("questionSpecificity"));
+                .add("topics").add("confidence").add("questionGranularity"));
 
         var schema = objectMapper.createObjectNode().put("type", "object").put("additionalProperties", false);
         ObjectNode schemaProperties = objectMapper.createObjectNode();
@@ -467,5 +466,5 @@ public class OpenAiQuestionExtractor {
                                      String company, String level, String location, Float candidateYoE,
                                      String outcome, String roundType, String questionType, String questionText,
                                      String questionDescription,
-                                     List<String> topics, Float confidence, Float questionSpecificity) {}
+                                     List<String> topics, Float confidence, Float questionGranularity) {}
 }
