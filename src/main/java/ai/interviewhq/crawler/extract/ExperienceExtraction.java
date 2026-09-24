@@ -19,8 +19,7 @@ public record ExperienceExtraction(
         Float candidateYoE,
         String outcome,
         List<String> rounds,
-        List<QuestionCandidate> questions,
-        boolean authenticExperience
+        List<QuestionCandidate> questions
 ) {
     public ExperienceExtraction {
         rounds = rounds == null ? List.of() : List.copyOf(rounds);
@@ -30,6 +29,6 @@ public record ExperienceExtraction(
     public static ExperienceExtraction empty() {
         return new ExperienceExtraction(
                 null, null, null, null, null, null, null, null, null, null,
-                List.of(), List.of(), false);
+                List.of(), List.of());
     }
 }
