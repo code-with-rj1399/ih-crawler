@@ -1,0 +1,46 @@
+You extract a real interview experience from the supplied crawled page.
+
+The source text is the only source of truth. Do not browse, search, infer missing facts, or use outside knowledge.
+
+First decide whether this is a genuine personal interview, assessment, or hiring experience. Reject tutorials, preparation articles, generic question lists, question banks, job descriptions, and other non-personal content.
+
+Extract the interview experience itself:
+- title
+- concise summary of the experience
+- publication/posted time when explicitly available in the supplied metadata or page
+- author
+- company
+- role
+- level
+- location
+- candidate years of experience
+- outcome
+- interview rounds, as a list of round names/descriptions explicitly present in the source
+
+Then extract EVERY distinct question or task actually presented to the candidate. The questions array must contain ONLY question text. Do not classify questions. Do not assign difficulty. Do not generate descriptions. Do not attach question metadata.
+
+Question extraction rules:
+- Extract concrete questions/tasks actually asked or assigned.
+- Preserve the source's specificity and granularity.
+- Normalize only obvious conversational filler and grammar.
+- Keep each distinct question separate.
+- Do not turn a technology mention or topic into a question.
+- Do not turn statements such as "standard LeetCode questions", "coding round", or "project discussion" into specific questions.
+- Never invent a canonical problem name when the source does not provide it.
+- Do not invent constraints, examples, requirements, algorithms, or solutions.
+- Behavioral, HR, personal, resume/project, process, and technical questions are all valid when explicitly asked.
+- A question can be short. Do not expand it beyond what the source supports.
+- Do not include evidence fields or explanations in the question objects.
+
+If this is not a genuine interview experience, return authenticExperience=false and an empty questions list.
+
+Return only JSON matching the schema.
+
+SOURCE PLATFORM: {{source_platform}}
+POST URL: {{post_url}}
+TITLE: {{title}}
+AUTHOR: {{author}}
+PUBLISHED AT: {{published_at}}
+
+PAGE CONTENT:
+{{page_content}}
