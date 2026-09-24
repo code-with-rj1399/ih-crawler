@@ -9,7 +9,7 @@ Your output should feel like content from a high-quality technical interview-pre
 <goal>
 For every supplied question:
 
-1. Determine whether it represents a genuine interview question or interview task.
+1. Determine whether it represents a genuine interview question.
 2. Classify the question.
 3. Normalize the question wording when necessary.
 4. Enrich the question when reliable information is available.
@@ -17,13 +17,13 @@ For every supplied question:
 </goal>
 
 <validity>
-A question is valid when it represents an actual interview question, programming problem, design task, system-design problem, behavioral question, conceptual question, or other interview task.
+A question is valid when it represents an actual interview question, programming problem, design problem, system-design problem, behavioral question, conceptual question, or other clearly identifiable interview question.
 
 A question does not need to contain a complete problem statement to be valid.
 
 Short references, titles, or recognizable problem names can still represent valid interview questions.
 
-Return false only when the input is clearly not an interview question or interview task.
+Return false when the input is clearly not an interview question.
 
 Do not reject a question merely because it is:
 - short
@@ -32,6 +32,21 @@ Do not reject a question merely because it is:
 - poorly worded
 - missing requirements
 - missing a problem statement
+
+Do NOT treat interview-process statements, round descriptions, question counts, topic mentions, or generic instructions as interview questions.
+
+Examples that are NOT interview questions:
+- "Solve 2 DSA problems."
+- "There were 2 coding questions."
+- "Asked 3 DSA questions."
+- "Had one system design round."
+- "The round consisted of DSA and system design."
+- "They discussed Kafka."
+- "They asked some SQL questions."
+
+Do not convert such statements into generic questions such as "DSA problem", "Coding problem", "Kafka", or "SQL".
+
+Only treat the input as a valid question when the actual underlying question or problem is identifiable from the supplied input.
 </validity>
 
 <normalization>
@@ -81,35 +96,17 @@ If information cannot be established reliably, leave the corresponding field nul
 </enrichment>
 
 <content_style>
-Format questionDescription as Markdown.
+Format questionDescription as clean, valid Markdown.
 
-The writing style should resemble a high-quality interview-preparation platform.
+The writing style should resemble a high-quality technical interview-preparation platform.
 
-For coding and programming questions, follow the general presentation style of platforms such as LeetCode and GeeksforGeeks:
-- clear problem statement
-- understandable terminology
-- relevant examples
-- constraints when known
-- useful input/output explanation when applicable
-- clean Markdown formatting
+For coding and programming questions, use a clear problem statement, understandable terminology, relevant examples, constraints when known, useful input/output explanation when applicable, and clean Markdown formatting.
 
-For system-design questions, follow the general presentation style of resources such as Grokking System Design:
-- clear problem statement
-- functional requirements
-- non-functional requirements when actually known
-- important constraints when known
-- scale information when actually provided
-- useful examples or scenarios when appropriate
+For system-design questions, use a clear problem statement, functional requirements, non-functional requirements when actually known, important constraints when known, scale information when actually provided, and useful examples or scenarios when appropriate.
 
-For LLD or machine-coding questions:
-- clearly describe the problem
-- organize requirements
-- identify important entities or behaviors when they are explicitly present
-- provide examples when useful
+For LLD or machine-coding questions, clearly describe the problem, organize requirements, identify important entities or behaviors when they are explicitly present, and provide examples when useful.
 
-For behavioral, HR, resume/project, or conceptual questions:
-- keep the description focused on the actual question
-- use a structure appropriate to that type of question
+For behavioral, HR, resume/project, or conceptual questions, keep the description focused on the actual question and use a structure appropriate to that type of question.
 
 Do not force every question into the same structure.
 
@@ -132,6 +129,36 @@ Choose sections based on the actual question.
 
 Do not add empty sections.
 </content_style>
+
+<markdown_formatting>
+When questionDescription uses Markdown headings:
+- Put every heading on its own line.
+- Always put a blank line after a heading before its content.
+- Put a blank line before a new heading.
+- Put each bullet point on its own line.
+- Do not place heading text and body text on the same line.
+- Do not place multiple Markdown blocks on the same line.
+- Use standard Markdown heading syntax such as "### Problem".
+
+Correct:
+
+### Problem
+
+Design a job scheduler that can queue, schedule, and execute jobs at scale.
+
+### Requirements
+
+- Support job submission.
+- Support job prioritization.
+
+Incorrect:
+
+### Problem Design a job scheduler that can queue, schedule, and execute jobs at scale.
+
+### Requirements - Support job submission.
+
+Do not add headings merely to satisfy this formatting rule. Only use headings when they improve the readability of the question.
+</markdown_formatting>
 
 <question_description>
 questionDescription is the canonical, presentation-ready representation of the interview question.
@@ -238,7 +265,7 @@ Do not use information from one question to invent or enrich another question.
 
 Do not merge separate questions.
 
-Do not split one question into multiple questions when its requirements clearly belong to the same interview task.
+Do not split one question into multiple questions when its requirements clearly belong to the same interview question.
 </independence>
 
 <output_rules>
