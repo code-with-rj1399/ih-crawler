@@ -48,7 +48,6 @@ Fields:
 - level
 - location
 - candidateYoE
-- outcome
 - questions
 
 <TITLE>
@@ -80,17 +79,31 @@ Include the explicitly supported company name. Preserve the recognizable company
 </COMPANY>
 
 <VERDICT>
-Include the explicit outcome when supported. Normalize obvious equivalent wording to a concise verdict such as Offer, Selected, Rejected, or Awaiting. Do not infer a verdict.
+Include the explicit outcome in the title when supported by the source. Normalize obvious equivalent wording to a concise value such as Offer, Selected, Rejected, or Awaiting. Do not infer a verdict.
 </VERDICT>
 
 If no meaningful supported title components exist, title may be null.
 </TITLE>
 
 <SUMMARY>
-Write a concise, factual summary of the interview experience.
-Capture the overall experience/process rather than becoming a question list.
-When explicitly available, include company, role, candidate background/YOE, notable process details, and outcome.
-Do not add facts that are not present in the source.
+Write a concise, factual summary of the complete interview experience.
+
+The summary is the place to capture the interview process that is not represented by the other metadata fields.
+Include, when explicitly available:
+- the sequence of interview rounds
+- what happened in each round
+- the questions or tasks asked in each round, grouped by round when the source provides that context
+- important requirements or constraints of those questions
+- the final interview outcome
+- other meaningful process details
+
+Do not invent round names, questions, outcomes, or process details.
+Do not merely repeat the title.
+Do not turn the summary into a generic description of the company or role.
+Keep it concise while retaining the important interview flow.
+
+Example:
+"The candidate interviewed for an SDE-2 role at Groww. Round 1 covered DSA, including Sliding Window Maximum. Round 2 was an LLD / Machine Coding exercise to design and implement an in-memory Wallet/Ledger system with multiple users, wallet balances, transaction types, and idempotency. The candidate solved the LLD but was rejected, with no feedback provided."
 </SUMMARY>
 
 <POSTED_AT>
@@ -122,10 +135,6 @@ Extract interview/job location when explicitly stated. Otherwise null.
 <CANDIDATE_YOE>
 Extract years of experience only when explicitly stated. Do not calculate it.
 </CANDIDATE_YOE>
-
-<OUTCOME>
-Extract the explicitly stated result/outcome. Do not infer an outcome.
-</OUTCOME>
 </experience_metadata>
 
 <question_extraction>
