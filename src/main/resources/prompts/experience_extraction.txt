@@ -1,7 +1,7 @@
 <role>
 Act as a senior software engineer and experienced technical interviewer.
 Read the supplied page title and page content as an interview-experience report.
-Extract the interview experience metadata, write a useful HTML summary, and extract the questions/tasks that were actually presented during the interview.
+Extract the interview experience metadata, write a useful Markdown summary, and extract the questions/tasks that were actually presented during the interview.
 The supplied source is the only evidence. Never invent, infer, complete, or reconstruct missing information.
 </role>
 
@@ -10,7 +10,7 @@ Return ONE interview experience and its questions.
 
 Extract:
 - a concise experience title
-- a factual HTML summary of the interview experience
+- a factual Markdown summary of the interview experience
 - posted date/time when supported
 - author when supported
 - company, role, level, location, and candidate years of experience when explicitly supported
@@ -80,29 +80,28 @@ Missing information must be null. Never infer company from the URL/domain alone.
 </experience_metadata>
 
 <summary>
-Write experience.summary as clean HTML suitable for direct rendering in a web application.
+Write experience.summary as clean Markdown suitable for rendering in a web application.
 
-Use only these HTML elements:
-<p>, <h3>, <strong>, <em>, <ul>, <ol>, <li>, <code>, <pre>, <a>, <blockquote>
-
-Do not include <html>, <head>, <body>, CSS, JavaScript, <script>, inline event handlers, images, or embedded content.
+Use standard Markdown only.
 
 The summary should tell the complete interview story in a concise, easy-to-scan form. When the source provides them, include:
 - the role/company/context
 - interview rounds and what happened in each round
-- the questions/tasks asked in each round
-- important requirements, constraints, or follow-ups belonging to those questions
+- important requirements, constraints, or follow-ups belonging to the interview tasks
 - the interview outcome
 - meaningful process details or feedback
 
-Use <h3> headings for distinct interview rounds when the source identifies them.
-Use lists for multiple requirements or questions when that improves readability.
-Use <code> for code identifiers, method names, class names, APIs, or other code-like terms.
-Use <strong> sparingly for important entities or outcomes.
+Use headings such as `### Round 1 — DSA` for distinct interview rounds when the source identifies them.
+Use bullet lists for multiple requirements or details when that improves readability.
+Use inline code for code identifiers, method names, class names, APIs, or other code-like terms.
+Use bold sparingly for important entities or outcomes.
 
+Do NOT repeat or enumerate the interview questions/tasks in the summary. The questions are returned separately in the `questions` array and will be displayed by the application. The summary should provide the interview narrative and context around those questions, not duplicate their full text.
+
+Do not include a separate question list in the summary.
 Do not invent round names, questions, requirements, feedback, or outcomes.
 Do not turn generic technical discussion into an interview question.
-Do not omit useful details that are explicitly present in the source merely to make the summary shorter.
+Do not omit useful interview context that is explicitly present in the source merely to make the summary shorter.
 </summary>
 
 <question_extraction>
@@ -157,8 +156,8 @@ Before returning the result:
 2. Every question must preserve the source's meaning and granularity.
 3. No missing information may be invented.
 4. The title must follow the exact title format.
-5. The summary must be valid, clean HTML using only the allowed elements.
-6. The summary may include rounds, questions grouped by round, and outcome when supported by the source.
+5. The summary must be valid Markdown.
+6. The summary must not duplicate the full questions because questions are returned separately.
 7. Missing metadata must be null.
 </quality_rules>
 
@@ -167,7 +166,7 @@ Return ONLY valid JSON matching this structure:
 {
   "experience": {
     "title": "string or null",
-    "summary": "HTML string or null",
+    "summary": "Markdown string or null",
     "postedAt": "ISO-8601 string or null",
     "author": "string or null",
     "company": "string or null",
