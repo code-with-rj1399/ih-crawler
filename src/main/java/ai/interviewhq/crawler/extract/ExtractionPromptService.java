@@ -5,52 +5,43 @@ import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
 
-/**
- * Holds the extraction prompt used by the crawler.
- *
- * The prompt can be changed at runtime from the dev dashboard for prompt
- * experimentation. Runtime changes are intentionally in-memory and reset on
- * application restart.
- */
+/** Runtime-editable prompts for the two-stage extraction pipeline. */
 @Service
 public class ExtractionPromptService {
-    private volatile String prompt;
+    private volatile String experiencePrompt;
+    private volatile String questionMetadataPrompt;
 
     public ExtractionPromptService() {
-        this.prompt = loadDefaultPrompt();
+        resetToDefault();
     }
 
-    public String getPrompt() {
-        return prompt;
+    public String getExperiencePrompt() { return experiencePrompt; }
+    public String getQuestionMetadataPrompt() { return questionMetadataPrompt; }
+
+    public synchronized void setExperiencePrompt(String prompt) {
+        if (prompt == null || prompt.isBlank()) throw new IllegalArgumentException("Experience extraction prompt cannot be blank");
+        experiencePrompt = normalizeGranularityField(prompt);
     }
 
-    public void setPrompt(String prompt) {
-        if (prompt == null || prompt.isBlank()) {
-            throw new IllegalArgumentException("Extraction prompt cannot be blank");
-        }
-        this.prompt = normalizeGranularityField(prompt);
+    public synchronized void setQuestionMetadataPrompt(String prompt) {
+        if (prompt == null || prompt.isBlank()) throw new IllegalArgumentException("Question metadata prompt cannot be blank");
+        questionMetadataPrompt = normalizeGranularityField(prompt);
     }
 
-    public void resetToDefault() {
-        this.prompt = loadDefaultPrompt();
+    public synchronized void resetToDefault() {
+        experiencePrompt = loadDefaultPrompt("prompts/experience_extraction.txt");
+        questionMetadataPrompt = loadDefaultPrompt("prompts/question_metadata_extraction.txt");
     }
 
-    private static String loadDefaultPrompt() {
+    private static String loadDefaultPrompt(String path) {
         try {
-            String prompt = new String(
-                    new ClassPathResource("prompts/interview_question_extraction.txt")
-                            .getInputStream().readAllBytes(),
-                    StandardCharsets.UTF_8);
-            return normalizeGranularityField(prompt);
+            return normalizeGranularityField(new String(
+                    new ClassPathResource(path).getInputStream().readAllBytes(), StandardCharsets.UTF_8));
         } catch (Exception e) {
-            throw new IllegalStateException("Unable to load shared extraction prompt", e);
+            throw new IllegalStateException("Unable to load extraction prompt: " + path, e);
         }
     }
 
-    /**
-     * Keep runtime/default prompts aligned with the canonical questionGranularity field.
-     * This also protects against stale prompt text during rolling deployments.
-     */
     private static String normalizeGranularityField(String prompt) {
         return prompt
                 .replace("questionSpecificity", "questionGranularity")

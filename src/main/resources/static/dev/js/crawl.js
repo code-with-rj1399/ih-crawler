@@ -1,0 +1,1 @@
+import {runCrawl as executeCrawl} from './api.js';export async function runCrawl(){const button=document.getElementById('crawl');button.disabled=true;window.setStatus('Crawling...');try{await executeCrawl();window.setStatus('Crawl finished');await window.reloadDashboard()}catch(error){window.setStatus('Crawl failed: '+error.message)}finally{button.disabled=false}}
