@@ -2,8 +2,6 @@ package ai.interviewhq.crawler.dev;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -41,24 +39,12 @@ public class DevPromptTester {
 
         ObjectNode request = objectMapper.createObjectNode();
         request.put("model", model);
-        request.put("input", prompt);
+        request.put("input", prompt + "\n\nReturn ONLY valid JSON. Do not use Markdown fences or explanatory text.");
         request.put("store", false);
         ObjectNode reasoning = objectMapper.createObjectNode();
         reasoning.put("effort", reasoningEffort);
         request.set("reasoning", reasoning);
-
-        ObjectNode format = objectMapper.createObjectNode();
-        format.put("type", "json_schema");
-        format.put("name", "dev_prompt_test");
-        format.put("strict", true);
-        ObjectNode schema = objectMapper.createObjectNode();
-        schema.put("type", "object");
-        schema.put("additionalProperties", true);
-        schema.set("properties", objectMapper.createObjectNode());
-        schema.set("required", objectMapper.createArrayNode());
-        format.set("schema", schema);
         ObjectNode text = objectMapper.createObjectNode();
-        text.set("format", format);
         text.put("verbosity", "low");
         request.set("text", text);
 
