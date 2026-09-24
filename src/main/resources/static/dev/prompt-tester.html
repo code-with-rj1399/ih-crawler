@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>InterviewHQ Prompt Tester</title>
+  <link rel="stylesheet" href="/dev/css/main.css">
+  <link rel="stylesheet" href="/dev/css/prompt-tester.css">
+</head>
+<body>
+  <div class="container tester-page">
+    <header>
+      <div>
+        <h1>InterviewHQ Prompt Tester</h1>
+        <div class="subtitle">Run Step 1 or Step 2 independently and inspect only the model JSON output.</div>
+      </div>
+      <div class="actions">
+        <a class="nav-link" href="/dev/index.html">← Main UI</a>
+      </div>
+    </header>
+
+    <section class="card">
+      <div class="card-head tester-head">
+        <div>
+          <h2 class="card-title">Step 1 — Interview Experience</h2>
+          <p class="card-subtitle">Provide the page title and page content. The prompt can be edited for this test without saving it.</p>
+        </div>
+        <button id="runStep1">▶ Run Step 1</button>
+      </div>
+      <div class="card-body tester-grid">
+        <label>Prompt<textarea id="step1Prompt" class="prompt-editor" spellcheck="false"></textarea></label>
+        <label>Page title<input id="pageTitle" type="text" placeholder="Amazon | SDE 2 | Interview Experience"></label>
+        <label>Page content<textarea id="pageContent" class="source-editor" spellcheck="false" placeholder="Paste the crawled page content here..."></textarea></label>
+        <div class="output-panel">
+          <div class="output-label">JSON output</div>
+          <pre id="step1Output">—</pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head tester-head">
+        <div>
+          <h2 class="card-title">Step 2 — Question Metadata</h2>
+          <p class="card-subtitle">Provide the questions from one page. The prompt can be edited for this test without saving it.</p>
+        </div>
+        <button id="runStep2">▶ Run Step 2</button>
+      </div>
+      <div class="card-body tester-grid">
+        <label>Prompt<textarea id="step2Prompt" class="prompt-editor" spellcheck="false"></textarea></label>
+        <label>Questions JSON<textarea id="questionsJson" class="source-editor" spellcheck="false">["Design and implement an in-memory Wallet/Ledger system in Java."]</textarea></label>
+        <div class="output-panel">
+          <div class="output-label">JSON output</div>
+          <pre id="step2Output">—</pre>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script type="module" src="/dev/js/prompt-tester.js"></script>
+</body>
+</html>
