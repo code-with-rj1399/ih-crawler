@@ -9,6 +9,7 @@
 .tester-grid .prompt-editor { min-height: 330px; }
 .output-panel { grid-column: 1 / -1; }
 .output-label { font-weight: 700; margin-bottom: 8px; }
+.summary-output { margin-bottom: 18px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 8px; background: #f8fafc; line-height: 1.65; white-space: pre-wrap; }
 .output-panel pre { margin: 0; min-height: 260px; max-height: 650px; overflow: auto; padding: 16px; border-radius: 8px; background: #101828; color: #e5e7eb; font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; white-space: pre-wrap; word-break: break-word; }
 .output-error { color: #fca5a5 !important; }
 .tester-grid input, .tester-grid textarea { width: 100%; box-sizing: border-box; }
