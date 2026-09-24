@@ -253,4 +253,27 @@ public class TwoStepOpenAiExtractor {
     private static Instant parseInstant(String value) { if (value == null || value.isBlank()) return null; try { return Instant.parse(value); } catch (DateTimeParseException ignored) { return null; } }
     private static List<String> stringList(JsonNode node) { if (node == null || !node.isArray()) return List.of(); List<String> result = new ArrayList<>(); for (JsonNode value : node) if (value.isTextual() && !value.asText().isBlank()) result.add(value.asText().trim()); return result; }
     private static String firstNonBlank(String first, String second) { return first != null && !first.isBlank() ? first : second; }
+
+    public record ExtractionResult(ExperienceExtraction experience, List<InterviewQuestion> questions) {
+        public ExtractionResult {
+            questions = questions == null ? List.of() : List.copyOf(questions);
+        }
+
+        public static ExtractionResult empty() {
+            return new ExtractionResult(ExperienceExtraction.empty(), List.of());
+        }
+    }
+
+    private record QuestionMetadata(
+            String questionText,
+            boolean isValidInterviewQuestion,
+            String questionType,
+            String difficulty,
+            List<String> topics,
+            String questionDescription,
+            Float confidence) {
+        private QuestionMetadata {
+            topics = topics == null ? List.of() : List.copyOf(topics);
+        }
+    }
 }
