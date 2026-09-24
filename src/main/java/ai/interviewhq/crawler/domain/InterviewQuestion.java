@@ -34,7 +34,7 @@ public class InterviewQuestion {
     private String questionDescription;
     private String candidateApproach;
     private Float confidence;
-    private Float questionSpecificity;
+    private Float questionGranularity;
 
     private String modelName;
     private String dedupeHash;
@@ -108,8 +108,8 @@ public class InterviewQuestion {
     public Float getConfidence() { return confidence; }
     public void setConfidence(Float confidence) { this.confidence = confidence; }
 
-    public Float getQuestionSpecificity() { return questionSpecificity; }
-    public void setQuestionSpecificity(Float questionSpecificity) { this.questionSpecificity = questionSpecificity; }
+    public Float getQuestionGranularity() { return questionGranularity; }
+    public void setQuestionGranularity(Float questionGranularity) { this.questionGranularity = questionGranularity; }
 
     public String getModelName() { return modelName; }
     public void setModelName(String modelName) { this.modelName = modelName; }
