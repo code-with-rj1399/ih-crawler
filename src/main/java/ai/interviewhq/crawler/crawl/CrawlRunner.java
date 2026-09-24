@@ -177,8 +177,6 @@ public class CrawlRunner {
                     entry.bodyText());
 
             ExperienceExtraction experience = result.experience();
-            // Exactly two model calls per eligible page when Step 1 finds questions:
-            // one experience extraction call and one page-scoped question metadata call.
             modelCalls[0] += experience != null && !experience.questions().isEmpty() ? 2 : 1;
 
             if (experience == null || !experience.authenticExperience()) {
@@ -187,15 +185,15 @@ public class CrawlRunner {
             }
 
             InterviewPost post = new InterviewPost();
+            post.setSourceId(source.getId());
             post.setUrl(postUrl);
-            post.setSourcePlatform(source.getName());
             post.setTitle(experience.title());
             post.setAuthor(experience.author());
-            post.setPublishedAt(experience.postedAt() != null ? experience.postedAt() : entry.publishedAt());
+            post.setPostedAt(experience.postedAt() != null ? experience.postedAt() : entry.publishedAt());
             post.setSummary(experience.summary());
-            post.setCompany(experience.company());
-            post.setRole(experience.role());
-            post.setLevel(experience.level());
+            post.setRawCompany(experience.company());
+            post.setRawRole(experience.role());
+            post.setExperienceLevel(experience.level());
             post.setLocation(experience.location());
             post.setCandidateYoE(experience.candidateYoE());
             post.setOutcome(experience.outcome());
@@ -218,6 +216,7 @@ public class CrawlRunner {
     }
 
     private boolean isEligible(ParsedEntry entry, Instant cutoff) {
-        return entry.publishedAt() != null && !entry.publishedAt().isBefore(cutoff);
+        Instant publishedAt = entry.publishedAt();
+        return publishedAt != null && !publishedAt.isBefore(cutoff);
     }
 }
