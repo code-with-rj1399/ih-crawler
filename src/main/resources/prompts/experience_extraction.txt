@@ -53,7 +53,7 @@ Fields:
 <TITLE>
 The experience.title should follow this component order when the information is available:
 
-ROLE | YOE | LOCATION | COMPANY | VERDICT
+ROLE | YOE | LOCATION | COMPANY
 
 Each component is optional when the source does not support it. Preserve the order of the components that are present.
 
@@ -61,6 +61,7 @@ Use exactly " | " as the separator.
 Never invent a component.
 Do not blindly copy the raw page title when it does not represent the experience accurately.
 Do not add a generic "Interview Experience" prefix or suffix.
+Do not include interview rounds or outcome in the title.
 
 <ROLE>
 Use the interview role/position supported by the source. Preserve meaningful seniority such as SDE 1, SDE 2, L3, L4, Senior Software Engineer, Intern, etc.
@@ -77,10 +78,6 @@ Include the interview/job location when explicitly stated. Preserve meaningful w
 <COMPANY>
 Include the explicitly supported company name. Preserve the recognizable company name.
 </COMPANY>
-
-<VERDICT>
-Include the explicit outcome in the title when supported by the source. Normalize obvious equivalent wording to a concise value such as Offer, Selected, Rejected, or Awaiting. Do not infer a verdict.
-</VERDICT>
 
 If no meaningful supported title components exist, title may be null.
 </TITLE>
