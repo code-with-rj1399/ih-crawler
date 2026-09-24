@@ -49,13 +49,12 @@ Fields:
 - location
 - candidateYoE
 - outcome
-- rounds
 - questions
 
 <TITLE>
 The experience.title should follow this component order when the information is available:
 
-ROLE | YOE | LOCATION | COMPANY | ROUND | VERDICT
+ROLE | YOE | LOCATION | COMPANY | VERDICT
 
 Each component is optional when the source does not support it. Preserve the order of the components that are present.
 
@@ -80,21 +79,6 @@ Include the interview/job location when explicitly stated. Preserve meaningful w
 Include the explicitly supported company name. Preserve the recognizable company name.
 </COMPANY>
 
-<ROUND>
-Include concise normalized interview round/process names when explicitly supported.
-
-If multiple rounds are described, combine them into one concise ROUND component using comma separation.
-Remove numbering such as "Round 1:" and "Round 2:" and unnecessary repeated wording such as "Round" or "Interview Round".
-
-Examples:
-- "Round 1: DSA, Round 2: LLD / Machine Coding" → "DSA, LLD / Machine Coding"
-- "Phone screen, technical round, hiring manager round" → "Phone Screen, Technical, Hiring Manager"
-- "Round 1 was coding followed by system design" → "Coding, System Design"
-
-Preserve meaningful round names and do not invent rounds.
-Do not include the interview outcome inside ROUND.
-</ROUND>
-
 <VERDICT>
 Include the explicit outcome when supported. Normalize obvious equivalent wording to a concise verdict such as Offer, Selected, Rejected, or Awaiting. Do not infer a verdict.
 </VERDICT>
@@ -105,7 +89,7 @@ If no meaningful supported title components exist, title may be null.
 <SUMMARY>
 Write a concise, factual summary of the interview experience.
 Capture the overall experience/process rather than becoming a question list.
-When explicitly available, include company, role, candidate background/YOE, major rounds, notable process details, and outcome.
+When explicitly available, include company, role, candidate background/YOE, notable process details, and outcome.
 Do not add facts that are not present in the source.
 </SUMMARY>
 
@@ -142,11 +126,6 @@ Extract years of experience only when explicitly stated. Do not calculate it.
 <OUTCOME>
 Extract the explicitly stated result/outcome. Do not infer an outcome.
 </OUTCOME>
-
-<ROUNDS>
-Extract interview rounds explicitly described in the source.
-Preserve their order and meaningful details.
-</ROUNDS>
 </experience_metadata>
 
 <question_extraction>
