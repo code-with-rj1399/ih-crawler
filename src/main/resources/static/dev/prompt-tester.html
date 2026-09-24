@@ -12,7 +12,7 @@
     <header>
       <div>
         <h1>InterviewHQ Prompt Tester</h1>
-        <div class="subtitle">Run Step 1 or Step 2 independently and inspect only the model JSON output.</div>
+        <div class="subtitle">Run Step 1 or Step 2 independently and inspect the model JSON output.</div>
       </div>
       <div class="actions">
         <a class="nav-link" href="/dev/index.html">← Main UI</a>
@@ -32,6 +32,8 @@
         <label>Page title<input id="pageTitle" type="text" placeholder="Amazon | SDE 2 | Interview Experience"></label>
         <label>Page content<textarea id="pageContent" class="source-editor" spellcheck="false" placeholder="Paste the crawled page content here..."></textarea></label>
         <div class="output-panel">
+          <div class="output-label">Summary</div>
+          <div id="step1Summary" class="summary-output">—</div>
           <div class="output-label">JSON output</div>
           <pre id="step1Output">—</pre>
         </div>
