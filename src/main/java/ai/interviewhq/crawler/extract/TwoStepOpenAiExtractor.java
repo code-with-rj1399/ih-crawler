@@ -20,8 +20,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.format.DateTimeParseException;
 import java.time.ZoneOffset;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -109,7 +109,6 @@ public class TwoStepOpenAiExtractor {
         String location = nullableText(experience, "location");
         Float candidateYoE = nullableFloat(experience, "candidateYoE");
         String outcome = nullableText(experience, "outcome");
-        List<String> rounds = stringList(experience.path("rounds"));
         List<QuestionCandidate> candidates = new ArrayList<>();
         JsonNode questions = result.path("questions");
         if (questions.isArray()) {
@@ -119,7 +118,7 @@ public class TwoStepOpenAiExtractor {
             }
         }
         return new ExperienceExtraction(firstNonBlank(extractedTitle, title), summary, postedAt, extractedAuthor,
-                company, role, level, location, candidateYoE, outcome, rounds, candidates);
+                company, role, level, location, candidateYoE, outcome, candidates);
     }
 
     private List<QuestionMetadata> extractQuestionMetadata(List<QuestionCandidate> candidates) throws Exception {
@@ -215,8 +214,9 @@ public class TwoStepOpenAiExtractor {
         ep.set("title", nullableStringSchema()); ep.set("summary", nullableStringSchema()); ep.set("postedAt", nullableStringSchema());
         ep.set("author", nullableStringSchema()); ep.set("company", nullableStringSchema()); ep.set("role", nullableStringSchema());
         ep.set("level", nullableStringSchema()); ep.set("location", nullableStringSchema()); ep.set("candidateYoE", nullableNumberSchema());
-        ep.set("outcome", nullableStringSchema()); ep.set("rounds", stringArraySchema()); experience.set("properties", ep);
-        experience.set("required", required("title", "summary", "postedAt", "author", "company", "role", "level", "location", "candidateYoE", "outcome", "rounds"));
+        ep.set("outcome", nullableStringSchema());
+        experience.set("properties", ep);
+        experience.set("required", required("title", "summary", "postedAt", "author", "company", "role", "level", "location", "candidateYoE", "outcome"));
         props.set("experience", experience); props.set("questions", stringArraySchema());
         root.set("properties", props); root.set("required", required("experience", "questions"));
         format.set("schema", root); return objectMapper.createObjectNode().set("format", format);
