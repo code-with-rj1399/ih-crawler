@@ -19,6 +19,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -331,9 +332,7 @@ public class OpenAiQuestionExtractor {
     }
 
     private static String nullableText(JsonNode node, String field) {
-        if (node == null || node.isMissingNode() || node.isNull()) {
-            return null;
-        }
+        if (node == null || node.isMissingNode() || node.isNull()) return null;
         String value = node.path(field).asText(null);
         return value == null || value.isBlank() ? null : value;
     }
@@ -367,4 +366,23 @@ public class OpenAiQuestionExtractor {
         if (value == null || value.isBlank()) return "Other";
         return value.trim();
     }
+
+    private record ExtractedQuestion(
+            String sourcePlatform,
+            String originalPostUrl,
+            String problemUrl,
+            LocalDate postDate,
+            String company,
+            String level,
+            String location,
+            Float candidateYoE,
+            String outcome,
+            String roundType,
+            String questionType,
+            String questionText,
+            String questionDescription,
+            List<String> topics,
+            Float confidence,
+            Float questionGranularity
+    ) {}
 }
