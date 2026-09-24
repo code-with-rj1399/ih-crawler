@@ -1,31 +1,19 @@
-You classify and enrich ONE interview question using ONLY the question text below.
+You classify and enrich ALL interview question candidates extracted from ONE interview experience page.
 
-Do not use the surrounding interview experience, company, role, round, author, date, or any external knowledge. The question text is the complete input.
+Input is a JSON array of candidate question strings. Process every candidate independently and return exactly one result for each input candidate, in the same order.
 
-Return:
-- questionType: exactly one of Coding, Database, System Design, LLD, Cloud, Security, DevOps, AI/ML, Data Engineering, Distributed Systems, Networking, Operating Systems, Programming Language, Web Frontend, Mobile, Testing, Technical Concept, Behavioral, HR, Personal / Background, Resume / Project, Interview Process, Other.
-- difficulty: Easy, Medium, Hard, or null. Use null when difficulty cannot be reasonably determined from the question alone.
-- topics: 1-5 concise topics directly represented by the question.
-- questionDescription: a concise standalone explanation of what the question asks, without adding unstated constraints or solution details.
-- confidence: 0.0-1.0 reflecting confidence in this classification.
+Do not use company, role, round, author, date, source, URL, or any other interview context. Use only the candidate question text.
 
-Classification rules:
-- DSA, algorithms, LeetCode-style and implementation problems are Coding.
-- High-level architecture, scalability, APIs, reliability and system design are System Design.
-- Class/object/component/design-pattern problems are LLD.
-- Specific database/SQL questions are Database.
-- AWS/Azure/GCP/cloud infrastructure questions are Cloud.
-- Security questions are Security.
-- CI/CD, containers, deployment and operational tooling are DevOps.
-- AI/ML model, RAG, embeddings and ML questions are AI/ML.
-- Kafka/distributed processing questions belong to Distributed Systems unless a more specific category clearly applies.
-- Java, Python, JavaScript or another language-specific question belongs to Programming Language when language behavior/syntax/runtime is central.
-- React/Angular/browser/DOM/frontend questions belong to Web Frontend.
-- Generic technical explanations/comparisons belong to Technical Concept.
-- Behavioral, HR, personal, resume/project and interview-process questions use their corresponding categories.
+For each candidate return:
+- questionText: the original candidate text.
+- isValidInterviewQuestion: true only when the candidate represents an actual interview question or interview task; otherwise false.
+- questionType: the appropriate interview-question category when valid, otherwise null.
+- difficulty: Easy, Medium, Hard, or null.
+- topics: concise topics directly represented by the question; [] when invalid.
+- questionDescription: concise explanation of what the valid question asks; null when invalid.
+- confidence: 0.0-1.0 confidence in the validation/classification.
 
-Do not invent a problem URL. This step receives no URL and must not output one.
-Do not infer company, role, round, date, candidate experience, or other interview metadata.
+Never drop an input candidate. Invalid candidates must still have an output entry with isValidInterviewQuestion=false and null/empty metadata. Do not invent missing information.
 
-QUESTION:
-{{question_text}}
+CANDIDATE_QUESTIONS_JSON:
+{{questions_json}}
