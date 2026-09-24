@@ -17,7 +17,6 @@ public record ExperienceExtraction(
         String level,
         String location,
         Float candidateYoE,
-        String outcome,
         List<QuestionCandidate> questions
 ) {
     public ExperienceExtraction {
@@ -26,7 +25,7 @@ public record ExperienceExtraction(
 
     public static ExperienceExtraction empty() {
         return new ExperienceExtraction(
-                null, null, null, null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null, null, null,
                 List.of());
     }
 }
