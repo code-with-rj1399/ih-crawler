@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import argparse
 import glob
-import hashlib
 import json
 import os
 from typing import Any
@@ -14,64 +13,67 @@ MAX_CONTENT_CHARS = int(os.getenv("MAX_CONTENT_CHARS", "30000"))
 
 client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
-
-PROMPT_PATH = os.getenv(
-    "PROMPT_PATH",
-    os.path.join(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-        "src", "main", "resources", "prompts", "interview_question_extraction.txt",
-    ),
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+EXPERIENCE_PROMPT_PATH = os.getenv(
+    "EXPERIENCE_PROMPT_PATH",
+    os.path.join(BASE_DIR, "src", "main", "resources", "prompts", "experience_extraction.txt"),
 )
-with open(PROMPT_PATH, encoding="utf-8") as _prompt_file:
-    EXTRACTION_PROMPT = _prompt_file.read()
+QUESTION_PROMPT_PATH = os.getenv(
+    "QUESTION_PROMPT_PATH",
+    os.path.join(BASE_DIR, "src", "main", "resources", "prompts", "question_metadata_extraction.txt"),
+)
 
 
-EXTRACTION_SCHEMA = {
+def read_prompt(path: str) -> str:
+    with open(path, encoding="utf-8") as prompt_file:
+        return prompt_file.read()
+
+
+EXPERIENCE_PROMPT = read_prompt(EXPERIENCE_PROMPT_PATH)
+QUESTION_PROMPT = read_prompt(QUESTION_PROMPT_PATH)
+
+EXPERIENCE_SCHEMA = {
     "type": "object",
     "additionalProperties": False,
     "properties": {
-        "is_authentic_experience": {"type": "boolean"},
-        "company": {"type": ["string", "null"]},
-        "questions": {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "additionalProperties": False,
-                "properties": {
-                    "company": {"type": ["string", "null"]},
-                    "sourcePlatform": {"type": ["string", "null"]},
-                    "problemUrl": {"type": ["string", "null"]},
-                    "postDate": {"type": ["string", "null"]},
-                    "role": {"type": ["string", "null"]},
-                    "level": {"type": ["string", "null"]},
-                    "location": {"type": ["string", "null"]},
-                    "candidateYoE": {"type": ["number", "null"]},
-                    "outcome": {"type": ["string", "null"]},
-                    "roundType": {"type": ["string", "null"]},
-                    "questionType": {
-                        "type": ["string", "null"],
-                        "enum": ["CODING", "SYSTEM_DESIGN", "LOW_LEVEL_DESIGN", "BEHAVIORAL",
-                                 "TECHNICAL", "DATABASE", "DEVOPS", "AI_ML", "OTHER", None],
-                    },
-                    "questionText": {"type": "string"},
-                    "questionDescription": {"type": "string"},
-                    "difficulty": {
-                        "type": ["string", "null"],
-                        "enum": ["Easy", "Medium", "Hard", None],
-                    },
-                    "topics": {"type": "array", "items": {"type": "string"}},
-                    "confidence": {"type": "number"},
-                },
-                "required": [
-                    "company", "sourcePlatform", "problemUrl", "postDate", "role", "level",
-                    "location", "candidateYoE", "outcome", "roundType", "questionType",
-                    "questionText", "questionDescription", "difficulty",
-                    "topics", "confidence",
-                ],
+        "authenticExperience": {"type": "boolean"},
+        "experience": {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "title": {"type": ["string", "null"]},
+                "summary": {"type": ["string", "null"]},
+                "postedAt": {"type": ["string", "null"]},
+                "author": {"type": ["string", "null"]},
+                "company": {"type": ["string", "null"]},
+                "role": {"type": ["string", "null"]},
+                "level": {"type": ["string", "null"]},
+                "location": {"type": ["string", "null"]},
+                "candidateYoE": {"type": ["number", "null"]},
+                "outcome": {"type": ["string", "null"]},
+                "rounds": {"type": "array", "items": {"type": "string"}},
             },
+            "required": [
+                "title", "summary", "postedAt", "author", "company", "role", "level",
+                "location", "candidateYoE", "outcome", "rounds",
+            ],
         },
+        "questions": {"type": "array", "items": {"type": "string"}},
     },
-    "required": ["is_authentic_experience", "company", "questions"],
+    "required": ["authenticExperience", "experience", "questions"],
+}
+
+QUESTION_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "questionType": {"type": ["string", "null"]},
+        "difficulty": {"type": ["string", "null"]},
+        "topics": {"type": "array", "items": {"type": "string"}},
+        "questionDescription": {"type": ["string", "null"]},
+        "confidence": {"type": ["number", "null"]},
+    },
+    "required": ["questionType", "difficulty", "topics", "questionDescription", "confidence"],
 }
 
 
@@ -79,16 +81,16 @@ def load_records(directory: str, limit: int) -> list[dict[str, Any]]:
     records: list[dict[str, Any]] = []
     for path in sorted(glob.glob(os.path.join(directory, "*.json"))):
         try:
-            with open(path, encoding="utf-8") as f:
-                data = json.load(f)
+            with open(path, encoding="utf-8") as file:
+                data = json.load(file)
             items = data if isinstance(data, list) else [data]
             for item in items:
                 if isinstance(item, dict):
                     records.append(item)
                     if len(records) >= limit:
                         return records
-        except Exception as e:
-            print(f"[WARN] {path}: {e}")
+        except Exception as exc:
+            print(f"[WARN] {path}: {exc}")
     return records
 
 
@@ -98,13 +100,7 @@ def get_source_fields(record: dict[str, Any]) -> dict[str, str]:
     title = record.get("title") or ""
     author = record.get("author") or record.get("postedBy") or ""
     published_at = record.get("publishedAt") or record.get("postDate") or record.get("postedAt") or ""
-    tags = record.get("tags") or record.get("tag") or []
-    page_content = (
-        record.get("pageContent")
-        or record.get("content")
-        or record.get("text")
-        or json.dumps(record, ensure_ascii=False)
-    )
+    page_content = record.get("pageContent") or record.get("content") or record.get("text") or json.dumps(record, ensure_ascii=False)
     page_content = str(page_content)
     if len(page_content) > MAX_CONTENT_CHARS:
         page_content = page_content[:MAX_CONTENT_CHARS]
@@ -114,16 +110,15 @@ def get_source_fields(record: dict[str, Any]) -> dict[str, str]:
         "title": str(title),
         "author": str(author),
         "published_at": str(published_at),
-        "tags": json.dumps(tags, ensure_ascii=False) if isinstance(tags, (list, dict)) else str(tags),
         "page_content": page_content,
     }
 
 
-def call_json(prompt: str, schema: dict[str, Any], schema_name: str, max_output_tokens: int) -> dict[str, Any]:
+def call_json(prompt: str, schema: dict[str, Any], schema_name: str) -> dict[str, Any]:
     response = client.responses.create(
         model=MODEL,
         input=prompt,
-        reasoning={"effort": "high"},
+        reasoning={"effort": "low"},
         text={
             "format": {
                 "type": "json_schema",
@@ -135,32 +130,45 @@ def call_json(prompt: str, schema: dict[str, Any], schema_name: str, max_output_
     )
     text = (response.output_text or "").strip()
     if not text:
-        details = []
-        incomplete = getattr(response, "incomplete_details", None)
-        if incomplete:
-            details.append(f"incomplete_details={incomplete}")
-        usage = getattr(response, "usage", None)
-        if usage:
-            details.append(f"usage={usage}")
-        raise ValueError("OpenAI returned an empty output" + (f" ({'; '.join(details)})" if details else ""))
-    try:
-        return json.loads(text)
-    except json.JSONDecodeError as exc:
-        raise ValueError(f"Invalid JSON from OpenAI: {text[:2000]}") from exc
+        raise ValueError("OpenAI returned an empty output")
+    return json.loads(text)
 
 
-def extract(record: dict[str, Any]) -> dict[str, Any]:
+def extract_experience(record: dict[str, Any]) -> dict[str, Any]:
     fields = get_source_fields(record)
-    return call_json(
-        EXTRACTION_PROMPT.replace("{{source_platform}}", fields["source_platform"]).replace("{{post_url}}", fields["post_url"]).replace("{{title}}", fields["title"]).replace("{{author}}", fields["author"]).replace("{{published_at}}", fields["published_at"]).replace("{{tags}}", fields["tags"]).replace("{{page_content}}", fields["page_content"]),
-        EXTRACTION_SCHEMA,
-        "interview_question_extraction",
-        None,
-    )
+    prompt = (EXPERIENCE_PROMPT
+              .replace("{{source_platform}}", fields["source_platform"])
+              .replace("{{post_url}}", fields["post_url"])
+              .replace("{{title}}", fields["title"])
+              .replace("{{author}}", fields["author"])
+              .replace("{{published_at}}", fields["published_at"])
+              .replace("{{page_content}}", fields["page_content"]))
+    return call_json(prompt, EXPERIENCE_SCHEMA, "experience_extraction")
 
 
-def print_payload(payload: dict[str, Any]) -> None:
-    print(json.dumps(payload, ensure_ascii=False, indent=2))
+def classify_question(question_text: str) -> dict[str, Any]:
+    prompt = QUESTION_PROMPT.replace("{{question_text}}", question_text.strip())
+    return call_json(prompt, QUESTION_SCHEMA, "question_metadata_extraction")
+
+
+def extract_two_step(record: dict[str, Any]) -> dict[str, Any]:
+    step1 = extract_experience(record)
+    if not step1.get("authenticExperience"):
+        return {**step1, "questions": []}
+
+    enriched_questions = []
+    for question_text in step1.get("questions", []):
+        if not isinstance(question_text, str) or not question_text.strip():
+            continue
+        metadata = classify_question(question_text)
+        enriched_questions.append({"questionText": question_text.strip(), **metadata})
+
+    return {
+        "authenticExperience": True,
+        "experience": step1.get("experience", {}),
+        "questions": enriched_questions,
+    }
+
 
 def main() -> None:
     parser = argparse.ArgumentParser()
@@ -170,19 +178,15 @@ def main() -> None:
 
     limit = max(1, args.limit)
     records = load_records(args.input, limit)
+    print(f"Loaded {len(records)} records (limit={limit}, model={MODEL}, two-step=true)")
 
-    print(f"Loaded {len(records)} records (limit={limit}, model={MODEL}, reasoning=high, single-prompt=true)")
-
-    for i, record in enumerate(records, 1):
+    for index, record in enumerate(records, 1):
         try:
-            payload = extract(record)
-            print_payload(payload)
-            print(
-                f"[OK] {i}/{len(records)} generated: "
-                f"{len(payload.get('questions', []))} questions"
-            )
-        except Exception as e:
-            print(f"[ERROR] {i}/{len(records)}: {e}")
+            payload = extract_two_step(record)
+            print(json.dumps(payload, ensure_ascii=False, indent=2))
+            print(f"[OK] {index}/{len(records)} generated: {len(payload.get('questions', []))} questions")
+        except Exception as exc:
+            print(f"[ERROR] {index}/{len(records)}: {exc}")
 
 
 if __name__ == "__main__":
