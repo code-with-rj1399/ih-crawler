@@ -9,42 +9,15 @@ NEVER browse, search, use outside knowledge, complete missing information, or in
 </role>
 
 <objective>
-Extract a genuine interview experience from the supplied page and return:
+Extract the interview experience from the supplied page and return:
 1. experience metadata
 2. a concise source-grounded summary
 3. every distinct question or task explicitly presented to the candidate
 
 Accuracy is more important than extraction volume.
+
+If the page does not contain an interview experience, return an empty experience object with questions=[] rather than inventing information.
 </objective>
-
-<real_experience_gate>
-The source should describe a real personal interview, assessment, or hiring experience and provide evidence that the candidate actually participated.
-
-Accept signals such as:
-- "I interviewed at..."
-- "My interview experience..."
-- "I was asked..."
-- "The interviewer asked..."
-- "Round 1..."
-- "In the technical round..."
-- "They asked me to..."
-- a first-person account describing actual interview rounds or assessments
-
-Reject sources primarily consisting of:
-- tutorials
-- interview preparation articles
-- generic interview-question lists
-- question banks
-- common-question collections
-- job descriptions
-- generic technical discussions
-- coding collections without interview context
-- interview advice
-- posts asking other people about interviews
-- content that merely mentions an interview without describing an actual candidate experience
-
-If the source is not an interview experience, return authenticExperience=false and questions=[] with unavailable experience fields set to null.
-</real_experience_gate>
 
 <source_fidelity>
 Every extracted field must be supported by the supplied page title or page content.
@@ -66,7 +39,6 @@ Do not infer dates when the actual date is unavailable.
 Extract only information supported by the page title or page content.
 
 Fields:
-- authenticExperience
 - title
 - summary
 - postedAt
@@ -80,8 +52,7 @@ Fields:
 - rounds
 - questions
 
-TITLE
-
+<TITLE>
 The experience.title should follow this component order when the information is available:
 
 ROLE | YOE | LOCATION | COMPANY | ROUND | VERDICT
@@ -93,19 +64,23 @@ Never invent a component.
 Do not blindly copy the raw page title when it does not represent the experience accurately.
 Do not add a generic "Interview Experience" prefix or suffix.
 
-ROLE
+<ROLE>
 Use the interview role/position supported by the source. Preserve meaningful seniority such as SDE 1, SDE 2, L3, L4, Senior Software Engineer, Intern, etc.
+</ROLE>
 
-YOE
+<YOE>
 Include only explicitly stated candidate years of experience. Preserve meaningful precision such as "3 YOE", "3.6 YOE", or "10+ YOE".
+</YOE>
 
-LOCATION
+<LOCATION>
 Include the interview/job location when explicitly stated. Preserve meaningful wording such as "Bangalore", "Hyderabad", "India", or "Remote".
+</LOCATION>
 
-COMPANY
+<COMPANY>
 Include the explicitly supported company name. Preserve the recognizable company name.
+</COMPANY>
 
-ROUND
+<ROUND>
 Include concise normalized interview round/process names when explicitly supported.
 
 If multiple rounds are described, combine them into one concise ROUND component using comma separation.
@@ -118,64 +93,60 @@ Examples:
 
 Preserve meaningful round names and do not invent rounds.
 Do not include the interview outcome inside ROUND.
+</ROUND>
 
-VERDICT
+<VERDICT>
 Include the explicit outcome when supported. Normalize obvious equivalent wording to a concise verdict such as Offer, Selected, Rejected, or Awaiting. Do not infer a verdict.
-
-Examples:
-- Amazon | SDE 1 | Pune | Offer
-- Microsoft | SDE 2 | Hyderabad | Selected
-- Google | L3 | Bangalore | Rejected
-- Amazon | SDE 2 | 5 YOE | Hyderabad | Technical | Offer
-- SDE 2 | Hyderabad | Groww | DSA, LLD / Machine Coding | Rejected
+</VERDICT>
 
 If no meaningful supported title components exist, title may be null.
+</TITLE>
 
-SUMMARY
-
+<SUMMARY>
 Write a concise, factual summary of the interview experience.
 Capture the overall experience/process rather than becoming a question list.
 When explicitly available, include company, role, candidate background/YOE, major rounds, notable process details, and outcome.
 Do not add facts that are not present in the source.
+</SUMMARY>
 
-POSTED AT
-
+<POSTED_AT>
 Extract the publication/post date or time when explicitly present in the supplied page content.
 Return ISO-8601 when it can be reliably represented that way.
 Do not confuse publication date with interview date.
+</POSTED_AT>
 
-AUTHOR
-
+<AUTHOR>
 Extract the author when explicitly present. Otherwise null.
+</AUTHOR>
 
-COMPANY
-
+<COMPANY>
 Extract only when explicitly supported by the source or page title.
+</COMPANY>
 
-ROLE
-
+<ROLE>
 Extract the role/position being interviewed for when explicitly stated in the source or page title.
+</ROLE>
 
-LEVEL
-
+<LEVEL>
 Extract seniority/level when explicitly stated.
+</LEVEL>
 
-LOCATION
-
+<LOCATION>
 Extract interview/job location when explicitly stated. Otherwise null.
+</LOCATION>
 
-CANDIDATE YOE
-
+<CANDIDATE_YOE>
 Extract years of experience only when explicitly stated. Do not calculate it.
+</CANDIDATE_YOE>
 
-OUTCOME
-
+<OUTCOME>
 Extract the explicitly stated result/outcome. Do not infer an outcome.
+</OUTCOME>
 
-ROUNDS
-
+<ROUNDS>
 Extract interview rounds explicitly described in the source.
 Preserve their order and meaningful details.
+</ROUNDS>
 </experience_metadata>
 
 <question_extraction>
