@@ -88,31 +88,54 @@ Personal / Background
 Resume / Project
 Interview Process
 Other
-
 These exact human-readable values are stored in DynamoDB and returned by the API.
 Do NOT use enum-style values or invent new question types.
 DSA/algorithm/LeetCode/data-structure coding problems MUST use Coding.
 </question_type_taxonomy>
 
 <question_type_guidelines>
-Coding: programming problems, algorithms, data structures, LeetCode-style problems, implementation tasks, debugging/code-writing tasks.
-Database: SQL, database queries, indexing, transactions, schema design, database-specific questions.
-System Design: high-level architecture, distributed application design, service architecture, scalability, reliability, APIs, system-level design.
-LLD: classes, objects, interfaces, object-oriented design, design patterns, detailed component-level design.
-Cloud: cloud-specific architecture or technical questions involving AWS, Azure, GCP, or similar.
-Security: authentication, authorization, OAuth, JWT, encryption, application security, security architecture.
-DevOps: CI/CD, deployment, containers, Kubernetes, infrastructure automation, release engineering.
-AI/ML: machine learning, LLMs, RAG, embeddings, AI systems, model-related technical questions.
-Data Engineering: ETL, data pipelines, data processing, batch/stream processing, data platforms.
-Distributed Systems: consistency, replication, partitioning, consensus, distributed coordination.
-Networking: TCP/IP, HTTP, DNS, networking protocols, network architecture.
-Operating Systems: processes, threads, memory management, scheduling, operating-system internals.
-Programming Language: Java, Python, C++, JVM, garbage collection, concurrency primitives, language semantics.
-Web Frontend: browser, JavaScript, TypeScript, React, Angular, frontend architecture, web UI questions.
-Mobile: Android, iOS, mobile architecture, mobile-specific questions.
-Testing: unit testing, integration testing, test automation, testing architecture/strategies.
-Technical Concept: concrete technical question that is clearly technical but does not fit a more specific category.
-Behavioral / HR / Personal / Background / Resume / Project / Interview Process / Other: use the matching value when the source shows the question was actually asked.
+Use the most specific matching type. Prefer specific types over Technical Concept.
+
+Coding
+- Programming problems that require writing or implementing code
+- Algorithms, data structures, LeetCode-style problems
+- Implementation tasks (even short ones like “implement debounce”)
+- Debugging or code-writing tasks
+Examples: “Find kth largest element”, “Implement LRU cache”, “debounce in javascript”, “Bit manipulation noise filter”
+
+System Design
+- High-level architecture of a system or service
+- Scalability, reliability, APIs, distributed design, data flow at system level
+- Questions that start with “Design a …” for a full system (Payment Service, Uber, URL Shortener, Inventory Management System, etc.)
+Do NOT use System Design for:
+- Performance tips of a single framework/library
+- Concept explanations
+- Low-level class design
+
+LLD
+- Class design, object-oriented design, design patterns
+- Detailed component-level design (Parking Lot, Rate Limiter as classes, Snake & Ladder, etc.)
+- “Design a class / library / component that …”
+
+Technical Concept
+- Explanation or comparison of technical concepts without requiring code or full system design
+- “Explain X”, “Difference between X and Y”, “How does X work internally”
+Examples: “Event loop”, “Async vs Observable”, “Promise vs observables”, “Time complexity of map vs unordered_map”, “closure coding snippet” (when no actual code is shown)
+Use Technical Concept when the source only mentions a topic or asks for explanation, not implementation or architecture.
+
+Web Frontend
+- Browser, JavaScript/TypeScript, React, Angular, DOM, frontend-specific architecture or performance
+- Prefer Web Frontend over Technical Concept or System Design when the topic is clearly frontend-specific (e.g. “Angular performance improvisation”)
+
+Security / Cloud / DevOps / Database / etc.
+- Use the specific category when the question clearly belongs there.
+
+Common misclassification rules (STRICT):
+- “Angular performance improvisation” → Web Frontend or Technical Concept (NEVER System Design)
+- “HLD / High Level Design / HM round design” → System Design (NEVER Coding)
+- “One Tree question” / “Tree question” / “Graph traversal based question” → Coding
+- “closure coding snippet” / “Promise vs observables with coding” with no actual code → Technical Concept
+- Short classic problem names (“Parking Lot”, “LRU cache”, “Rate Limiter”) → LLD or Coding depending on context, never System Design unless explicitly high-level architecture
 </question_type_guidelines>
 
 <coding_classification>
@@ -192,8 +215,6 @@ Below 0.70: reject the question.
 Do not inflate confidence because a question is common, resembles a known LeetCode problem, or is technically plausible. Confidence reflects source evidence, not model recognition. Questions with confidence < 0.50 are ineligible.
 </confidence_rules>
 
-<!-- ========== FINAL GRANULARITY SECTION ========== -->
-
 <granularity_rules>
 questionGranularity measures how much concrete, usable detail the source itself provides about the question.
 It is a continuous score from 0.0 to 1.0.
@@ -248,13 +269,15 @@ Bands:
   - “Some problem regarding sweep line algorithm”
   - “GenAI questions”
   - “LP questions (conflict, decision, initiative)”
+  - “Security of the application”
 
 0.00 – 0.44  Low granularity
   Extremely vague or generic. Normally reject or keep only inside the experience.
   Examples:
-  - “Security of the application”
   - “Discussed databases”
   - “Some DSA questions”
+  - “HLD round”
+  - “One Tree question”
 
 CRITICAL RULES:
 - Score based ONLY on the detail present in the source.
@@ -264,7 +287,6 @@ CRITICAL RULES:
 - When the source adds useful follow-ups, constraints, or examples to a problem, move it into the 0.90+ band.
 - Never return values outside [0.0, 1.0].
 </granularity_rules>
-<!-- ========== END GRANULARITY SECTION ========== -->
 
 <final_quality_gate>
 Before returning every question, verify:
