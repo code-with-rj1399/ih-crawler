@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -25,16 +26,19 @@ public class DevController {
     private final InterviewQuestionRepository questionRepository;
     private final ObjectMapper objectMapper;
     private final ExtractionPromptService promptService;
+    private final DevPromptTester promptTester;
 
     public DevController(CrawlRunner crawlRunner, CrawlSourceRepository sourceRepository,
                          InterviewQuestionRepository questionRepository,
                          ObjectMapper objectMapper,
-                         ExtractionPromptService promptService) {
+                         ExtractionPromptService promptService,
+                         DevPromptTester promptTester) {
         this.crawlRunner = crawlRunner;
         this.sourceRepository = sourceRepository;
         this.questionRepository = questionRepository;
         this.objectMapper = objectMapper;
         this.promptService = promptService;
+        this.promptTester = promptTester;
     }
 
     @GetMapping("/dev")
@@ -110,6 +114,24 @@ public class DevController {
         );
     }
 
+    @PostMapping("/prompt-test/step1")
+    public JsonNode testStep1(@RequestBody PromptTestRequest request) throws Exception {
+        String prompt = promptService.getExperiencePrompt();
+        if (request != null && request.prompt() != null && !request.prompt().isBlank()) prompt = request.prompt();
+        prompt = prompt.replace("{{page_title}}", safe(request == null ? null : request.pageTitle()))
+                .replace("{{page_content}}", safe(request == null ? null : request.pageContent()));
+        return promptTester.test(prompt);
+    }
+
+    @PostMapping("/prompt-test/step2")
+    public JsonNode testStep2(@RequestBody PromptTestRequest request) throws Exception {
+        String prompt = promptService.getQuestionMetadataPrompt();
+        if (request != null && request.prompt() != null && !request.prompt().isBlank()) prompt = request.prompt();
+        prompt = prompt.replace("{{questions_json}}", safe(request == null ? null : request.questionsJson()))
+                .replace("{{question_text}}", safe(request == null ? null : request.questionsJson()));
+        return promptTester.test(prompt);
+    }
+
     @GetMapping("/questions")
     public List<InterviewQuestion> questions() {
         return questionRepository.findAll().stream().sorted((a, b) -> Integer.compare(b.getId() == null ? 0 : b.getId(), a.getId() == null ? 0 : a.getId())).limit(100).toList();
@@ -130,6 +152,9 @@ public class DevController {
     @PostMapping("/crawl")
     public void crawl() { crawlRunner.runOnce(); }
 
+    private static String safe(String value) { return value == null ? "" : value; }
+
     public record CreateSourceRequest(String name, String url, String sourceKind, Boolean enabled) {}
     public record PromptRequest(String prompt) {}
+    public record PromptTestRequest(String prompt, String pageTitle, String pageContent, String questionsJson) {}
 }
