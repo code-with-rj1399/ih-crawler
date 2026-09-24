@@ -4,8 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class InterviewPost {
@@ -25,8 +23,6 @@ public class InterviewPost {
     private String experienceLevel;
     private String location;
     private Float candidateYoE;
-    private String outcome;
-    private List<String> rounds = new ArrayList<>();
 
     private String bodyText;
     private String contentHash;
@@ -36,7 +32,6 @@ public class InterviewPost {
 
     void onCreate() {
         if (createdAt == null) createdAt = Instant.now();
-        if (rounds == null) rounds = new ArrayList<>();
     }
 
     public Integer getId() { return id; }
@@ -69,10 +64,6 @@ public class InterviewPost {
     public void setLocation(String location) { this.location = location; }
     public Float getCandidateYoE() { return candidateYoE; }
     public void setCandidateYoE(Float candidateYoE) { this.candidateYoE = candidateYoE; }
-    public String getOutcome() { return outcome; }
-    public void setOutcome(String outcome) { this.outcome = outcome; }
-    public List<String> getRounds() { return rounds; }
-    public void setRounds(List<String> rounds) { this.rounds = rounds == null ? new ArrayList<>() : rounds; }
     public String getBodyText() { return bodyText; }
     public void setBodyText(String bodyText) { this.bodyText = bodyText; }
     public String getContentHash() { return contentHash; }
