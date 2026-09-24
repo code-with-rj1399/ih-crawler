@@ -14,6 +14,7 @@
         <div class="subtitle">Manage crawl sources, run ingestion, and inspect extracted interview experiences and questions.</div>
       </div>
       <div class="actions">
+        <a href="/dev/prompt-tester.html">Prompt Tester</a>
         <button id="crawl">▶ Run Crawl</button>
         <a href="/dev/api/download" download><button class="secondary" type="button">↓ Export Data</button></a>
       </div>
@@ -44,6 +45,7 @@
           <h2 class="card-title">Step 1 — Interview Experience Extraction</h2>
           <p class="card-subtitle">Extract the experience summary and metadata, plus a plain list of questions. No question classification happens here.</p>
         </div>
+        <a href="/dev/prompt-tester.html#step1">Open Step 1 Tester →</a>
       </div>
       <div class="card-body">
         <textarea id="experiencePrompt" class="prompt-editor" spellcheck="false" placeholder="Loading Step 1 prompt..."></textarea>
@@ -61,6 +63,7 @@
           <h2 class="card-title">Step 2 — Question Metadata Extraction</h2>
           <p class="card-subtitle">The model receives only the question text and determines its type, difficulty, topics, description, and confidence.</p>
         </div>
+        <a href="/dev/prompt-tester.html#step2">Open Step 2 Tester →</a>
       </div>
       <div class="card-body">
         <textarea id="questionMetadataPrompt" class="prompt-editor" spellcheck="false" placeholder="Loading Step 2 prompt..."></textarea>
