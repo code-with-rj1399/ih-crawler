@@ -193,50 +193,75 @@ Do not inflate confidence because a question is common, resembles a known LeetCo
 </confidence_rules>
 
 <!-- ========== FINAL GRANULARITY SECTION ========== -->
+
 <granularity_rules>
 questionGranularity measures how much concrete, usable detail the source itself provides about the question.
 It is a continuous score from 0.0 to 1.0.
+
 Purpose:
 - High-granularity questions can be shown directly to users as standalone questions.
 - Low-granularity questions remain part of the interview experience only and should not be promoted as standalone questions.
 
-0.90–1.00 High granularity
-The source provides a clear, self-contained problem with useful details such as explicit requirements/constraints, input/output examples, actual code snippet, concrete expected behavior, multiple parts/follow-ups belonging to the same question, or an exact LeetCode/problem link.
-Examples:
-- “Delete duplicate value key from an object – Input={a:1, b:2, c:3, d:1} Output={a:1, b:2, c:3}”
-- “Find the longest substring that occurs at least twice (non-overlapping)”
-- Any question with an exact LeetCode/problem link
+Bands:
 
-0.75–0.89 Medium-High granularity
-The source states a clear, recognizable problem with some useful context but is missing full details.
-Examples:
-- “Find kth largest element”
-- “Find max in rotated sorted array”
-- “Design a caching strategy for a heavy data dashboard”
+0.90 – 1.00  High granularity
+  The source provides a clear, self-contained problem with useful extra detail such as:
+  - explicit requirements or constraints
+  - input/output examples
+  - actual code snippet
+  - concrete expected behavior
+  - multiple parts or follow-ups that belong to the same question
+  - an exact LeetCode / problem link
+  Examples:
+  - “Delete duplicate value key from an object – Input={a:1, b:2, c:3, d:1} Output={a:1, b:2, c:3}”
+  - “Find the longest substring that occurs at least twice (non-overlapping)”
+  - “Design a Payment Service” + follow-ups about Kafka streams, partner bank failures, retries, transaction handling
+  - Any question that includes an exact problem URL
 
-0.50–0.74 Medium / Low-Medium granularity
-The source clearly indicates a technical question but gives only a short or vague description.
-Examples:
-- “Event loop”
-- “debounce in javascript”
-- “Promise vs observables with coding”
-- “Async vs Observable in Angular”
-- “Time complexity of map and unordered_map”
+0.78 – 0.89  Medium-High granularity
+  The source states a clear, recognizable problem name (classic coding / design problem) with little or no extra detail.
+  This is the correct band for short but unambiguous problem titles.
+  Examples:
+  - “Koko Eating Bananas”
+  - “Longest Palindromic Substring”
+  - “Find kth largest element”
+  - “LLD: Parking Lot”
+  - “Design a URL shortener”
+  - “Next greatest element in circular array”
+  - “Database Design: Books and Authors Store”
 
-0.00–0.49 Low granularity
-The source is too vague or generic to form a useful standalone question.
-Examples:
-- “closure coding snippet” with no snippet
-- “Angular performance improvisation”
-- “Security of the application”
-- “GenAI questions”
-- “LP questions (conflict, decision, initiative)”
+0.60 – 0.77  Medium granularity
+  The source clearly indicates a technical question but the wording is somewhat short or only partially specific.
+  Examples:
+  - “Implement debounce in JavaScript”
+  - “Async vs Observable in Angular”
+  - “Time complexity of map and unordered_map”
+  - “Promise vs observables with coding”
+  - “Design a caching strategy for a heavy data dashboard” (no further detail)
+
+0.45 – 0.59  Low-Medium granularity
+  The source only gives a vague or topic-style mention. Not enough to form a good standalone question.
+  Examples:
+  - “Event loop”
+  - “closure coding snippet” (no actual snippet shown)
+  - “Angular performance improvisation”
+  - “Some problem regarding sweep line algorithm”
+  - “GenAI questions”
+  - “LP questions (conflict, decision, initiative)”
+
+0.00 – 0.44  Low granularity
+  Extremely vague or generic. Normally reject or keep only inside the experience.
+  Examples:
+  - “Security of the application”
+  - “Discussed databases”
+  - “Some DSA questions”
 
 CRITICAL RULES:
-- Score based ONLY on detail present in the source.
-- Do NOT raise the score because the problem is well-known or classic.
-- A short classic problem name (“Find kth largest element”) is still only Medium-High unless extra details are present.
-- Mentioning “with coding” or “coding snippet” without actual code keeps the score in the Medium/Low range.
+- Score based ONLY on the detail present in the source.
+- Do NOT raise the score just because the problem is well-known or classic.
+- A clear, recognizable problem name (even without extra constraints) belongs in the 0.78–0.89 band — do NOT drop it to 0.50.
+- Only pure topic-style or highly vague mentions belong below 0.60.
+- When the source adds useful follow-ups, constraints, or examples to a problem, move it into the 0.90+ band.
 - Never return values outside [0.0, 1.0].
 </granularity_rules>
 <!-- ========== END GRANULARITY SECTION ========== -->
