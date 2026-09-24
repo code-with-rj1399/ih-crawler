@@ -25,21 +25,15 @@
       <div class="card-head">
         <div>
           <h2 class="card-title">Extraction Configuration</h2>
-          <p class="card-subtitle">Current extraction configuration for this branch.</p>
+          <p class="card-subtitle">Two-stage extraction: first understand the interview experience, then classify each question.</p>
         </div>
       </div>
       <div class="card-body">
         <div class="metric-grid">
-          <div class="metric"><div class="metric-label">Model</div><div class="metric-value">GPT-5.6 Terra</div><div class="metric-note">OpenAI</div></div>
-          <div class="metric"><div class="metric-label">Reasoning</div><div class="metric-value">High</div><div class="metric-note">reasoning.effort</div></div>
-          <div class="metric"><div class="metric-label">Input pricing</div><div class="metric-value">$2.00 / 1M</div><div class="metric-note">Standard input</div></div>
-          <div class="metric"><div class="metric-label">Output pricing</div><div class="metric-value">$12.00 / 1M</div><div class="metric-note">Output tokens</div></div>
-        </div>
-        <div class="metric-grid" style="margin-top:12px">
-          <div class="metric"><div class="metric-label">Cached input</div><div class="metric-value">$0.20 / 1M</div><div class="metric-note">Cached prompt tokens</div></div>
-          <div class="metric"><div class="metric-label">Prompt estimate</div><div class="metric-value" id="configPromptTokens">—</div><div class="metric-note">Current prompt</div></div>
+          <div class="metric"><div class="metric-label">Model</div><div class="metric-value" id="modelName">gpt-5-nano</div><div class="metric-note">OpenAI</div></div>
+          <div class="metric"><div class="metric-label">Reasoning</div><div class="metric-value" id="reasoningName">low</div><div class="metric-note">reasoning.effort</div></div>
+          <div class="metric"><div class="metric-label">Input pricing</div><div class="metric-value">Nano</div><div class="metric-note">Configured model</div></div>
           <div class="metric"><div class="metric-label">API</div><div class="metric-value">Responses API</div><div class="metric-note">Structured extraction</div></div>
-          <div class="metric"><div class="metric-label">Schema</div><div class="metric-value">Strict JSON</div><div class="metric-note">Interview extraction</div></div>
         </div>
       </div>
     </section>
@@ -47,18 +41,38 @@
     <section class="card">
       <div class="card-head">
         <div>
-          <h2 class="card-title">Extraction Prompt</h2>
-          <p class="card-subtitle">Edit the LLM extraction prompt at runtime.</p>
+          <h2 class="card-title">Step 1 — Interview Experience Extraction</h2>
+          <p class="card-subtitle">Extract the experience summary and metadata, plus a plain list of questions. No question classification happens here.</p>
         </div>
       </div>
       <div class="card-body">
-        <textarea id="extractionPrompt" class="prompt-editor" spellcheck="false" placeholder="Loading extraction prompt..."></textarea>
+        <textarea id="experiencePrompt" class="prompt-editor" spellcheck="false" placeholder="Loading Step 1 prompt..."></textarea>
         <div class="prompt-actions">
-          <button id="savePrompt">Save Prompt</button>
-          <button id="resetPrompt" class="secondary">Reset to Default</button>
-          <span class="token-count" id="promptTokenCount">Estimated tokens: 0</span>
-          <span class="status" id="promptStatus"></span>
+          <button id="saveExperiencePrompt">Save Step 1 Prompt</button>
+          <span class="token-count" id="experiencePromptTokenCount">Estimated tokens: 0</span>
+          <span class="status" id="experiencePromptStatus"></span>
         </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2 class="card-title">Step 2 — Question Metadata Extraction</h2>
+          <p class="card-subtitle">The model receives only the question text and determines its type, difficulty, topics, description, and confidence.</p>
+        </div>
+      </div>
+      <div class="card-body">
+        <textarea id="questionMetadataPrompt" class="prompt-editor" spellcheck="false" placeholder="Loading Step 2 prompt..."></textarea>
+        <div class="prompt-actions">
+          <button id="saveQuestionMetadataPrompt">Save Step 2 Prompt</button>
+          <span class="token-count" id="questionMetadataPromptTokenCount">Estimated tokens: 0</span>
+          <span class="status" id="questionMetadataPromptStatus"></span>
+        </div>
+      </div>
+      <div class="card-body" style="padding-top:0">
+        <button id="resetPrompts" class="secondary">Reset Both Prompts to Defaults</button>
+        <span class="status" id="promptStatus"></span>
       </div>
     </section>
 
@@ -74,10 +88,7 @@
         <div class="toolbar">
           <input id="seedName" placeholder="Source name">
           <input id="seedUrl" class="url" placeholder="https://example.com/interviews">
-          <select id="seedKind">
-            <option value="html">HTML</option>
-            <option value="leetcode_graphql">LeetCode GraphQL</option>
-          </select>
+          <select id="seedKind"><option value="html">HTML</option><option value="leetcode_graphql">LeetCode GraphQL</option></select>
           <button id="addSeed">+ Add Source</button>
         </div>
       </div>
@@ -86,10 +97,7 @@
 
     <section class="card">
       <div class="card-head">
-        <div>
-          <h2 class="card-title">Interview Experiences</h2>
-          <p class="card-subtitle">Experiences and extracted technical questions.</p>
-        </div>
+        <div><h2 class="card-title">Interview Experiences</h2><p class="card-subtitle">Experiences and extracted technical questions.</p></div>
         <button id="deleteAllQuestions" class="danger">Delete All</button>
       </div>
       <div class="table-wrap" id="questions">Loading...</div>
@@ -105,7 +113,6 @@
       <div id="detailsMetadata"></div>
     </div>
   </div>
-
   <script type="module" src="/dev/js/app.js"></script>
 </body>
 </html>
