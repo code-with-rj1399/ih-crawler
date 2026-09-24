@@ -128,13 +128,14 @@ public class TwoStepOpenAiExtractor {
         ArrayNode questions = objectMapper.createArrayNode();
         for (QuestionCandidate candidate : candidates) questions.add(candidate.questionText().trim());
         String prompt = questionPrompt.replace("{{questions_json}}", questions.toString());
-        // Temporary compatibility with the current prompt until we replace its text in the next prompt-focused step.
         if (prompt.equals(questionPrompt)) prompt = questionPrompt.replace("{{question_text}}", questions.toString());
 
         JsonNode result = parseOutput(callOpenAi(prompt, questionMetadataSchema(), "question_metadata_extraction"));
-        if (result == null || !result.isArray()) return List.of();
+        if (result == null || !result.isObject()) return List.of();
+        JsonNode items = result.path("questions");
+        if (!items.isArray()) return List.of();
         List<QuestionMetadata> metadata = new ArrayList<>();
-        for (JsonNode item : result) {
+        for (JsonNode item : items) {
             if (!item.isObject()) continue;
             metadata.add(new QuestionMetadata(nullableText(item, "questionText"),
                     item.path("isValidInterviewQuestion").asBoolean(false), nullableText(item, "questionType"),
@@ -233,8 +234,15 @@ public class TwoStepOpenAiExtractor {
         props.set("topics", stringArraySchema()); props.set("questionDescription", nullableStringSchema());
         props.set("confidence", nullableNumberSchema()); item.set("properties", props);
         item.set("required", required("questionText", "isValidInterviewQuestion", "questionType", "difficulty", "topics", "questionDescription", "confidence"));
-        ObjectNode root = objectMapper.createObjectNode().put("type", "array"); root.set("items", item);
-        format.set("schema", root); return objectMapper.createObjectNode().set("format", format);
+
+        // OpenAI structured-output JSON Schema requires the top-level schema to be an object.
+        // Keep the page-scoped batch as questions[] inside that object.
+        ObjectNode root = objectSchema();
+        root.set("properties", objectMapper.createObjectNode().set("questions", objectMapper.createObjectNode()
+                .put("type", "array").set("items", item)));
+        root.set("required", required("questions"));
+        format.set("schema", root);
+        return objectMapper.createObjectNode().set("format", format);
     }
 
     private ObjectNode jsonSchemaFormat(String name) { return objectMapper.createObjectNode().put("type", "json_schema").put("name", name).put("strict", true); }
