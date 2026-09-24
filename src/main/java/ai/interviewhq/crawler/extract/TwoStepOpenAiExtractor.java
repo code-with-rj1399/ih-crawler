@@ -108,7 +108,6 @@ public class TwoStepOpenAiExtractor {
         String level = nullableText(experience, "level");
         String location = nullableText(experience, "location");
         Float candidateYoE = nullableFloat(experience, "candidateYoE");
-        String outcome = nullableText(experience, "outcome");
         List<QuestionCandidate> candidates = new ArrayList<>();
         JsonNode questions = result.path("questions");
         if (questions.isArray()) {
@@ -118,7 +117,7 @@ public class TwoStepOpenAiExtractor {
             }
         }
         return new ExperienceExtraction(firstNonBlank(extractedTitle, title), summary, postedAt, extractedAuthor,
-                company, role, level, location, candidateYoE, outcome, candidates);
+                company, role, level, location, candidateYoE, candidates);
     }
 
     private List<QuestionMetadata> extractQuestionMetadata(List<QuestionCandidate> candidates) throws Exception {
@@ -147,6 +146,7 @@ public class TwoStepOpenAiExtractor {
                                          QuestionMetadata metadata) {
         InterviewQuestion question = new InterviewQuestion();
         question.setSourcePlatform(source.getName()); question.setExperienceTitle(experience.title());
+        question.setExperienceSummary(experience.summary());
         question.setExperienceAuthor(experience.author()); question.setExperiencePostedAt(experience.postedAt());
         question.setOriginalPostUrl(postUrl);
         question.setPostDate(experience.postedAt() == null
@@ -154,7 +154,7 @@ public class TwoStepOpenAiExtractor {
                 : experience.postedAt().atZone(ZoneOffset.UTC).toLocalDate());
         question.setCompany(experience.company()); question.setLevel(experience.level());
         question.setLocation(experience.location()); question.setCandidateYoE(experience.candidateYoE());
-        question.setOutcome(experience.outcome()); question.setQuestionText(candidate.questionText().trim());
+        question.setQuestionText(candidate.questionText().trim());
         question.setQuestionType(metadata.questionType()); question.setDifficulty(metadata.difficulty());
         question.setTopics(metadata.topics()); question.setQuestionDescription(metadata.questionDescription());
         question.setConfidence(metadata.confidence()); question.setModelName(settings.extractModel());
@@ -214,9 +214,8 @@ public class TwoStepOpenAiExtractor {
         ep.set("title", nullableStringSchema()); ep.set("summary", nullableStringSchema()); ep.set("postedAt", nullableStringSchema());
         ep.set("author", nullableStringSchema()); ep.set("company", nullableStringSchema()); ep.set("role", nullableStringSchema());
         ep.set("level", nullableStringSchema()); ep.set("location", nullableStringSchema()); ep.set("candidateYoE", nullableNumberSchema());
-        ep.set("outcome", nullableStringSchema());
         experience.set("properties", ep);
-        experience.set("required", required("title", "summary", "postedAt", "author", "company", "role", "level", "location", "candidateYoE", "outcome"));
+        experience.set("required", required("title", "summary", "postedAt", "author", "company", "role", "level", "location", "candidateYoE"));
         props.set("experience", experience); props.set("questions", stringArraySchema());
         root.set("properties", props); root.set("required", required("experience", "questions"));
         format.set("schema", root); return objectMapper.createObjectNode().set("format", format);
