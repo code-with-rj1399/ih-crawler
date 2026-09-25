@@ -54,6 +54,8 @@ dedupeHash
 createdAt
 ```
 
+`questionTypes` is **not** an InterviewExperience field. Question classification belongs exclusively to each `InterviewQuestion`.
+
 The experience item uses its stable application ID as the item-collection partition key:
 
 ```text
@@ -107,7 +109,7 @@ Logical fields:
 id
 experienceId
 problemUrl
-questionType[]
+questionTypes[]
 difficulty
 questionText
 questionDescription
@@ -141,7 +143,7 @@ Example:
     "experienceId": 123,
     "questionText": "Design and implement a logger library",
     "questionDescription": "...",
-    "questionType": ["LLD", "Coding"],
+    "questionTypes": ["LLD", "Coding"],
     "difficulty": null,
     "problemUrl": null,
     "confidence": 0.54,
@@ -154,7 +156,7 @@ Example:
 }
 ```
 
-`questionType` is always an array in the canonical application model.
+`questionTypes` is always an array in the canonical application model.
 
 ## 4. Relationship and access pattern
 
@@ -205,7 +207,7 @@ Step 2 extracts:
 
 ```text
 questionText
-questionType[]
+questionTypes[]
 difficulty
 questionDescription
 problemUrl
