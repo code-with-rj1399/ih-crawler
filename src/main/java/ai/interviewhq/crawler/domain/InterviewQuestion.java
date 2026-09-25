@@ -12,7 +12,7 @@ public class InterviewQuestion {
     private Integer experienceId;
     private String problemUrl;
 
-    private List<String> questionType = new ArrayList<>();
+    private List<String> questionTypes = new ArrayList<>();
     private String difficulty;
     private String questionText;
     private String questionDescription;
@@ -29,7 +29,7 @@ public class InterviewQuestion {
         Instant now = Instant.now();
         if (createdAt == null) createdAt = now;
         if (extractedAt == null) extractedAt = now;
-        if (questionType == null) questionType = new ArrayList<>();
+        if (questionTypes == null) questionTypes = new ArrayList<>();
     }
 
     public Integer getId() { return id; }
@@ -38,8 +38,8 @@ public class InterviewQuestion {
     public void setExperienceId(Integer experienceId) { this.experienceId = experienceId; }
     public String getProblemUrl() { return problemUrl; }
     public void setProblemUrl(String problemUrl) { this.problemUrl = problemUrl; }
-    public List<String> getQuestionType() { return questionType; }
-    public void setQuestionType(List<String> questionType) { this.questionType = questionType; }
+    public List<String> getQuestionTypes() { return questionTypes; }
+    public void setQuestionTypes(List<String> questionTypes) { this.questionTypes = questionTypes; }
     public String getDifficulty() { return difficulty; }
     public void setDifficulty(String difficulty) { this.difficulty = difficulty; }
     public String getQuestionText() { return questionText; }
