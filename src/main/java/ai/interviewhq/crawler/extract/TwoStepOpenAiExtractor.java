@@ -64,6 +64,10 @@ public class TwoStepOpenAiExtractor {
                 log.info("Step 2 metadata index={} valid={} questionText={} questionType={} difficulty={} problemUrl={} granularity={} confidence={}",
                         i, item.isValidInterviewQuestion(), item.questionText(), item.questionTypes(), item.difficulty(), item.problemUrl(), item.questionGranularity(), item.confidence());
                 if (!item.isValidInterviewQuestion()) continue;
+                if (item.questionTypes().isEmpty()) {
+                    log.warn("Step 2 returned valid question without questionType at index={} for {}", i, postUrl);
+                    continue;
+                }
                 questions.add(toQuestion(source, postUrl, publishedAt, experience, item));
             }
             log.info("Question extraction for {}: candidates={}, valid={}, discarded={}", postUrl, experience.questions().size(), questions.size(), experience.questions().size() - questions.size());
@@ -138,10 +142,20 @@ public class TwoStepOpenAiExtractor {
     private JsonNode questionMetadataSchema() {
         ObjectNode format = jsonSchemaFormat("question_metadata_extraction"); ObjectNode item = objectSchema(); ObjectNode props = objectMapper.createObjectNode();
         props.set("questionText", nullableStringSchema()); props.set("isValidInterviewQuestion", objectMapper.createObjectNode().put("type", "boolean"));
-        props.set("questionType", stringArraySchema()); props.set("difficulty", nullableStringSchema()); props.set("questionDescription", nullableStringSchema());
+        props.set("questionType", questionTypeArraySchema()); props.set("difficulty", nullableStringSchema()); props.set("questionDescription", nullableStringSchema());
         props.set("problemUrl", nullableStringSchema()); props.set("questionGranularity", nullableNumberSchema()); props.set("confidence", nullableNumberSchema());
         item.set("properties", props); item.set("required", required("questionText", "isValidInterviewQuestion", "questionType", "difficulty", "questionDescription", "problemUrl", "questionGranularity", "confidence")); ObjectNode root = objectSchema();
         root.set("properties", objectMapper.createObjectNode().set("questions", objectMapper.createObjectNode().put("type", "array").set("items", item))); root.set("required", required("questions")); format.set("schema", root); return objectMapper.createObjectNode().set("format", format);
+    }
+
+    private JsonNode questionTypeArraySchema() {
+        ObjectNode schema = objectMapper.createObjectNode().put("type", "array").put("minItems", 1);
+        ArrayNode allowed = objectMapper.createArrayNode();
+        allowed.add("Coding"); allowed.add("Database"); allowed.add("System Design"); allowed.add("LLD"); allowed.add("Cloud");
+        allowed.add("Security"); allowed.add("DevOps"); allowed.add("AI/ML"); allowed.add("Data Engineering"); allowed.add("Distributed Systems");
+        allowed.add("Networking"); allowed.add("Operating Systems"); allowed.add("Programming Language"); allowed.add("Web Frontend"); allowed.add("Mobile");
+        allowed.add("Testing"); allowed.add("Technical Concept");
+        ObjectNode item = objectMapper.createObjectNode().put("type", "string"); item.set("enum", allowed); schema.set("items", item); return schema;
     }
 
     private ObjectNode jsonSchemaFormat(String name) { return objectMapper.createObjectNode().put("type", "json_schema").put("name", name).put("strict", true); }
