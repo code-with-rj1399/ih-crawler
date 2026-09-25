@@ -62,7 +62,7 @@ public class TwoStepOpenAiExtractor {
                     continue;
                 }
                 QuestionMetadata item = metadata.get(i);
-                log.info("Step 2 metadata index={} valid={} questionText={} questionType={} difficulty={} problemUrl={} granularity={} confidence={}",
+                log.info("Step 2 metadata index={} valid={} questionText={} questionTypes={} difficulty={} problemUrl={} granularity={} confidence={}",
                         i, item.isValidInterviewQuestion(), item.questionText(), item.questionTypes(), item.difficulty(), item.problemUrl(), item.questionGranularity(), item.confidence());
                 if (!item.isValidInterviewQuestion()) continue;
                 questions.add(toQuestion(item));
@@ -94,7 +94,7 @@ public class TwoStepOpenAiExtractor {
         for (JsonNode item : items) if (item.isObject()) metadata.add(new QuestionMetadata(
                 nullableText(item, "questionText"),
                 item.path("isValidInterviewQuestion").asBoolean(false),
-                stringList(item.path("questionType")),
+                stringList(item.path("questionTypes"), item.path("questionType")),
                 nullableText(item, "difficulty"),
                 nullableText(item, "questionDescription"),
                 nullableText(item, "problemUrl"),
@@ -106,7 +106,7 @@ public class TwoStepOpenAiExtractor {
     private InterviewQuestion toQuestion(QuestionMetadata metadata) {
         InterviewQuestion question = new InterviewQuestion();
         question.setQuestionText(metadata.questionText());
-        question.setQuestionType(metadata.questionTypes());
+        question.setQuestionTypes(metadata.questionTypes());
         question.setDifficulty(metadata.difficulty());
         question.setQuestionDescription(metadata.questionDescription());
         question.setProblemUrl(metadata.problemUrl());
@@ -144,9 +144,9 @@ public class TwoStepOpenAiExtractor {
     private JsonNode questionMetadataSchema() {
         ObjectNode format = jsonSchemaFormat("question_metadata_extraction"); ObjectNode item = objectSchema(); ObjectNode props = objectMapper.createObjectNode();
         props.set("questionText", nullableStringSchema()); props.set("isValidInterviewQuestion", objectMapper.createObjectNode().put("type", "boolean"));
-        props.set("questionType", stringArraySchema()); props.set("difficulty", nullableStringSchema()); props.set("questionDescription", nullableStringSchema());
+        props.set("questionTypes", stringArraySchema()); props.set("difficulty", nullableStringSchema()); props.set("questionDescription", nullableStringSchema());
         props.set("problemUrl", nullableStringSchema()); props.set("questionGranularity", nullableNumberSchema()); props.set("confidence", nullableNumberSchema());
-        item.set("properties", props); item.set("required", required("questionText", "isValidInterviewQuestion", "questionType", "difficulty", "questionDescription", "problemUrl", "questionGranularity", "confidence")); ObjectNode root = objectSchema();
+        item.set("properties", props); item.set("required", required("questionText", "isValidInterviewQuestion", "questionTypes", "difficulty", "questionDescription", "problemUrl", "questionGranularity", "confidence")); ObjectNode root = objectSchema();
         root.set("properties", objectMapper.createObjectNode().set("questions", objectMapper.createObjectNode().put("type", "array").set("items", item))); root.set("required", required("questions")); format.set("schema", root); return objectMapper.createObjectNode().set("format", format);
     }
 
@@ -163,7 +163,7 @@ public class TwoStepOpenAiExtractor {
     private static String nullableText(JsonNode node, String field) { if (node == null || node.isMissingNode() || node.isNull()) return null; String value = node.path(field).asText(null); return value == null || value.isBlank() ? null : value.trim(); }
     private static Float nullableFloat(JsonNode node, String field) { JsonNode value = node == null ? null : node.get(field); return value == null || value.isNull() || !value.isNumber() ? null : (float) value.asDouble(); }
     private static Instant parseInstant(String value) { if (value == null || value.isBlank()) return null; try { return Instant.parse(value); } catch (java.time.format.DateTimeParseException ignored) { return null; } }
-    private static List<String> stringList(JsonNode node) { if (node == null || !node.isArray()) return List.of(); List<String> result = new ArrayList<>(); for (JsonNode value : node) if (value.isTextual() && !value.asText().isBlank()) result.add(value.asText().trim()); return result; }
+    private static List<String> stringList(JsonNode primary, JsonNode legacy) { JsonNode node = primary != null && primary.isArray() ? primary : legacy; if (node == null || !node.isArray()) return List.of(); List<String> result = new ArrayList<>(); for (JsonNode value : node) if (value.isTextual() && !value.asText().isBlank()) result.add(value.asText().trim()); return result; }
     private static String firstNonBlank(String first, String second) { return first != null && !first.isBlank() ? first : second; }
 
     public record ExtractionResult(ExperienceExtraction experience, List<InterviewQuestion> questions) { public ExtractionResult { questions = questions == null ? List.of() : List.copyOf(questions); } public static ExtractionResult empty() { return new ExtractionResult(ExperienceExtraction.empty(), List.of()); } }
