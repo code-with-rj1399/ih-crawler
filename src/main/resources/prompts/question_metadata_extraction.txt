@@ -20,9 +20,7 @@ For every supplied question:
 
 <validity>
 A question is valid when it represents an actual interview question, programming problem, design problem, system-design problem, behavioral question, conceptual question, or other clearly identifiable interview question.
-
 A question does not need to contain a complete problem statement to be valid.
-
 Short references, titles, or recognizable problem names can still represent valid interview questions.
 
 Return false when the input contains no identifiable interview question or problem.
@@ -95,9 +93,7 @@ Normalize the question into a concise one-line interview question.
 
 The normalized questionText should be significantly shorter than the
 original input whenever the input contains detailed problem information.
-
 Do not unnecessarily rewrite a short, already-clear question.
-
 Do not add information merely to make the question longer.
 
 The purpose of normalization is to identify the core interview question,
@@ -106,7 +102,6 @@ not to preserve the full problem statement.
 
 <enrichment>
 Enrich questionDescription when reliable enrichment is possible.
-
 If the question clearly identifies a known canonical problem, you may use reliable knowledge of that canonical problem to provide a more complete and useful description.
 
 For system-design, LLD, machine-coding, database, or conceptual questions, structure and expand questionDescription when appropriate.
@@ -142,13 +137,9 @@ Do not copy proprietary wording or content from any reference platform.
 
 <question_description>
 questionDescription is the canonical, presentation-ready representation of the interview question.
-
 It should not merely repeat questionText.
-
 It may contain a richer problem statement, examples, requirements, constraints, or other useful information when these can be reliably established.
-
 For known canonical problems, use the canonical problem's standard presentation where appropriate.
-
 For custom interview questions, remain faithful to the information supplied in the input.
 
 The description MUST be written using Markdown syntax. It MUST NOT be returned as plain text when it contains meaningful content.
@@ -167,7 +158,6 @@ When a canonical problem can be confidently identified:
 - enrich questionDescription with reliable canonical information
 - provide difficulty when reliably known
 - provide the canonical problem URL when reliably known
-
 The model may recognize a canonical problem from its prior knowledge, including a problem it has seen before on a known interview-preparation or coding platform.
 
 If the supplied question clearly matches a known canonical problem and you are highly confident about the exact problem identity, return the canonical problem URL even when the URL is not present in the input.
@@ -222,9 +212,7 @@ Only add a second or subsequent type when the question itself provides sufficien
 Do not add related types merely because they are adjacent topics.
 
 Use Coding for programming, algorithm, data-structure, competitive-programming, and coding-platform problems.
-
 Use System Design for high-level distributed/system architecture problems.
-
 Use LLD for low-level object-oriented/class/design problems.
 
 If a question cannot be meaningfully classified into any of the allowed types, mark it as invalid and discard it.
@@ -232,10 +220,7 @@ If a question cannot be meaningfully classified into any of the allowed types, m
 
 <difficulty>
 Return difficulty only when it is explicitly supported by the supplied information, or the question is a confidently identified canonical problem whose difficulty is reliably known.
-
-Otherwise return null.
-
-Never guess the difficulty of a custom interview question.
+Otherwise return null. Never guess the difficulty of a custom interview question.
 </difficulty>
 
 <granularity>
@@ -256,27 +241,20 @@ Do not use granularity as a difficulty score.
 
 <problem_url>
 Return the canonical problem URL when a canonical problem is confidently identified.
-
 For custom interview questions, return null unless a canonical problem URL is clearly applicable.
-
 Never use the interview experience URL as problemUrl.
 </problem_url>
 
 <confidence>
 Return a number between 0.0 and 1.0 representing confidence in the extracted metadata.
-
 Confidence should reflect how certain you are about validity, classification, normalization, enrichment, and canonical identification when applicable.
-
 Do not use confidence as a measure of difficulty or importance.
 </confidence>
 
 <independence>
 Process every question independently.
-
 Do not use information from one question to invent or enrich another question.
-
 Do not merge separate questions.
-
 Do not split one question into multiple questions when its requirements clearly belong to the same interview question.
 </independence>
 
@@ -284,7 +262,6 @@ Do not split one question into multiple questions when its requirements clearly 
 Return exactly one JSON object with a top-level "questions" array.
 
 Return exactly one result for every input question and preserve the input order.
-
 If the input contains N questions, the output must contain exactly N question objects.
 
 Every question object MUST contain exactly these fields:
@@ -323,7 +300,6 @@ For an invalid question:
 Do not return fields outside this schema.
 
 Never silently discard an input question.
-
 Do not return:
 - evidence
 - source URLs
@@ -338,8 +314,6 @@ Do not return:
 
 <input>
 The following JSON array contains the complete list of questions extracted from ONE interview experience.
-
 Process every element independently and preserve the exact input order.
-
 {{questions_json}}
 </input>
