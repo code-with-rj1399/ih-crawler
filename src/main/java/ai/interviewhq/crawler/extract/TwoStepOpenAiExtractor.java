@@ -62,7 +62,7 @@ public class TwoStepOpenAiExtractor {
                 if (i >= metadata.size()) { log.warn("Step 2 returned fewer results for {}: candidates={}, metadata={}", postUrl, experience.questions().size(), metadata.size()); continue; }
                 QuestionMetadata item = metadata.get(i);
                 if (!item.isValidInterviewQuestion()) continue;
-                questions.add(toQuestion(source, postUrl, publishedAt, experience, experience.questions().get(i), item));
+                questions.add(toQuestion(source, postUrl, publishedAt, experience, item));
             }
             log.info("Question extraction for {}: candidates={}, valid={}, discarded={}", postUrl, experience.questions().size(), questions.size(), experience.questions().size() - questions.size());
             return new ExtractionResult(experience, questions);
@@ -88,16 +88,16 @@ public class TwoStepOpenAiExtractor {
         String prompt = questionPrompt.replace("{{questions_json}}", questions.toString()); if (prompt.equals(questionPrompt)) prompt = questionPrompt.replace("{{question_text}}", questions.toString());
         JsonNode result = parseOutput(callOpenAi(prompt, questionMetadataSchema(), "question_metadata_extraction")); if (result == null || !result.isObject()) return List.of();
         JsonNode items = result.path("questions"); if (!items.isArray()) return List.of(); List<QuestionMetadata> metadata = new ArrayList<>();
-        for (JsonNode item : items) if (item.isObject()) metadata.add(new QuestionMetadata(nullableText(item, "questionText"), item.path("isValidInterviewQuestion").asBoolean(false), stringList(item.path("questionType")), nullableText(item, "difficulty"), stringList(item.path("topics")), nullableText(item, "questionDescription"), nullableFloat(item, "confidence")));
+        for (JsonNode item : items) if (item.isObject()) metadata.add(new QuestionMetadata(nullableText(item, "questionText"), item.path("isValidInterviewQuestion").asBoolean(false), stringList(item.path("questionType")), nullableText(item, "difficulty"), nullableText(item, "questionDescription"), nullableFloat(item, "confidence")));
         return metadata;
     }
 
-    private InterviewQuestion toQuestion(CrawlSource source, String postUrl, Instant publishedAt, ExperienceExtraction experience, QuestionCandidate candidate, QuestionMetadata metadata) {
+    private InterviewQuestion toQuestion(CrawlSource source, String postUrl, Instant publishedAt, ExperienceExtraction experience, QuestionMetadata metadata) {
         InterviewQuestion question = new InterviewQuestion(); question.setSourcePlatform(source.getName()); question.setExperienceTitle(experience.title()); question.setExperienceSummary(experience.summary());
         question.setExperienceAuthor(experience.author()); question.setExperiencePostedAt(experience.postedAt()); question.setOriginalPostUrl(postUrl);
         question.setPostDate(experience.postedAt() == null ? publishedAt == null ? null : publishedAt.atZone(ZoneOffset.UTC).toLocalDate() : experience.postedAt().atZone(ZoneOffset.UTC).toLocalDate());
         question.setCompany(experience.company()); question.setLevel(experience.level()); question.setLocation(experience.location()); question.setCandidateYoE(experience.candidateYoE());
-        question.setQuestionText(candidate.questionText().trim()); question.setQuestionType(metadata.questionTypes()); question.setDifficulty(metadata.difficulty()); question.setTopics(metadata.topics()); question.setQuestionDescription(metadata.questionDescription());
+        question.setQuestionText(metadata.questionText()); question.setQuestionType(metadata.questionTypes()); question.setDifficulty(metadata.difficulty()); question.setQuestionDescription(metadata.questionDescription());
         question.setConfidence(metadata.confidence()); question.setModelName(settings.extractModel()); question.setExtractedAt(Instant.now()); question.setDedupeHash(Hashing.questionDedupeHash(question.getCompany(), question.getQuestionText())); return question;
     }
 
@@ -127,8 +127,8 @@ public class TwoStepOpenAiExtractor {
     private JsonNode questionMetadataSchema() {
         ObjectNode format = jsonSchemaFormat("question_metadata_extraction"); ObjectNode item = objectSchema(); ObjectNode props = objectMapper.createObjectNode();
         props.set("questionText", nullableStringSchema()); props.set("isValidInterviewQuestion", objectMapper.createObjectNode().put("type", "boolean"));
-        props.set("questionType", stringArraySchema()); props.set("difficulty", nullableStringSchema()); props.set("topics", stringArraySchema()); props.set("questionDescription", nullableStringSchema()); props.set("confidence", nullableNumberSchema());
-        item.set("properties", props); item.set("required", required("questionText", "isValidInterviewQuestion", "questionType", "difficulty", "topics", "questionDescription", "confidence")); ObjectNode root = objectSchema();
+        props.set("questionType", stringArraySchema()); props.set("difficulty", nullableStringSchema()); props.set("questionDescription", nullableStringSchema()); props.set("confidence", nullableNumberSchema());
+        item.set("properties", props); item.set("required", required("questionText", "isValidInterviewQuestion", "questionType", "difficulty", "questionDescription", "confidence")); ObjectNode root = objectSchema();
         root.set("properties", objectMapper.createObjectNode().set("questions", objectMapper.createObjectNode().put("type", "array").set("items", item))); root.set("required", required("questions")); format.set("schema", root); return objectMapper.createObjectNode().set("format", format);
     }
 
@@ -150,7 +150,7 @@ public class TwoStepOpenAiExtractor {
 
     public record ExtractionResult(ExperienceExtraction experience, List<InterviewQuestion> questions) { public ExtractionResult { questions = questions == null ? List.of() : List.copyOf(questions); } public static ExtractionResult empty() { return new ExtractionResult(ExperienceExtraction.empty(), List.of()); } }
 
-    private record QuestionMetadata(String questionText, boolean isValidInterviewQuestion, List<String> questionTypes, String difficulty, List<String> topics, String questionDescription, Float confidence) {
-        private QuestionMetadata { questionTypes = questionTypes == null ? List.of() : List.copyOf(questionTypes); topics = topics == null ? List.of() : List.copyOf(topics); }
+    private record QuestionMetadata(String questionText, boolean isValidInterviewQuestion, List<String> questionTypes, String difficulty, String questionDescription, Float confidence) {
+        private QuestionMetadata { questionTypes = questionTypes == null ? List.of() : List.copyOf(questionTypes); }
     }
 }
