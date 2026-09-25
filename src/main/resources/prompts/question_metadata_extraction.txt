@@ -220,12 +220,6 @@ Allowed values are exactly:
 - Mobile
 - Testing
 - Technical Concept
-- Behavioral
-- HR
-- Personal / Background
-- Resume / Project
-- Interview Process
-- Other
 
 Only add a second or subsequent type when the question itself provides sufficient evidence for that classification.
 
@@ -237,7 +231,7 @@ Use System Design for high-level distributed/system architecture problems.
 
 Use LLD for low-level object-oriented/class/design problems.
 
-Return an empty array when no type can be determined reliably.
+If a question cannot be meaningfully classified into any of the allowed types, mark it as invalid and discard it.
 </question_type>
 
 <difficulty>
@@ -286,7 +280,6 @@ Every question object MUST contain exactly these fields:
 - "isValidInterviewQuestion"
 - "questionType"
 - "difficulty"
-- "topics"
 - "questionDescription"
 - "confidence"
 
@@ -297,7 +290,6 @@ Use these field types:
 - isValidInterviewQuestion: boolean
 - questionType: array of strings
 - difficulty: string or null
-- topics: array of strings
 - questionDescription: string or null
 - confidence: number or null
 
@@ -307,7 +299,6 @@ For an invalid question:
 - questionText = null
 - questionType = []
 - difficulty = null
-- topics = []
 - questionDescription = null
 - confidence should reflect the confidence of the invalid classification
 
@@ -323,6 +314,7 @@ Do not return:
 - summary
 - canonical_problem
 - independence
+- topics
 - additional fields outside the schema above
 </output_rules>
 
