@@ -21,29 +21,6 @@ Preserve the original meaning and useful detail of every question. If a question
 If the page does not describe an actual interview experience, return an empty experience and an empty questions array.
 </objective>
 
-<source>
-The page title and page content are both source material.
-
-<page_title>
-{{title}}
-</page_title>
-
-<page_content>
-{{page_content}}
-</page_content>
-
-The page title may contain useful information such as company, role, level, location, years of experience, or interview outcome. Use it as source information, but do not blindly copy it.
-
-When the page title and page content conflict, prefer explicit, reliable information from the page content.
-
-Crawler metadata is also supplied below. Use it only when the corresponding value is not explicitly available in the page content and do not invent values.
-SOURCE PLATFORM: {{source_platform}}
-POST URL: {{post_url}}
-AUTHOR: {{author}}
-PUBLISHED AT: {{published_at}}
-TAGS: {{tags}}
-</source>
-
 <experience_title>
 Construct experience.title using only the following components, when explicitly supported:
 
@@ -209,3 +186,26 @@ If the page is not an actual interview experience, return:
   "questions": []
 }
 </output_schema>
+
+<source>
+The page title and page content are both source material.
+
+<page_title>
+{{title}}
+</page_title>
+
+<page_content>
+{{page_content}}
+</page_content>
+
+The page title may contain useful information such as company, role, level, location, years of experience, or interview outcome. Use it as source information, but do not blindly copy it.
+
+When the page title and page content conflict, prefer explicit, reliable information from the page content.
+
+Crawler metadata is also supplied below. Use it only when the corresponding value is not explicitly available in the page content and do not invent values.
+SOURCE PLATFORM: {{source_platform}}
+POST URL: {{post_url}}
+AUTHOR: {{author}}
+PUBLISHED AT: {{published_at}}
+TAGS: {{tags}}
+</source>
