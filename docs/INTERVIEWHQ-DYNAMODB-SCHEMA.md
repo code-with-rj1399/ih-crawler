@@ -158,7 +158,7 @@ Example:
 
 ## 4. Relationship and access pattern
 
-DynamoDB item collections are used for the one-to-many relationship: the experience and its questions share the same partition key and differ by sort-key prefix. This lets the application query the questions for one experience without scanning the whole table. citeturn1view0
+DynamoDB item collections are used for the one-to-many relationship: the experience and its questions share the same partition key and differ by sort-key prefix. This lets the application query the questions for one experience without scanning the whole table.
 
 ```text
 EXPERIENCE#123
