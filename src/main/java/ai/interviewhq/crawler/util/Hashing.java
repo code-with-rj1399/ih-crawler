@@ -31,6 +31,10 @@ public final class Hashing {
         return value.toLowerCase(Locale.ROOT).trim().replaceAll("\\s+", " ");
     }
 
+    public static String experienceDedupeHash(String sourcePlatform, String originalPostUrl) {
+        return sha256Hex(normalize(sourcePlatform) + "\n" + normalize(originalPostUrl));
+    }
+
     public static String questionDedupeHash(String company, String questionText) {
         return sha256Hex(normalize(company) + "\n" + normalize(questionText));
     }
