@@ -64,14 +64,20 @@ public class DynamoDbRepositorySupport {
     }
 
     public <T> List<T> scan(Class<T> type) {
-        List<T> result = new ArrayList<>(); Map<String, AttributeValue> start = null;
-        do { var request = ScanRequest.builder().tableName(tableName).consistentRead(true); if (start != null) request.exclusiveStartKey(start); var response = client.scan(request.build()); for (var item : response.items()) if (item.containsKey("data")) result.add(fromItem(type, item)); start = response.lastEvaluatedKey(); } while (start != null && !start.isEmpty());
+        List<T> result = new ArrayList<>(); Map<String, AttributeValue> start = null; String entityType = type.getSimpleName();
+        do {
+            var request = ScanRequest.builder().tableName(tableName).consistentRead(true).filterExpression("entityType = :entityType").expressionAttributeValues(Map.of(":entityType", AttributeValue.builder().s(entityType).build()));
+            if (start != null) request.exclusiveStartKey(start);
+            var response = client.scan(request.build());
+            for (var item : response.items()) if (item.containsKey("data")) result.add(fromItem(type, item));
+            start = response.lastEvaluatedKey();
+        } while (start != null && !start.isEmpty());
         return result;
     }
 
     public <T> List<T> query(Class<T> type, String pk) {
         var response = client.query(QueryRequest.builder().tableName(tableName).keyConditionExpression("pk = :pk").expressionAttributeValues(Map.of(":pk", AttributeValue.builder().s(pk).build())).consistentRead(true).build());
-        return response.items().stream().filter(i -> i.containsKey("data")).map(i -> fromItem(type, i)).collect(Collectors.toList());
+        return response.items().stream().filter(i -> i.containsKey("data") && i.get("entityType") != null && type.getSimpleName().equals(i.get("entityType").s())).map(i -> fromItem(type, i)).collect(Collectors.toList());
     }
 
     public void delete(String pk, String sk) { client.deleteItem(DeleteItemRequest.builder().tableName(tableName).key(Map.of("pk", AttributeValue.builder().s(pk).build(), "sk", AttributeValue.builder().s(sk).build())).build()); }
