@@ -23,7 +23,6 @@ Use the focused documents below as the design and contract references.
 
 - [InterviewHQ System Design](docs/INTERVIEWHQ_DESIGN.md) — overall architecture, services, crawling flow, extraction, and system-level design decisions.
 - [DynamoDB Schema](docs/INTERVIEWHQ-DYNAMODB-SCHEMA.md) — single-table design, entities, keys, GSIs, access patterns, ingestion boundary, validation, idempotency, and DynamoDB decisions.
-- [Extraction Prompt](src/main/resources/prompts/interview_question_extraction.txt) — complete source-grounded extraction and description contract.
 
 ## Crawl Pipeline
 
