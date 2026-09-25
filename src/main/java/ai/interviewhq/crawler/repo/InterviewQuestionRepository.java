@@ -17,7 +17,7 @@ public class InterviewQuestionRepository extends DynamoRepository<InterviewQuest
     public InterviewQuestion save(InterviewQuestion question) {
         if (question.getId() == null) question.setId(db.nextId("interview-question"));
         if (question.getCreatedAt() == null) question.setCreatedAt(java.time.Instant.now());
-        if (question.getQuestionType() == null) question.setQuestionType(new java.util.ArrayList<>());
+        if (question.getQuestionTypes() == null) question.setQuestionTypes(new java.util.ArrayList<>());
         if (question.getExperienceId() == null) throw new IllegalArgumentException("experienceId is required for an interview question");
         return db.save(question, "EXPERIENCE#" + question.getExperienceId(), "QUESTION#" + question.getDedupeHash());
     }
