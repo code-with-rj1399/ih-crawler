@@ -85,49 +85,114 @@ The Markdown must remain semantically meaningful and valid.
 </summary>
 
 <question_extraction>
-Extract ALL questions that the source explicitly indicates were actually presented during the interview.
 
-A question may be:
-- coding or algorithmic
-- system design
-- low-level design
-- database/SQL
-- cloud/security/DevOps
-- AI/ML/data engineering
-- technical concept
-- behavioral
-- HR
-- personal/background
-- resume/project
-- interview process
-- any other explicitly asked interview question
+Extract ALL interview questions or problems that the source identifies as part
+of the interview.
 
-Extract the question even when it is non-technical. Do not filter it based on category.
+An interview question does NOT need to be a complete or grammatically phrased
+question.
 
-Only extract something when the source indicates that it was actually asked, presented, assigned, or discussed as part of the interview.
+Interview experiences often describe questions using shorthand, including:
+- a specific problem
+- a problem-solving subject
+- a design subject
+- an implementation subject
+- a technical subject explicitly described as a question
+- a fit/interview discussion topic
+- a behavioral or background discussion topic
 
-Do not create questions from:
-- technology mentions
-- candidate skills
-- project descriptions unless the source explicitly states a question was asked about them
-- job requirements
-- preparation advice
-- generic question lists
-- topics merely discussed without an actual question
+When the source explicitly associates such content with an interview round,
+extract it as an interview question.
 
-Preserve the source's granularity. A short source question should remain short. A detailed source question should retain its detailed requirements.
+Do NOT require words such as:
+- "asked"
+- "question"
+- "solve"
+- "implement"
 
-Normalize only obvious grammar or wording issues without changing meaning.
+A specific interview problem or discussion topic may therefore be valid even
+when the source provides only a short description.
 
-Examples:
-"Asked to implement LRU" -> "Implement an LRU cache."
-"They asked me to design a wallet system" -> "Design a wallet system."
+For example:
 
-Do not add algorithms, data structures, constraints, input/output assumptions, complexity requirements, scale, traffic, availability requirements, APIs, architecture components, technologies, or follow-up questions unless explicitly stated in the source.
+"Round 2. Problem solving: graph, cycle detection."
+→ extract the graph/cycle-detection problem.
+
+"Round 3. Problem solving: matrix, combinatorics and graph."
+→ extract the matrix/combinatorics/graph problem.
+
+"Round 4. Fit round with the recruiting lead. Experience and background."
+→ extract the experience/background interview question or discussion.
+
+"Round 5. Problem solving with a cofounder: place tiles on a plane."
+→ extract the tile-placement problem.
+
+"Plus questions on AI inference."
+→ extract the AI-inference question(s).
+
+However, do NOT extract every topic or technology mentioned anywhere in the
+article.
+
+A topic is extractable only when the source explicitly connects it to what was
+asked, discussed, solved, designed, implemented, or evaluated during the
+interview.
+
+For example:
+
+"The company works on AI inference."
+→ do NOT extract AI inference.
+
+"Nearly everyone on the team is an ICPC or IOI medallist."
+→ do NOT extract ICPC or IOI.
+
+"The candidate has experience with Java."
+→ do NOT extract Java.
+
+Extract the actual interview content, not unrelated contextual information.
+
+Separate interview metadata from question content.
+
+Remove from questionText when they are not part of the question:
+- round numbers
+- round names
+- interviewer names or roles
+- difficulty labels
+- interview format
+- interview outcome
+- candidate performance
+- other process metadata
+
+Preserve information that is actually part of the question.
+
+Do not require a complete problem statement.
+
+If the source provides only a partial description, extract only the identifiable
+portion.
+
+Do not reconstruct missing details from general knowledge.
+
+Do not turn a vague topic into a specific problem.
+
+Do not invent:
+- requirements
+- constraints
+- examples
+- algorithms
+- data structures
+- scale
+- architecture
+- APIs
+- technologies
+- expected behavior
+
+unless explicitly supported by the source.
 
 Do not solve the question.
+
 Do not merge unrelated questions.
+
 Do not duplicate the same question.
+
 </question_extraction>
 
 <quality_rules>
@@ -142,24 +207,6 @@ Before returning the result:
 </quality_rules>
 
 <output_schema>
-Return ONLY valid JSON matching this structure:
-{
-  "experience": {
-    "title": "string or null",
-    "summary": "Markdown string or null",
-    "postedAt": "ISO-8601 string or null",
-    "author": "string or null",
-    "company": "string or null",
-    "role": "string or null",
-    "level": "string or null",
-    "location": "string or null",
-    "candidateYoE": "number or null"
-  },
-  "questions": [
-    "question 1",
-    "question 2"
-  ]
-}
 
 If the page is not an actual interview experience, return:
 {
