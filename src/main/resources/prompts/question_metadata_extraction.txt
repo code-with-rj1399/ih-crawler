@@ -54,58 +54,53 @@ When these appear together with an actual question, remove them from questionTex
 </validity>
 
 <question_text>
-questionText is the normalized representation of the actual interview question or problem that can be established directly from the supplied input.
+questionText must be a concise, one-line representation of the actual
+interview question.
 
-When the input contains both metadata and a question, extract only the actual question/problem.
+Write it the way a person would naturally write the question as a short
+interview-question title.
 
-Do not automatically convert every topic mentioned in the input into a question.
+Extract the core problem/question and remove:
+- round numbers and round labels
+- interviewer information
+- difficulty
+- implementation details
+- extensions and follow-ups
+- examples
+- sample input/output
+- detailed requirements
+- business/domain-specific data that is not necessary to identify the question
+- explanations, rationale, and background
+- long descriptive paragraphs
 
-The specificity of questionText MUST NOT exceed the specificity of the supplied input.
+Do NOT copy the full input into questionText.
 
-You may:
-- fix grammar, spelling, punctuation, and formatting
-- convert a descriptive/past-tense statement into clear question wording when the intended question is directly apparent
-- remove unnecessary introductory wording
-- remove round/process metadata surrounding the question
-- improve readability while preserving the original meaning
-- preserve important qualifiers explicitly present in the input
+questionText should normally be ONE sentence or a short question phrase.
 
-The questionText should have the clarity, conciseness, precision, and developer-friendly wording expected from high-quality interview-preparation platforms such as LeetCode, GeeksforGeeks, and AlgoExpert.
+The goal is to identify the question, not describe the entire problem.
 
-This is a presentation-quality guideline only. It must never justify adding information that is absent from the supplied input.
+Preserve the core meaning and important distinguishing information.
+Do not invent missing requirements.
 
-You MUST NOT:
-- add requirements
-- add constraints
-- add examples
-- add technologies
-- add APIs
-- add entities
-- add expected behavior
-- add architecture
-- add scale or performance requirements
-- infer missing requirements
-- expand a vague question using general knowledge
-- turn a short question into a detailed problem statement
-- use information from the question's type, round, or other metadata to invent missing question details
+Do not make questionText longer merely because more information is available
+in the input.
 
-If the input is vague, questionText MUST remain vague.
-If the input is short, questionText MUST remain short.
-If the input only identifies a problem by name, do not invent a full problem statement.
-
-Do not introduce the concept or terminology of a separate task/entity. The extracted item is a question and must remain a question.
+questionDescription is where detailed requirements, examples, constraints,
+and other useful information belong.
 </question_text>
 
 <normalization>
-Normalize obvious grammar, formatting, and wording problems while preserving the original meaning.
+Normalize the question into a concise one-line interview question.
 
-Do not unnecessarily rewrite a clear question.
+The normalized questionText should be significantly shorter than the
+original input whenever the input contains detailed problem information.
 
-Question normalization must not add information that is absent from the supplied input.
+Do not unnecessarily rewrite a short, already-clear question.
 
-The normalized question should read naturally and professionally, with the concise, precise presentation quality commonly expected on LeetCode, GeeksforGeeks, AlgoExpert, and similar interview-preparation platforms.
+Do not add information merely to make the question longer.
 
-Presentation quality must never override source fidelity.
+The purpose of normalization is to identify the core interview question,
+not to preserve the full problem statement.
 </normalization>
 
 <enrichment>
