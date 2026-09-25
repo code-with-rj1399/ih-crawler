@@ -39,6 +39,18 @@ public class InterviewQuestionRepository extends DynamoRepository<InterviewQuest
                 .toList();
     }
 
+    public int deleteByExperienceId(Integer experienceId) {
+        if (experienceId == null) return 0;
+        int deleted = 0;
+        for (InterviewQuestion question : findByExperienceId(experienceId)) {
+            if (question.getDedupeHash() != null) {
+                db.delete("EXPERIENCE#" + experienceId, "QUESTION#" + question.getDedupeHash());
+                deleted++;
+            }
+        }
+        return deleted;
+    }
+
     public Optional<InterviewQuestion> findByExperienceAndDedupeHash(Integer experienceId, String hash) {
         if (experienceId == null || hash == null || hash.isBlank()) return Optional.empty();
         return db.find(InterviewQuestion.class, "EXPERIENCE#" + experienceId, "QUESTION#" + hash);
