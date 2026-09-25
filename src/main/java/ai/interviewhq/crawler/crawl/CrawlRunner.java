@@ -140,6 +140,15 @@ public class CrawlRunner {
             postRepository.save(post);
             savedPosts[0]++;
 
+            // An experience is useful only when Step 2 produced at least one valid question.
+            // Do not create/update the experience when all extracted candidates are invalid.
+            // If this is a re-crawl of an existing experience, leave the existing experience intact.
+            if (result.questions().isEmpty()) {
+                log.info("Skipping experience persistence for {}: no valid interview questions", postUrl);
+                skipped[0]++;
+                return;
+            }
+
             String experienceHash = Hashing.experienceDedupeHash(source.getName(), postUrl);
             InterviewExperience experience = experienceRepository.findByDedupeHash(experienceHash).orElseGet(InterviewExperience::new);
             experience.setSourceId(source.getId());
