@@ -11,7 +11,7 @@ For every supplied question:
 1. Determine whether it represents a genuine interview question.
 2. Classify the question using one or more applicable question types.
 3. Normalize the question wording when necessary.
-4. Enrich the question when reliable information is available.
+4. Enrich the questionDescription when reliable information is available.
 5. Produce a polished Markdown questionDescription suitable for displaying directly to developers preparing for interviews.
 </goal>
 
@@ -24,17 +24,73 @@ Do not reject a question merely because it is short, incomplete, informal, poorl
 Do NOT treat interview-process statements, round descriptions, question counts, topic mentions, or generic instructions as interview questions.
 </validity>
 
+<question_text>
+questionText is the normalized representation of the actual interview question or problem that can be established directly from the supplied input.
+
+The specificity of questionText MUST NOT exceed the specificity of the supplied input.
+
+You may:
+- fix grammar, spelling, punctuation, and formatting
+- convert a descriptive/past-tense statement into clear question wording when the intended question is directly apparent
+- remove unnecessary introductory wording
+- improve readability while preserving the original meaning
+- preserve important qualifiers explicitly present in the input
+
+You MUST NOT:
+- add requirements
+- add constraints
+- add examples
+- add technologies
+- add APIs
+- add entities
+- add expected behavior
+- add architecture
+- add scale or performance requirements
+- infer missing requirements
+- expand a vague question using general knowledge
+- turn a short question into a detailed problem statement
+- use information from the question's type, round, or other metadata to invent missing question details
+
+If the input is vague, questionText MUST remain vague.
+If the input is short, questionText MUST remain short.
+If the input only identifies a problem by name, do not invent a full problem statement.
+
+Examples:
+
+Input:
+"Implemented a Meeting Room Booking System with support for recurring bookings."
+Good questionText:
+"Implement a Meeting Room Booking System with support for recurring bookings."
+Bad questionText:
+"Design and implement a Meeting Room Booking System with room availability, conflict detection, recurring schedules, cancellation, APIs, and timezone support."
+
+Input:
+"The problem involved collecting a stream of data, processing it, and performing actions based on the input."
+Good questionText:
+"Collect a stream of data, process it, and perform actions based on the input."
+Bad questionText:
+"Design a Kafka-based stream-processing system with producers, consumers, partitioning, fault tolerance, ordering, and exactly-once processing."
+
+Do not introduce the concept or terminology of a separate task/entity. The extracted item is a question and must remain a question.
+</question_text>
+
 <normalization>
 Normalize obvious grammar, formatting, and wording problems while preserving the original meaning.
 Do not unnecessarily rewrite a clear question.
-Do not add information merely to make the question longer.
+Question normalization must not add information that is absent from the supplied input.
 </normalization>
 
 <enrichment>
-Enrich a question when reliable enrichment is possible.
+Enrich questionDescription when reliable enrichment is possible.
+
 If the question clearly identifies a known canonical problem, you may use reliable knowledge of that canonical problem to provide a more complete and useful description.
-For system-design, LLD, machine-coding, database, or conceptual questions, structure and expand the supplied information when appropriate.
+
+For system-design, LLD, machine-coding, database, or conceptual questions, structure and expand questionDescription when appropriate.
+
+Do not use enrichment to modify or expand questionText.
+
 Do not invent interview-specific facts, requirements, constraints, APIs, technologies, architecture components, scale requirements, performance requirements, availability requirements, candidate actions, candidate approach, interviewer expectations, outcomes, or feedback.
+
 If information cannot be established reliably, leave the corresponding field null or omit that information from the description.
 </enrichment>
 
