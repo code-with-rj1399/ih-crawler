@@ -26,7 +26,7 @@ public class InterviewQuestion {
     private String location;
     private Float candidateYoE;
 
-    private String questionType;
+    private List<String> questionType = new ArrayList<>();
     private String difficulty;
     private List<String> topics = new ArrayList<>();
 
@@ -45,6 +45,7 @@ public class InterviewQuestion {
         Instant now = Instant.now();
         if (createdAt == null) createdAt = now;
         if (extractedAt == null) extractedAt = now;
+        if (questionType == null) questionType = new ArrayList<>();
         if (topics == null) topics = new ArrayList<>();
     }
 
@@ -76,8 +77,8 @@ public class InterviewQuestion {
     public void setLocation(String location) { this.location = location; }
     public Float getCandidateYoE() { return candidateYoE; }
     public void setCandidateYoE(Float candidateYoE) { this.candidateYoE = candidateYoE; }
-    public String getQuestionType() { return questionType; }
-    public void setQuestionType(String questionType) { this.questionType = questionType; }
+    public List<String> getQuestionType() { return questionType; }
+    public void setQuestionType(List<String> questionType) { this.questionType = questionType; }
     public String getDifficulty() { return difficulty; }
     public void setDifficulty(String difficulty) { this.difficulty = difficulty; }
     public List<String> getTopics() { return topics; }
