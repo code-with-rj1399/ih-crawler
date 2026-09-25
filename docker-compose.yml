@@ -22,6 +22,8 @@ services:
       SPRING_PROFILES_ACTIVE: local
       DYNAMODB_ENDPOINT: http://dynamodb-local:8000
       DYNAMODB_TABLE: interviewhq-crawler-dev
+      DYNAMODB_EXPERIENCE_TABLE: interviewhq-experiences-dev
+      DYNAMODB_QUESTION_TABLE: interviewhq-questions-dev
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       OPENAI_MODEL: gpt-5-nano
     extra_hosts:

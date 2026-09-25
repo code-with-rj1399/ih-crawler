@@ -2,10 +2,14 @@ package ai.interviewhq.crawler.dev;
 
 import ai.interviewhq.crawler.crawl.CrawlRunner;
 import ai.interviewhq.crawler.domain.CrawlSource;
+import ai.interviewhq.crawler.domain.InterviewExperience;
 import ai.interviewhq.crawler.domain.InterviewQuestion;
 import ai.interviewhq.crawler.extract.ExtractionPromptService;
 import ai.interviewhq.crawler.repo.CrawlSourceRepository;
+import ai.interviewhq.crawler.repo.InterviewExperienceRepository;
 import ai.interviewhq.crawler.repo.InterviewQuestionRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpHeaders;
@@ -21,20 +25,25 @@ import java.util.Map;
 @RequestMapping("/dev/api")
 @Profile({"dev", "local"})
 public class DevController {
+    private static final Logger log = LoggerFactory.getLogger(DevController.class);
+
     private final CrawlRunner crawlRunner;
     private final CrawlSourceRepository sourceRepository;
+    private final InterviewExperienceRepository experienceRepository;
     private final InterviewQuestionRepository questionRepository;
     private final ObjectMapper objectMapper;
     private final ExtractionPromptService promptService;
     private final DevPromptTester promptTester;
 
     public DevController(CrawlRunner crawlRunner, CrawlSourceRepository sourceRepository,
+                         InterviewExperienceRepository experienceRepository,
                          InterviewQuestionRepository questionRepository,
                          ObjectMapper objectMapper,
                          ExtractionPromptService promptService,
                          DevPromptTester promptTester) {
         this.crawlRunner = crawlRunner;
         this.sourceRepository = sourceRepository;
+        this.experienceRepository = experienceRepository;
         this.questionRepository = questionRepository;
         this.objectMapper = objectMapper;
         this.promptService = promptService;
@@ -133,6 +142,20 @@ public class DevController {
         return promptTester.test(prompt);
     }
 
+    @GetMapping("/experiences")
+    public List<InterviewExperience> experiences() {
+        return experienceRepository.findAll();
+    }
+
+    @GetMapping("/experiences/{id}/questions")
+    public List<InterviewQuestion> experienceQuestions(@PathVariable Integer id) {
+        if (experienceRepository.findById(id).isEmpty()) throw new IllegalArgumentException("Experience not found: " + id);
+        List<InterviewQuestion> questions = questionRepository.findByExperienceId(id);
+        log.info("API RESPONSE experienceId={} questions={} questionTypes={}", id, questions.size(),
+                questions.stream().map(InterviewQuestion::getQuestionTypes).toList());
+        return questions;
+    }
+
     @GetMapping("/questions")
     public List<InterviewQuestion> questions() {
         return questionRepository.findAll().stream().sorted((a, b) -> Integer.compare(b.getId() == null ? 0 : b.getId(), a.getId() == null ? 0 : a.getId())).limit(100).toList();
@@ -145,7 +168,10 @@ public class DevController {
 
     @GetMapping("/download")
     public ResponseEntity<byte[]> download() throws Exception {
-        Map<String, Object> data = new java.util.LinkedHashMap<>(); data.put("sources", sourceRepository.findAll()); data.put("questions", questionRepository.findAll());
+        Map<String, Object> data = new java.util.LinkedHashMap<>();
+        data.put("sources", sourceRepository.findAll());
+        data.put("experiences", experienceRepository.findAll());
+        data.put("questions", questionRepository.findAll());
         byte[] json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(data).getBytes(StandardCharsets.UTF_8);
         return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=interviewhq-dynamodb-data.json").contentType(MediaType.APPLICATION_JSON).body(json);
     }

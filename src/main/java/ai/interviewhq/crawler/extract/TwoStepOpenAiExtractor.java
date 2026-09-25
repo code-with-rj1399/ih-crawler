@@ -20,8 +20,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,12 +57,17 @@ public class TwoStepOpenAiExtractor {
             List<QuestionMetadata> metadata = extractQuestionMetadata(experience.questions());
             List<InterviewQuestion> questions = new ArrayList<>();
             for (int i = 0; i < experience.questions().size(); i++) {
-                if (i >= metadata.size()) { log.warn("Step 2 returned fewer results for {}: candidates={}, metadata={}", postUrl, experience.questions().size(), metadata.size()); continue; }
+                if (i >= metadata.size()) {
+                    log.warn("Step 2 returned fewer results for {}: candidates={}, metadata={}", postUrl, experience.questions().size(), metadata.size());
+                    continue;
+                }
                 QuestionMetadata item = metadata.get(i);
-                log.info("Step 2 metadata index={} valid={} questionText={} questionType={} difficulty={} problemUrl={} granularity={} confidence={}",
+                log.info("Step 2 metadata index={} valid={} questionText={} questionTypes={} difficulty={} problemUrl={} granularity={} confidence={}",
                         i, item.isValidInterviewQuestion(), item.questionText(), item.questionTypes(), item.difficulty(), item.problemUrl(), item.questionGranularity(), item.confidence());
                 if (!item.isValidInterviewQuestion()) continue;
-                questions.add(toQuestion(source, postUrl, publishedAt, experience, item));
+                InterviewQuestion question = toQuestion(item);
+                log.info("BEFORE SAVE questionTypes={} questionText={}", question.getQuestionTypes(), question.getQuestionText());
+                questions.add(question);
             }
             log.info("Question extraction for {}: candidates={}, valid={}, discarded={}", postUrl, experience.questions().size(), questions.size(), experience.questions().size() - questions.size());
             return new ExtractionResult(experience, questions);
@@ -90,26 +93,34 @@ public class TwoStepOpenAiExtractor {
         String prompt = questionPrompt.replace("{{questions_json}}", questions.toString()); if (prompt.equals(questionPrompt)) prompt = questionPrompt.replace("{{question_text}}", questions.toString());
         JsonNode result = parseOutput(callOpenAi(prompt, questionMetadataSchema(), "question_metadata_extraction")); if (result == null || !result.isObject()) return List.of();
         JsonNode items = result.path("questions"); if (!items.isArray()) return List.of(); List<QuestionMetadata> metadata = new ArrayList<>();
-        for (JsonNode item : items) if (item.isObject()) metadata.add(new QuestionMetadata(
-                nullableText(item, "questionText"),
-                item.path("isValidInterviewQuestion").asBoolean(false),
-                stringList(item.path("questionType")),
-                nullableText(item, "difficulty"),
-                nullableText(item, "questionDescription"),
-                nullableText(item, "problemUrl"),
-                nullableFloat(item, "questionGranularity"),
-                nullableFloat(item, "confidence")));
+        for (JsonNode item : items) if (item.isObject()) {
+            log.info("STEP2 RAW questionTypes={} questionText={}", item.path("questionTypes"), item.path("questionText").asText(null));
+            metadata.add(new QuestionMetadata(
+                    nullableText(item, "questionText"),
+                    item.path("isValidInterviewQuestion").asBoolean(false),
+                    stringList(item.path("questionTypes"), item.path("questionType")),
+                    nullableText(item, "difficulty"),
+                    nullableText(item, "questionDescription"),
+                    nullableText(item, "problemUrl"),
+                    nullableFloat(item, "questionGranularity"),
+                    nullableFloat(item, "confidence")));
+        }
         return metadata;
     }
 
-    private InterviewQuestion toQuestion(CrawlSource source, String postUrl, Instant publishedAt, ExperienceExtraction experience, QuestionMetadata metadata) {
-        InterviewQuestion question = new InterviewQuestion(); question.setSourcePlatform(source.getName()); question.setExperienceTitle(experience.title()); question.setExperienceSummary(experience.summary());
-        question.setExperienceAuthor(experience.author()); question.setExperiencePostedAt(experience.postedAt()); question.setOriginalPostUrl(postUrl);
-        question.setPostDate(experience.postedAt() == null ? publishedAt == null ? null : publishedAt.atZone(ZoneOffset.UTC).toLocalDate() : experience.postedAt().atZone(ZoneOffset.UTC).toLocalDate());
-        question.setCompany(experience.company()); question.setLevel(experience.level()); question.setLocation(experience.location()); question.setCandidateYoE(experience.candidateYoE());
-        question.setQuestionText(metadata.questionText()); question.setQuestionType(metadata.questionTypes()); question.setDifficulty(metadata.difficulty()); question.setQuestionDescription(metadata.questionDescription());
-        question.setProblemUrl(metadata.problemUrl()); question.setQuestionGranularity(metadata.questionGranularity());
-        question.setConfidence(metadata.confidence()); question.setModelName(settings.extractModel()); question.setExtractedAt(Instant.now()); question.setDedupeHash(Hashing.questionDedupeHash(question.getCompany(), question.getQuestionText())); return question;
+    private InterviewQuestion toQuestion(QuestionMetadata metadata) {
+        InterviewQuestion question = new InterviewQuestion();
+        question.setQuestionText(metadata.questionText());
+        question.setQuestionTypes(metadata.questionTypes());
+        question.setDifficulty(metadata.difficulty());
+        question.setQuestionDescription(metadata.questionDescription());
+        question.setProblemUrl(metadata.problemUrl());
+        question.setQuestionGranularity(metadata.questionGranularity());
+        question.setConfidence(metadata.confidence());
+        question.setModelName(settings.extractModel());
+        question.setExtractedAt(Instant.now());
+        question.setDedupeHash(Hashing.questionDedupeHash(null, question.getQuestionText()));
+        return question;
     }
 
     private JsonNode callOpenAi(String prompt, JsonNode schema, String schemaName) throws Exception {
@@ -119,7 +130,6 @@ public class TwoStepOpenAiExtractor {
         HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
         if (response.statusCode() < 200 || response.statusCode() >= 300) throw new IllegalStateException("OpenAI API request failed: HTTP " + response.statusCode() + " - " + response.body());
         JsonNode root = objectMapper.readTree(response.body()); log.info("OpenAI {} diagnostics: responseId={}, status={}, usage={}", schemaName, root.path("id").asText("unknown"), root.path("status").asText("unknown"), root.path("usage"));
-        log.info("OpenAI {} output: {}", schemaName, root.path("output_text").asText(root.toString()));
         if ("incomplete".equals(root.path("status").asText())) throw new IllegalStateException("OpenAI response incomplete: reason=" + root.path("incomplete_details").path("reason").asText("unknown")); return root;
     }
 
@@ -138,9 +148,9 @@ public class TwoStepOpenAiExtractor {
     private JsonNode questionMetadataSchema() {
         ObjectNode format = jsonSchemaFormat("question_metadata_extraction"); ObjectNode item = objectSchema(); ObjectNode props = objectMapper.createObjectNode();
         props.set("questionText", nullableStringSchema()); props.set("isValidInterviewQuestion", objectMapper.createObjectNode().put("type", "boolean"));
-        props.set("questionType", stringArraySchema()); props.set("difficulty", nullableStringSchema()); props.set("questionDescription", nullableStringSchema());
+        props.set("questionTypes", stringArraySchema()); props.set("difficulty", nullableStringSchema()); props.set("questionDescription", nullableStringSchema());
         props.set("problemUrl", nullableStringSchema()); props.set("questionGranularity", nullableNumberSchema()); props.set("confidence", nullableNumberSchema());
-        item.set("properties", props); item.set("required", required("questionText", "isValidInterviewQuestion", "questionType", "difficulty", "questionDescription", "problemUrl", "questionGranularity", "confidence")); ObjectNode root = objectSchema();
+        item.set("properties", props); item.set("required", required("questionText", "isValidInterviewQuestion", "questionTypes", "difficulty", "questionDescription", "problemUrl", "questionGranularity", "confidence")); ObjectNode root = objectSchema();
         root.set("properties", objectMapper.createObjectNode().set("questions", objectMapper.createObjectNode().put("type", "array").set("items", item))); root.set("required", required("questions")); format.set("schema", root); return objectMapper.createObjectNode().set("format", format);
     }
 
@@ -153,11 +163,11 @@ public class TwoStepOpenAiExtractor {
     private static String loadPrompt(String path) throws Exception { try (var stream = new ClassPathResource(path).getInputStream()) { return new String(stream.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8); } }
     private static String truncate(String text) { return text.length() <= MAX_CONTENT_CHARS ? text : text.substring(0, MAX_CONTENT_CHARS); }
     private static String safe(String value) { return value == null ? "" : value; }
-    private static String cleanJson(String value) { String text = value.trim(); if (text.startsWith("```json")) text = text.substring(7).trim(); else if (text.startsWith("```")) text = text.substring(3).trim(); if (text.endsWith("```")) text = text.substring(0, text.length() - 3).trim(); return text; }
+    private static String cleanJson(String value) { String text = value.trim(); if (text.startsWith("```json")) text = text.substring(7).trim(); else if (text.startsWith("```") ) text = text.substring(3).trim(); if (text.endsWith("```")) text = text.substring(0, text.length() - 3).trim(); return text; }
     private static String nullableText(JsonNode node, String field) { if (node == null || node.isMissingNode() || node.isNull()) return null; String value = node.path(field).asText(null); return value == null || value.isBlank() ? null : value.trim(); }
     private static Float nullableFloat(JsonNode node, String field) { JsonNode value = node == null ? null : node.get(field); return value == null || value.isNull() || !value.isNumber() ? null : (float) value.asDouble(); }
-    private static Instant parseInstant(String value) { if (value == null || value.isBlank()) return null; try { return Instant.parse(value); } catch (DateTimeParseException ignored) { return null; } }
-    private static List<String> stringList(JsonNode node) { if (node == null || !node.isArray()) return List.of(); List<String> result = new ArrayList<>(); for (JsonNode value : node) if (value.isTextual() && !value.asText().isBlank()) result.add(value.asText().trim()); return result; }
+    private static Instant parseInstant(String value) { if (value == null || value.isBlank()) return null; try { return Instant.parse(value); } catch (java.time.format.DateTimeParseException ignored) { return null; } }
+    private static List<String> stringList(JsonNode primary, JsonNode legacy) { JsonNode node = primary != null && primary.isArray() ? primary : legacy; if (node == null || !node.isArray()) return List.of(); List<String> result = new ArrayList<>(); for (JsonNode value : node) if (value.isTextual() && !value.asText().isBlank()) result.add(value.asText().trim()); return result; }
     private static String firstNonBlank(String first, String second) { return first != null && !first.isBlank() ? first : second; }
 
     public record ExtractionResult(ExperienceExtraction experience, List<InterviewQuestion> questions) { public ExtractionResult { questions = questions == null ? List.of() : List.copyOf(questions); } public static ExtractionResult empty() { return new ExtractionResult(ExperienceExtraction.empty(), List.of()); } }

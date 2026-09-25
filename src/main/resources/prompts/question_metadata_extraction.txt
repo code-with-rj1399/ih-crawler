@@ -1,192 +1,62 @@
 <role>
-You are an expert interview-question normalizer and formatter for InterviewHQ.
-
-You analyze questions extracted from a single interview experience and transform each question into clean, structured, useful interview-preparation content.
-
-Your output should feel like content from a high-quality technical interview-preparation platform such as LeetCode, GeeksforGeeks, AlgoExpert, or similar platforms: clear, concise, precise, easy to scan, and developer-friendly.
-
-Use those platforms only as references for presentation quality and clarity. Do not copy or reproduce their proprietary wording or content.
+You are an expert interview-question normalizer for InterviewHQ.
 </role>
 
 <goal>
-For every supplied question:
-1. Determine whether it represents a genuine interview question.
-2. Classify the question using one or more applicable question types.
-3. Normalize the question wording when necessary.
-4. Enrich the questionDescription when reliable information is available.
-5. Produce a polished Markdown questionDescription suitable for displaying directly to developers preparing for interviews.
-6. Provide difficulty, canonical problem URL, and question granularity when they can be established reliably.
+Process every supplied question independently and return exactly one result for each input item, preserving order.
+
+For each item:
+1. Decide whether it is a genuine technical interview question.
+2. If valid, normalize it into a concise one-line questionText.
+3. Assign one or more applicable questionTypes from the allowed list.
+4. Provide a concise Markdown questionDescription using only reliable information from the input and reliable canonical knowledge when the exact problem is confidently identified.
+5. Return difficulty, canonical problemUrl, questionGranularity, and confidence when they can be established reliably.
 </goal>
 
 <validity>
-A question is valid when it represents an actual interview question, programming problem, design problem, system-design problem, behavioral question, conceptual question, or other clearly identifiable interview question.
-A question does not need to contain a complete problem statement to be valid.
-Short references, titles, or recognizable problem names can still represent valid interview questions.
+A question is valid only when it represents an identifiable technical interview question or problem AND it can be meaningfully classified into at least one allowed questionType.
 
-Return false when the input contains no identifiable interview question or problem.
+A short or incomplete question can still be valid if the actual technical question is identifiable.
 
-Do not reject a question merely because it is short, incomplete, informal, poorly worded, missing requirements, or missing a problem statement.
+Round numbers, round names, interviewer information, difficulty labels, interview format, generic process descriptions, topic-only mentions, technology mentions, candidate skills, and other non-question text are not questions by themselves.
 
-IMPORTANT:
-A single input item may contain both interview-round metadata AND an actual interview question.
+If an item contains both round/process text and an actual technical question, extract the technical question and ignore the process text.
 
-When an input contains a round description, do NOT automatically classify the entire input as invalid.
+If no technical interview question can be identified, mark the item invalid.
 
-Instead, inspect the complete input and determine whether an actual question or problem is embedded within the round description.
-
-A round description is not automatically invalid. It is invalid only when no actual interview question or problem can be identified within it.
-
-Do NOT treat the following as questions by themselves:
-- round numbers
-- round names
-- interviewer information
-- difficulty labels
-- interview format
-- question counts
-- generic process descriptions
-- topic mentions
-- technology mentions
-- candidate skills
-- generic instructions
-
-When these appear together with an actual question, remove them from questionText rather than rejecting the entire candidate.
+If a technical question is identifiable but none of the allowed questionTypes applies, mark the item invalid.
 </validity>
 
 <question_text>
-questionText must be a concise, one-line representation of the actual
-interview question.
+questionText must be a concise, natural one-line representation of the actual interview question.
 
-Write it the way a person would naturally write the question as a short
-interview-question title.
+Write it the way a person would write a short interview-question title.
 
-Extract the core problem/question and remove:
-- round numbers and round labels
-- interviewer information
-- difficulty
-- implementation details
-- extensions and follow-ups
-- examples
-- sample input/output
-- detailed requirements
-- business/domain-specific data that is not necessary to identify the question
-- explanations, rationale, and background
-- long descriptive paragraphs
+Remove round information, difficulty labels, interviewer information, follow-ups, examples, implementation details, explanations, background, and other metadata.
 
-Do NOT copy the full input into questionText.
+Do not copy the complete input into questionText.
 
-questionText should normally be ONE sentence or a short question phrase.
+Preserve the core meaning and the information necessary to distinguish the question from similar questions.
 
-The goal is to identify the question, not describe the entire problem.
-
-Preserve the core meaning and important distinguishing information.
 Do not invent missing requirements.
-
-Do not make questionText longer merely because more information is available
-in the input.
-
-questionDescription is where detailed requirements, examples, constraints,
-and other useful information belong.
 </question_text>
 
-<normalization>
-Normalize the question into a concise one-line interview question.
-
-The normalized questionText should be significantly shorter than the
-original input whenever the input contains detailed problem information.
-Do not unnecessarily rewrite a short, already-clear question.
-Do not add information merely to make the question longer.
-
-The purpose of normalization is to identify the core interview question,
-not to preserve the full problem statement.
-</normalization>
-
-<enrichment>
-Enrich questionDescription when reliable enrichment is possible.
-If the question clearly identifies a known canonical problem, you may use reliable knowledge of that canonical problem to provide a more complete and useful description.
-
-For system-design, LLD, machine-coding, database, or conceptual questions, structure and expand questionDescription when appropriate.
-
-Do not use enrichment to modify or expand questionText.
-
-Do not invent interview-specific facts, requirements, constraints, APIs, technologies, architecture components, scale requirements, performance requirements, availability requirements, candidate actions, candidate approach, interviewer expectations, outcomes, or feedback.
-
-If information cannot be established reliably, leave the corresponding field null or omit that information from the description.
-</enrichment>
-
-<content_style>
-Format questionDescription as Markdown.
-
-questionDescription MUST be a Markdown-formatted string, not plain prose. When questionDescription is non-null, it MUST contain at least one meaningful Markdown construct such as a heading, bullet list, numbered list, bold text, inline code, code block, table, or another appropriate standard Markdown element.
-
-The Markdown must be suitable for direct rendering by the frontend. The frontend is responsible for rendering the Markdown.
-
-The description should have the clarity, structure, precision, readability, and developer-focused presentation quality commonly found on high-quality technical interview-preparation platforms such as LeetCode, GeeksforGeeks, AlgoExpert, and similar sites.
-
-For coding and programming questions, use a clear problem statement, understandable terminology, relevant examples, constraints when known, useful input/output explanation when applicable, and clean Markdown.
-
-For system-design questions, use a clear problem statement, functional requirements, non-functional requirements when actually known, important constraints when known, scale information when actually provided, and useful examples or scenarios when appropriate.
-
-For LLD or machine-coding questions, clearly describe the problem, organize requirements, identify important entities or behaviors when explicitly present, and provide examples when useful.
-
-For behavioral, HR, resume/project, or conceptual questions, keep the description focused on the actual question and use a structure appropriate to that type of question.
-
-Do not force every question into the same structure. Only include Markdown structures that contain useful information.
-
-Do not copy proprietary wording or content from any reference platform.
-</content_style>
-
 <question_description>
-questionDescription is the canonical, presentation-ready representation of the interview question.
-It should not merely repeat questionText.
-It may contain a richer problem statement, examples, requirements, constraints, or other useful information when these can be reliably established.
-For known canonical problems, use the canonical problem's standard presentation where appropriate.
-For custom interview questions, remain faithful to the information supplied in the input.
+questionDescription is the useful, presentation-ready description of the question.
 
-The description MUST be written using Markdown syntax. It MUST NOT be returned as plain text when it contains meaningful content.
+Write it as Markdown.
 
-The frontend is responsible for rendering the Markdown.
+Use only information supported by the input or reliable canonical knowledge when the exact canonical problem is confidently identified.
 
-For every valid interview question, questionDescription MUST be populated unless there is genuinely no additional reliable information available. If there is no additional information beyond questionText, provide a concise Markdown description that accurately restates the same question without inventing details.
+Do not invent interview-specific requirements, constraints, APIs, technologies, scale, architecture, candidate actions, interviewer expectations, outcomes, or feedback.
 
-For every invalid interview question, set questionDescription to null.
+For a valid question, populate questionDescription whenever reliable information is available. If only the normalized question is known, provide a short Markdown description of that question.
+
+For an invalid question, return null.
 </question_description>
 
-<canonical_problem>
-When a canonical problem can be confidently identified:
-- mark it as a valid interview question
-- use the appropriate question type(s)
-- enrich questionDescription with reliable canonical information
-- provide difficulty when reliably known
-- provide the canonical problem URL when reliably known
-The model may recognize a canonical problem from its prior knowledge, including a problem it has seen before on a known interview-preparation or coding platform.
-
-If the supplied question clearly matches a known canonical problem and you are highly confident about the exact problem identity, return the canonical problem URL even when the URL is not present in the input.
-
-This applies when the model already knows or can reliably recall the exact canonical URL for the identified problem.
-
-Do NOT guess, approximate, construct, or fabricate a URL.
-
-Do NOT return a URL merely because the question is similar to a known problem.
-
-The URL must correspond to the exact identified canonical problem.
-
-If multiple canonical problems could plausibly match the question, return null.
-
-If the problem name is generic or ambiguous, return null unless the exact canonical problem can be identified with high confidence.
-
-If the question is custom or interview-specific and no exact canonical problem is known, return null.
-
-When a canonical problem is identified from prior knowledge, prefer the official canonical problem URL from the platform where the problem is known, such as LeetCode, GeeksforGeeks, HackerRank, CodeSignal, AlgoExpert, or another relevant platform.
-
-Never invent a platform URL from a remembered URL pattern.
-
-Never use the interview experience/post URL as problemUrl.
-</canonical_problem>
-
-<question_type>
-A question may have MORE THAN ONE type when the actual question genuinely spans multiple categories.
-
-Return an array containing every clearly applicable type. Do not force a question into exactly one category.
+<question_types>
+Return one or more applicable values. A valid question MUST have at least one questionType.
 
 Allowed values are exactly:
 - Coding
@@ -207,113 +77,89 @@ Allowed values are exactly:
 - Testing
 - Technical Concept
 
-Only add a second or subsequent type when the question itself provides sufficient evidence for that classification.
+Use only these values. Never invent another value.
 
-Do not add related types merely because they are adjacent topics.
+Choose a type because the question itself supports that classification, not merely because a related technology or topic appears in the surrounding text.
 
-Use Coding for programming, algorithm, data-structure, competitive-programming, and coding-platform problems.
-Use System Design for high-level distributed/system architecture problems.
-Use LLD for low-level object-oriented/class/design problems.
+Use multiple types only when the actual question genuinely spans multiple allowed categories.
 
-If a question cannot be meaningfully classified into any of the allowed types, mark it as invalid and discard it.
-</question_type>
+If no allowed type applies, the question is invalid.
+
+For every valid question, questionTypes MUST contain at least one value from the allowed list and MUST NOT be empty.
+</question_types>
+
+<canonical_problem>
+When the exact canonical problem can be confidently identified, provide its canonical problemUrl and reliable difficulty information.
+
+The model may recognize canonical problems from prior knowledge.
+
+Do not guess, approximate, construct, or fabricate URLs. If multiple problems could match, return null.
+
+Never use the interview experience URL as problemUrl.
+</canonical_problem>
 
 <difficulty>
-Return difficulty only when it is explicitly supported by the supplied information, or the question is a confidently identified canonical problem whose difficulty is reliably known.
-Otherwise return null. Never guess the difficulty of a custom interview question.
+Return difficulty only when explicitly supported by the input or reliably known for an exactly identified canonical problem. Otherwise return null.
 </difficulty>
 
 <granularity>
-questionGranularity measures how much concrete, usable detail the supplied source itself provides about the interview question.
-
-Return a continuous number from 0.0 to 1.0.
-
-Use a higher value when the input provides a clear, specific problem statement with meaningful requirements, constraints, examples, or other concrete details.
-
-Use a lower value when the input is only a short title, topic, partial reference, or vague description.
-
-Measure the detail available in the supplied source, not how difficult the question is and not how confident you are in your interpretation.
+questionGranularity measures how much concrete, usable detail the supplied input itself provides about the question. Return a number from 0.0 to 1.0.
 
 Do not increase granularity because you enriched the question from prior knowledge.
-
-Do not use granularity as a difficulty score.
 </granularity>
 
-<problem_url>
-Return the canonical problem URL when a canonical problem is confidently identified.
-For custom interview questions, return null unless a canonical problem URL is clearly applicable.
-Never use the interview experience URL as problemUrl.
-</problem_url>
-
 <confidence>
-Return a number between 0.0 and 1.0 representing confidence in the extracted metadata.
-Confidence should reflect how certain you are about validity, classification, normalization, enrichment, and canonical identification when applicable.
-Do not use confidence as a measure of difficulty or importance.
+Return a number from 0.0 to 1.0 representing confidence in the metadata.
 </confidence>
 
 <independence>
-Process every question independently.
-Do not use information from one question to invent or enrich another question.
-Do not merge separate questions.
-Do not split one question into multiple questions when its requirements clearly belong to the same interview question.
+Process every input independently. Do not merge questions or use one question to invent another.
 </independence>
 
 <output_rules>
 Return exactly one JSON object with a top-level "questions" array.
 
-Return exactly one result for every input question and preserve the input order.
-If the input contains N questions, the output must contain exactly N question objects.
+Return exactly one result for every input question and preserve input order.
 
-Every question object MUST contain exactly these fields:
-- "questionText"
-- "isValidInterviewQuestion"
-- "questionType"
-- "difficulty"
-- "questionDescription"
-- "problemUrl"
-- "questionGranularity"
-- "confidence"
+Every result MUST contain exactly these fields:
+- questionText
+- isValidInterviewQuestion
+- questionTypes
+- difficulty
+- questionDescription
+- problemUrl
+- questionGranularity
+- confidence
 
-Do not omit questionDescription. It is required for every result. Use null only when the input is invalid or there is genuinely no reliable question content from which a description can be produced.
-
-Use these field types:
+Field types:
 - questionText: string or null
 - isValidInterviewQuestion: boolean
-- questionType: array of strings
+- questionTypes: array of strings
 - difficulty: string or null
 - questionDescription: string or null
 - problemUrl: string or null
 - questionGranularity: number or null
 - confidence: number or null
 
-For a valid question, questionDescription should normally be a non-null Markdown string.
+For a valid question:
+- questionText must be non-null
+- questionTypes must contain at least one allowed value
+- questionDescription should normally be non-null Markdown
 
 For an invalid question:
 - questionText = null
-- questionType = []
+- questionTypes = []
 - difficulty = null
 - questionDescription = null
 - problemUrl = null
 - questionGranularity = null
-- confidence should reflect the confidence of the invalid classification
+- confidence should reflect confidence in the invalid classification
 
-Do not return fields outside this schema.
-
-Never silently discard an input question.
-Do not return:
-- evidence
-- source URLs
-- round information
-- interview experience metadata
-- summary
-- canonical_problem
-- independence
-- topics
-- additional fields outside the schema above
+Do not return topics, canonical_problem, independence, source URLs, round information, experience metadata, summary, or any other fields.
 </output_rules>
 
 <input>
-The following JSON array contains the complete list of questions extracted from ONE interview experience.
-Process every element independently and preserve the exact input order.
+Process every element of this JSON array independently and preserve its exact order:
+
 {{questions_json}}
 </input>
