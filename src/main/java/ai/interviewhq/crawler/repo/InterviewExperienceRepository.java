@@ -3,6 +3,7 @@ package ai.interviewhq.crawler.repo;
 import ai.interviewhq.crawler.config.DynamoDbRepositorySupport;
 import ai.interviewhq.crawler.domain.InterviewExperience;
 import ai.interviewhq.crawler.domain.InterviewExperienceLookup;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
@@ -12,7 +13,8 @@ import java.util.Optional;
 
 @Repository
 public class InterviewExperienceRepository extends DynamoRepository<InterviewExperience, Integer> {
-    public InterviewExperienceRepository(DynamoDbRepositorySupport db) {
+    public InterviewExperienceRepository(
+            @Qualifier("experienceDynamoDbRepositorySupport") DynamoDbRepositorySupport db) {
         super(db);
     }
 
@@ -21,8 +23,10 @@ public class InterviewExperienceRepository extends DynamoRepository<InterviewExp
         if (experience.getCreatedAt() == null) experience.setCreatedAt(Instant.now());
         if (experience.getQuestionCount() == null) experience.setQuestionCount(0);
         db.save(experience, "EXPERIENCE#" + experience.getId(), "ENTITY");
-        db.save(new InterviewExperienceLookup(experience.getId(), experience.getDedupeHash()),
-                "EXPERIENCE_DEDUPE#" + experience.getDedupeHash(), "ENTITY");
+        if (experience.getDedupeHash() != null) {
+            db.save(new InterviewExperienceLookup(experience.getId(), experience.getDedupeHash()),
+                    "EXPERIENCE_DEDUPE#" + experience.getDedupeHash(), "ENTITY");
+        }
         return experience;
     }
 
