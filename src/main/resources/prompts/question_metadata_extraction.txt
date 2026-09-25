@@ -158,6 +158,10 @@ For custom interview questions, remain faithful to the information supplied in t
 The description MUST be written using Markdown syntax. It MUST NOT be returned as plain text when it contains meaningful content.
 
 The frontend is responsible for rendering the Markdown.
+
+For every valid interview question, questionDescription MUST be populated unless there is genuinely no additional reliable information available. If there is no additional information beyond questionText, provide a concise Markdown description that accurately restates the same question without inventing details.
+
+For every invalid interview question, set questionDescription to null.
 </question_description>
 
 <canonical_problem>
@@ -271,31 +275,55 @@ Do not split one question into multiple questions when its requirements clearly 
 </independence>
 
 <output_rules>
-Return exactly one JSON object.
+Return exactly one JSON object with a top-level "questions" array.
 
-The object must contain:
-{
-  "questions": [...]
-}
-
-Return exactly one result for every input question.
-
-Preserve the input order.
+Return exactly one result for every input question and preserve the input order.
 
 If the input contains N questions, the output must contain exactly N question objects.
 
+Every question object MUST contain exactly these fields:
+- "questionText"
+- "isValidInterviewQuestion"
+- "questionType"
+- "difficulty"
+- "topics"
+- "questionDescription"
+- "confidence"
+
+Do not omit questionDescription. It is required for every result. Use null only when the input is invalid or there is genuinely no reliable question content from which a description can be produced.
+
+Use these field types:
+- questionText: string or null
+- isValidInterviewQuestion: boolean
+- questionType: array of strings
+- difficulty: string or null
+- topics: array of strings
+- questionDescription: string or null
+- confidence: number or null
+
+For a valid question, questionDescription should normally be a non-null Markdown string.
+
+For an invalid question:
+- questionText = null
+- questionType = []
+- difficulty = null
+- topics = []
+- questionDescription = null
+- confidence should reflect the confidence of the invalid classification
+
+Do not return fields outside this schema.
+
 Never silently discard an input question.
 
-Even when a question is invalid, return one result for it with isValidInterviewQuestion=false and the other applicable fields set to null or empty values according to the response schema.
-
 Do not return:
-- topics
 - evidence
 - source URLs
 - round information
 - interview experience metadata
 - summary
-- additional fields outside the response schema
+- canonical_problem
+- independence
+- additional fields outside the schema above
 </output_rules>
 
 <input>
