@@ -1,6 +1,8 @@
 export async function getJson(url){const response=await fetch(url);if(!response.ok)throw new Error(`HTTP ${response.status}`);return response.json()}
 export async function sendJson(url,options={}){const response=await fetch(url,{headers:{'Content-Type':'application/json',...(options.headers||{})},...options});const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.message||`HTTP ${response.status}`);return data}
 export const getSources=()=>getJson('/dev/api/sources');
+export const getExperiences=()=>getJson('/dev/api/experiences');
+export const getExperienceQuestions=id=>getJson(`/dev/api/experiences/${id}/questions`);
 export const getQuestions=()=>getJson('/dev/api/questions');
 export const getConfig=()=>getJson('/dev/api/config');
 export const getPrompts=()=>getJson('/dev/api/prompts');
