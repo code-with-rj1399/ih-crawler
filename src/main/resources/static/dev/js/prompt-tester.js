@@ -23,9 +23,112 @@ function showOutput(id, value, error = false) {
   element.classList.toggle('output-error', error);
 }
 
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function renderInlineMarkdown(value) {
+  let html = escapeHtml(value);
+  html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+  html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/__([^_]+)__/g, '<strong>$1</strong>');
+  html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+  html = html.replace(/_([^_]+)_/g, '<em>$1</em>');
+  return html;
+}
+
+function renderMarkdown(markdown) {
+  if (!markdown) return '';
+
+  const lines = String(markdown).replace(/\r\n?/g, '\n').split('\n');
+  const output = [];
+  let paragraph = [];
+  let listType = null;
+  let listItems = [];
+
+  const flushParagraph = () => {
+    if (paragraph.length === 0) return;
+    output.push(`<p>${paragraph.map(renderInlineMarkdown).join('<br>')}</p>`);
+    paragraph = [];
+  };
+
+  const flushList = () => {
+    if (!listType) return;
+    const tag = listType === 'ol' ? 'ol' : 'ul';
+    output.push(`<${tag}>${listItems.map(item => `<li>${renderInlineMarkdown(item)}</li>`).join('')}</${tag}>`);
+    listType = null;
+    listItems = [];
+  };
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+
+    if (!trimmed) {
+      flushParagraph();
+      flushList();
+      continue;
+    }
+
+    const heading = trimmed.match(/^(#{1,6})\s+(.+)$/);
+    if (heading) {
+      flushParagraph();
+      flushList();
+      const level = heading[1].length;
+      output.push(`<h${level}>${renderInlineMarkdown(heading[2])}</h${level}>`);
+      continue;
+    }
+
+    const bullet = trimmed.match(/^[-*+]\s+(.+)$/);
+    if (bullet) {
+      flushParagraph();
+      if (listType !== 'ul') {
+        flushList();
+        listType = 'ul';
+      }
+      listItems.push(bullet[1]);
+      continue;
+    }
+
+    const ordered = trimmed.match(/^\d+\.\s+(.+)$/);
+    if (ordered) {
+      flushParagraph();
+      if (listType !== 'ol') {
+        flushList();
+        listType = 'ol';
+      }
+      listItems.push(ordered[1]);
+      continue;
+    }
+
+    flushList();
+    paragraph.push(trimmed);
+  }
+
+  flushParagraph();
+  flushList();
+  return output.join('');
+}
+
 function showSummary(value, error = false) {
   const element = document.getElementById('step1Summary');
-  element.textContent = error ? `ERROR\n${value}` : (value?.experience?.summary || 'No summary returned.');
+  element.classList.toggle('output-error', error);
+  if (error) {
+    element.textContent = `ERROR\n${value}`;
+    return;
+  }
+
+  const summary = value?.experience?.summary;
+  if (!summary) {
+    element.textContent = 'No summary returned.';
+    return;
+  }
+
+  element.innerHTML = renderMarkdown(summary);
 }
 
 async function load() {

@@ -1,6 +1,8 @@
 export const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const estimateTokens=text=>text&&text.trim()?Math.ceil(text.length/4):0;
-export const formatQuestionType=type=>({SYSTEM_DESIGN:'System Design',CODING:'Coding',DATABASE:'Database',LLD:'LLD',CLOUD:'Cloud',SECURITY:'Security',DEVOPS:'DevOps',AI_ML:'AI/ML',DATA_ENGINEERING:'Data Engineering',DISTRIBUTED_SYSTEMS:'Distributed Systems',NETWORKING:'Networking',OPERATING_SYSTEMS:'Operating Systems',PROGRAMMING_LANGUAGE:'Programming Language',WEB_FRONTEND:'Web Frontend',MOBILE:'Mobile',TESTING:'Testing',TECHNICAL_CONCEPT:'Technical Concept'}[type]||type||'—');
+const TYPE_LABELS={SYSTEM_DESIGN:'System Design',CODING:'Coding',DATABASE:'Database',LLD:'LLD',CLOUD:'Cloud',SECURITY:'Security',DEVOPS:'DevOps',AI_ML:'AI/ML',DATA_ENGINEERING:'Data Engineering',DISTRIBUTED_SYSTEMS:'Distributed Systems',NETWORKING:'Networking',OPERATING_SYSTEMS:'Operating Systems',PROGRAMMING_LANGUAGE:'Programming Language',WEB_FRONTEND:'Web Frontend',MOBILE:'Mobile',TESTING:'Testing',TECHNICAL_CONCEPT:'Technical Concept'};
+export const formatQuestionType=type=>{if(Array.isArray(type))return type.map(item=>TYPE_LABELS[item]||item).join(', ');return TYPE_LABELS[type]||type||'—'};
+export const questionTypeList=type=>Array.isArray(type)?type:(type?[type]:[]);
 
 const inlineMarkdown=value=>value
   .replace(/`([^`]+)`/g,'<code>$1</code>')
