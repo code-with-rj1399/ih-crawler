@@ -178,9 +178,30 @@ Otherwise return null. Never guess the difficulty of a custom interview question
 </difficulty>
 
 <problem_url>
-Return the canonical problem URL when a canonical problem is confidently identified.
-For custom interview questions, return null unless a canonical problem URL is clearly applicable.
-Never use the interview experience URL as problemUrl.
+Identify problemUrl when the interview question clearly corresponds to a known canonical coding/interview problem.
+
+There are two acceptable sources for problemUrl:
+1. Explicit URL: if the input contains a URL associated with the question, extract that URL.
+2. Canonical problem identification: if the question clearly identifies a well-known canonical problem from a recognized platform such as LeetCode, GeeksforGeeks, HackerRank, CodeSignal, AlgoExpert, or similar platforms, you may provide the canonical problem URL when you are highly confident that the URL corresponds to the exact problem.
+
+Do NOT guess or fabricate URLs.
+Do NOT generate a URL merely because a question resembles a known problem.
+If multiple canonical problems could match the question, return null.
+
+For custom interview questions, return null unless an explicit URL is provided or the exact canonical problem can be identified with high confidence.
+
+For example:
+"Two Sum"
+→ If confidently identified as the canonical LeetCode Two Sum problem, problemUrl may be:
+https://leetcode.com/problems/two-sum/
+
+"Design a meeting room booking system with recurring bookings"
+→ null unless an explicit URL is provided or an exact canonical problem can be identified with high confidence.
+
+"Place tiles on a plane"
+→ null unless an explicit URL is provided or the exact canonical problem can be identified with high confidence.
+
+The interview experience/post URL is NOT a problemUrl.
 </problem_url>
 
 <confidence>
