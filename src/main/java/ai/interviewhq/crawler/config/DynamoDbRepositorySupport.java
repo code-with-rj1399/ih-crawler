@@ -32,9 +32,7 @@ public class DynamoDbRepositorySupport {
 
     public <T> T save(T entity, String pk, String sk) {
         Map<String, Object> data = objectMapper.convertValue(entity, MAP_TYPE);
-        if (entity instanceof InterviewQuestion) {
-            normalizeInterviewQuestionTypes(data);
-        }
+        if (entity instanceof InterviewQuestion) normalizeInterviewQuestionTypes(data);
         data.values().removeIf(Objects::isNull);
 
         Map<String, AttributeValue> item = new HashMap<>();
@@ -105,11 +103,19 @@ public class DynamoDbRepositorySupport {
         } catch (Exception e) { throw new IllegalStateException("Unable to hash DynamoDB key", e); }
     }
 
+    @SuppressWarnings("unchecked")
     private <T> T fromItem(Class<T> type, Map<String, AttributeValue> item) {
         try {
             Object data = fromAttributeValue(item.get("data"));
             if (type == InterviewQuestion.class && data instanceof Map<?, ?> map) {
-                normalizeInterviewQuestionTypes((Map<String, Object>) map);
+                Map<String, Object> questionData = (Map<String, Object>) map;
+                normalizeInterviewQuestionTypes(questionData);
+                T result = objectMapper.readValue(objectMapper.writeValueAsBytes(questionData), type);
+                // Explicitly restore questionTypes from the normalized DynamoDB data.
+                // This avoids relying on Jackson to infer the collection shape after
+                // converting DynamoDB AttributeValue.L -> generic JSON values.
+                ((InterviewQuestion) result).setQuestionTypes(extractQuestionTypes(questionData.get("questionTypes")));
+                return result;
             }
             return objectMapper.readValue(objectMapper.writeValueAsBytes(data), type);
         } catch (Exception e) {
@@ -119,44 +125,25 @@ public class DynamoDbRepositorySupport {
 
     @SuppressWarnings("unchecked")
     private void normalizeInterviewQuestionTypes(Map<String, Object> data) {
-        Object questionTypes = data.get("questionTypes");
-        if (questionTypes instanceof Collection<?> collection) {
-            List<String> normalized = collection.stream()
-                    .filter(Objects::nonNull)
-                    .map(String::valueOf)
-                    .filter(value -> !value.isBlank())
-                    .toList();
-            data.put("questionTypes", new ArrayList<>(normalized));
-            data.remove("questionType");
-            return;
-        }
-        if (questionTypes instanceof Map<?, ?> map) {
-            List<String> normalized = map.values().stream()
-                    .filter(Objects::nonNull)
-                    .map(String::valueOf)
-                    .filter(value -> !value.isBlank())
-                    .toList();
-            data.put("questionTypes", new ArrayList<>(normalized));
-            data.remove("questionType");
-            return;
-        }
-        if (questionTypes instanceof String value && !value.isBlank()) {
-            data.put("questionTypes", new ArrayList<>(List.of(value)));
-            data.remove("questionType");
-            return;
-        }
-
-        Object legacy = data.get("questionType");
-        if (legacy instanceof Collection<?> collection) {
-            data.put("questionTypes", new ArrayList<>(collection.stream().filter(Objects::nonNull).map(String::valueOf).filter(v -> !v.isBlank()).toList()));
-        } else if (legacy instanceof Map<?, ?> map) {
-            data.put("questionTypes", new ArrayList<>(map.values().stream().filter(Objects::nonNull).map(String::valueOf).filter(v -> !v.isBlank()).toList()));
-        } else if (legacy instanceof String value && !value.isBlank()) {
-            data.put("questionTypes", new ArrayList<>(List.of(value)));
-        } else {
-            data.put("questionTypes", new ArrayList<>());
+        data.put("questionTypes", extractQuestionTypes(data.get("questionTypes")));
+        if (((List<String>) data.get("questionTypes")).isEmpty()) {
+            data.put("questionTypes", extractQuestionTypes(data.get("questionType")));
         }
         data.remove("questionType");
+    }
+
+    private List<String> extractQuestionTypes(Object value) {
+        if (value == null) return new ArrayList<>();
+        if (value instanceof Collection<?> collection) {
+            return collection.stream().filter(Objects::nonNull).map(String::valueOf).filter(v -> !v.isBlank()).toList();
+        }
+        if (value instanceof Map<?, ?> map) {
+            Object nested = map.get("values");
+            if (nested == null) nested = map.values();
+            return extractQuestionTypes(nested);
+        }
+        if (value instanceof String string && !string.isBlank()) return new ArrayList<>(List.of(string));
+        return new ArrayList<>();
     }
 
     private AttributeValue toAttributeValue(Object value) {
