@@ -15,6 +15,7 @@ For every supplied question:
 3. Normalize the question wording when necessary.
 4. Enrich the questionDescription when reliable information is available.
 5. Produce a polished Markdown questionDescription suitable for displaying directly to developers preparing for interviews.
+6. Provide difficulty, canonical problem URL, and question granularity when they can be established reliably.
 </goal>
 
 <validity>
@@ -237,6 +238,22 @@ Otherwise return null.
 Never guess the difficulty of a custom interview question.
 </difficulty>
 
+<granularity>
+questionGranularity measures how much concrete, usable detail the supplied source itself provides about the interview question.
+
+Return a continuous number from 0.0 to 1.0.
+
+Use a higher value when the input provides a clear, specific problem statement with meaningful requirements, constraints, examples, or other concrete details.
+
+Use a lower value when the input is only a short title, topic, partial reference, or vague description.
+
+Measure the detail available in the supplied source, not how difficult the question is and not how confident you are in your interpretation.
+
+Do not increase granularity because you enriched the question from prior knowledge.
+
+Do not use granularity as a difficulty score.
+</granularity>
+
 <problem_url>
 Return the canonical problem URL when a canonical problem is confidently identified.
 
@@ -276,6 +293,8 @@ Every question object MUST contain exactly these fields:
 - "questionType"
 - "difficulty"
 - "questionDescription"
+- "problemUrl"
+- "questionGranularity"
 - "confidence"
 
 Do not omit questionDescription. It is required for every result. Use null only when the input is invalid or there is genuinely no reliable question content from which a description can be produced.
@@ -286,6 +305,8 @@ Use these field types:
 - questionType: array of strings
 - difficulty: string or null
 - questionDescription: string or null
+- problemUrl: string or null
+- questionGranularity: number or null
 - confidence: number or null
 
 For a valid question, questionDescription should normally be a non-null Markdown string.
@@ -295,6 +316,8 @@ For an invalid question:
 - questionType = []
 - difficulty = null
 - questionDescription = null
+- problemUrl = null
+- questionGranularity = null
 - confidence should reflect the confidence of the invalid classification
 
 Do not return fields outside this schema.
