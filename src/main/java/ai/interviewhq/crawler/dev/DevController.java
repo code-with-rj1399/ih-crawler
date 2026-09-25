@@ -8,6 +8,8 @@ import ai.interviewhq.crawler.extract.ExtractionPromptService;
 import ai.interviewhq.crawler.repo.CrawlSourceRepository;
 import ai.interviewhq.crawler.repo.InterviewExperienceRepository;
 import ai.interviewhq.crawler.repo.InterviewQuestionRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpHeaders;
@@ -23,6 +25,8 @@ import java.util.Map;
 @RequestMapping("/dev/api")
 @Profile({"dev", "local"})
 public class DevController {
+    private static final Logger log = LoggerFactory.getLogger(DevController.class);
+
     private final CrawlRunner crawlRunner;
     private final CrawlSourceRepository sourceRepository;
     private final InterviewExperienceRepository experienceRepository;
@@ -146,7 +150,10 @@ public class DevController {
     @GetMapping("/experiences/{id}/questions")
     public List<InterviewQuestion> experienceQuestions(@PathVariable Integer id) {
         if (experienceRepository.findById(id).isEmpty()) throw new IllegalArgumentException("Experience not found: " + id);
-        return questionRepository.findByExperienceId(id);
+        List<InterviewQuestion> questions = questionRepository.findByExperienceId(id);
+        log.info("API RESPONSE experienceId={} questions={} questionTypes={}", id, questions.size(),
+                questions.stream().map(InterviewQuestion::getQuestionTypes).toList());
+        return questions;
     }
 
     @GetMapping("/questions")
