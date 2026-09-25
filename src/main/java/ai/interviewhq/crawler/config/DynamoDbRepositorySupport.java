@@ -111,7 +111,7 @@ public class DynamoDbRepositorySupport {
         if (value instanceof JsonNode node) { try { return toAttributeValue(objectMapper.treeToValue(node, Object.class)); } catch (Exception e) { throw new IllegalArgumentException("Failed to convert JsonNode to DynamoDB value", e); } }
         if (value instanceof String s) return AttributeValue.builder().s(s).build(); if (value instanceof Number n) return AttributeValue.builder().n(n.toString()).build(); if (value instanceof Boolean b) return AttributeValue.builder().bool(b).build();
         if (value instanceof Map<?, ?> map) { Map<String, AttributeValue> result = new HashMap<>(); map.forEach((k, v) -> result.put(String.valueOf(k), toAttributeValue(v))); return AttributeValue.builder().m(result).build(); }
-        if (value instanceof Collection<?> collection) return AttributeValue.builder().l(collection.stream().map(this::toAttributeValue).toList());
+        if (value instanceof Collection<?> collection) return AttributeValue.builder().l(collection.stream().map(this::toAttributeValue).toList()).build();
         if (value.getClass().isEnum()) return AttributeValue.builder().s(value.toString()).build(); return toAttributeValue(objectMapper.convertValue(value, MAP_TYPE));
     }
 
