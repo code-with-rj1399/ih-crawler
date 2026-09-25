@@ -2,6 +2,8 @@ package ai.interviewhq.crawler.repo;
 
 import ai.interviewhq.crawler.config.DynamoDbRepositorySupport;
 import ai.interviewhq.crawler.domain.InterviewQuestion;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
 import java.util.Comparator;
@@ -10,6 +12,8 @@ import java.util.Optional;
 
 @Repository
 public class InterviewQuestionRepository extends DynamoRepository<InterviewQuestion, Integer> {
+    private static final Logger log = LoggerFactory.getLogger(InterviewQuestionRepository.class);
+
     public InterviewQuestionRepository(DynamoDbRepositorySupport db) {
         super(db);
     }
@@ -19,6 +23,7 @@ public class InterviewQuestionRepository extends DynamoRepository<InterviewQuest
         if (question.getCreatedAt() == null) question.setCreatedAt(java.time.Instant.now());
         if (question.getQuestionTypes() == null) question.setQuestionTypes(new java.util.ArrayList<>());
         if (question.getExperienceId() == null) throw new IllegalArgumentException("experienceId is required for an interview question");
+        log.info("DB SAVE questionTypes={} questionText={}", question.getQuestionTypes(), question.getQuestionText());
         return db.save(question, "EXPERIENCE#" + question.getExperienceId(), "QUESTION#" + question.getDedupeHash());
     }
 
