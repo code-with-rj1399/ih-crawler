@@ -6,7 +6,7 @@
 
 ## 1. Canonical model
 
-An interview experience and its questions are separate entities.
+An interview experience and its questions are separate entities. Experience metadata is stored once; questions reference the experience by ID.
 
 ```text
 InterviewExperience
@@ -15,8 +15,6 @@ InterviewExperience
     +-- Question
     +-- Question
 ```
-
-Do **not** duplicate experience metadata on every question.
 
 The UI access pattern is deliberately experience-first:
 
@@ -31,7 +29,7 @@ list of experiences only
 GET /dev/api/experiences/{experienceId}/questions
 ```
 
-Questions are therefore loaded only when an experience is opened.
+Questions are loaded only when an experience is opened.
 
 ## 2. InterviewExperience entity
 
@@ -56,20 +54,18 @@ dedupeHash
 createdAt
 ```
 
-DynamoDB key:
+The experience item uses its stable application ID as the item-collection partition key:
 
 ```text
-PK = EXPERIENCE#{dedupeHash}
+PK = EXPERIENCE#{experienceId}
 SK = ENTITY
 ```
-
-`dedupeHash` is generated from the normalized source platform and canonical post URL.
 
 Example:
 
 ```json
 {
-  "pk": "EXPERIENCE#<hash>",
+  "pk": "EXPERIENCE#123",
   "sk": "ENTITY",
   "entityType": "InterviewExperience",
   "data": {
@@ -90,6 +86,16 @@ Example:
   }
 }
 ```
+
+A small lookup item is also written for URL-based idempotency:
+
+```text
+PK = EXPERIENCE_DEDUPE#{dedupeHash}
+SK = ENTITY
+entityType = InterviewExperienceLookup
+```
+
+The dedupe hash is generated from normalized source platform + canonical post URL.
 
 ## 3. InterviewQuestion entity
 
@@ -116,14 +122,12 @@ createdAt
 
 Experience fields such as company, title, summary, author, location, and source URL do **not** belong here.
 
-DynamoDB key:
+Questions use the same partition key as their parent experience:
 
 ```text
 PK = EXPERIENCE#{experienceId}
 SK = QUESTION#{questionDedupeHash}
 ```
-
-This makes the primary UI query a native DynamoDB `Query` rather than a table scan.
 
 Example:
 
@@ -154,17 +158,16 @@ Example:
 
 ## 4. Relationship and access pattern
 
-The relationship is represented by the question partition key:
+DynamoDB item collections are used for the one-to-many relationship: the experience and its questions share the same partition key and differ by sort-key prefix. This lets the application query the questions for one experience without scanning the whole table. citeturn1view0
 
 ```text
 EXPERIENCE#123
     |
+    +-- ENTITY
     +-- QUESTION#abc
     +-- QUESTION#def
     +-- QUESTION#ghi
 ```
-
-The application must not load every question and group them in memory to render the experience list.
 
 ### List experiences
 
@@ -180,11 +183,13 @@ This returns experience entities only.
 InterviewQuestionRepository.findByExperienceId(experienceId)
 ```
 
-This performs a DynamoDB query on:
+This performs a DynamoDB `Query` on:
 
 ```text
 PK = EXPERIENCE#{experienceId}
 ```
+
+and filters the returned item collection to `InterviewQuestion` entities.
 
 ## 5. Extraction ownership
 
@@ -220,7 +225,7 @@ Step 2 metadata
 InterviewQuestion records linked by experienceId
 ```
 
-The LLM extractor does not need to know DynamoDB keys.
+The LLM extractor does not know DynamoDB keys.
 
 ## 6. Re-extraction behavior
 
