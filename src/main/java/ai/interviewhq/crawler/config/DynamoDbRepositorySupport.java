@@ -32,7 +32,9 @@ public class DynamoDbRepositorySupport {
 
     public <T> T save(T entity, String pk, String sk) {
         Map<String, Object> data = objectMapper.convertValue(entity, MAP_TYPE);
-        normalizeInterviewQuestionTypes(data);
+        if (entity instanceof InterviewQuestion) {
+            normalizeInterviewQuestionTypes(data);
+        }
         data.values().removeIf(Objects::isNull);
 
         Map<String, AttributeValue> item = new HashMap<>();
