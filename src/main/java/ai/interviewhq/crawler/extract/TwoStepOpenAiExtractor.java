@@ -108,6 +108,7 @@ public class TwoStepOpenAiExtractor {
         HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
         if (response.statusCode() < 200 || response.statusCode() >= 300) throw new IllegalStateException("OpenAI API request failed: HTTP " + response.statusCode() + " - " + response.body());
         JsonNode root = objectMapper.readTree(response.body()); log.info("OpenAI {} diagnostics: responseId={}, status={}, usage={}", schemaName, root.path("id").asText("unknown"), root.path("status").asText("unknown"), root.path("usage"));
+        log.info("OpenAI {} output: {}", schemaName, root.path("output_text").asText(root.toString()));
         if ("incomplete".equals(root.path("status").asText())) throw new IllegalStateException("OpenAI response incomplete: reason=" + root.path("incomplete_details").path("reason").asText("unknown")); return root;
     }
 
