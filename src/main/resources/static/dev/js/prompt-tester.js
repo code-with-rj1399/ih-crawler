@@ -48,6 +48,7 @@ function renderMarkdown(markdown) {
   const lines = String(markdown).replace(/\r\n?/g, '\n').split('\n');
   const output = [];
   let paragraph = [];
+  let listType = null;
   let listItems = [];
 
   const flushParagraph = () => {
@@ -57,8 +58,10 @@ function renderMarkdown(markdown) {
   };
 
   const flushList = () => {
-    if (listItems.length === 0) return;
-    output.push(`<ul>${listItems.map(item => `<li>${renderInlineMarkdown(item)}</li>`).join('')}</ul>`);
+    if (!listType) return;
+    const tag = listType === 'ol' ? 'ol' : 'ul';
+    output.push(`<${tag}>${listItems.map(item => `<li>${renderInlineMarkdown(item)}</li>`).join('')}</${tag}>`);
+    listType = null;
     listItems = [];
   };
 
@@ -83,6 +86,10 @@ function renderMarkdown(markdown) {
     const bullet = trimmed.match(/^[-*+]\s+(.+)$/);
     if (bullet) {
       flushParagraph();
+      if (listType !== 'ul') {
+        flushList();
+        listType = 'ul';
+      }
       listItems.push(bullet[1]);
       continue;
     }
@@ -90,23 +97,21 @@ function renderMarkdown(markdown) {
     const ordered = trimmed.match(/^\d+\.\s+(.+)$/);
     if (ordered) {
       flushParagraph();
-      if (listItems.length === 0 || !output[output.length - 1]?.startsWith('<ol>')) {
+      if (listType !== 'ol') {
         flushList();
-        output.push('<ol>');
+        listType = 'ol';
       }
-      output.push(`<li>${renderInlineMarkdown(ordered[1])}</li>`);
+      listItems.push(ordered[1]);
       continue;
     }
 
+    flushList();
     paragraph.push(trimmed);
   }
 
   flushParagraph();
   flushList();
-
-  // Close any ordered list opened above.
-  const html = output.join('');
-  return html.replace(/<ol>(?:(?!<\/ol>).)*?(?=<h\d|<p>|<ul>|$)/gs, match => `${match}</ol>`);
+  return output.join('');
 }
 
 function showSummary(value, error = false) {
