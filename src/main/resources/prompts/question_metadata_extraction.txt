@@ -123,7 +123,11 @@ If information cannot be established reliably, leave the corresponding field nul
 </enrichment>
 
 <content_style>
-Format questionDescription as clean, valid Markdown.
+Format questionDescription as Markdown.
+
+questionDescription MUST be a Markdown-formatted string, not plain prose. When questionDescription is non-null, it MUST contain at least one meaningful Markdown construct such as a heading, bullet list, numbered list, bold text, inline code, code block, table, or another appropriate standard Markdown element.
+
+The Markdown must be suitable for direct rendering by the frontend. The frontend is responsible for rendering the Markdown.
 
 The description should have the clarity, structure, precision, readability, and developer-focused presentation quality commonly found on high-quality technical interview-preparation platforms such as LeetCode, GeeksforGeeks, AlgoExpert, and similar sites.
 
@@ -135,7 +139,7 @@ For LLD or machine-coding questions, clearly describe the problem, organize requ
 
 For behavioral, HR, resume/project, or conceptual questions, keep the description focused on the actual question and use a structure appropriate to that type of question.
 
-Do not force every question into the same structure. Only include sections that contain useful information.
+Do not force every question into the same structure. Only include Markdown structures that contain useful information.
 
 Do not copy proprietary wording or content from any reference platform.
 </content_style>
@@ -151,7 +155,9 @@ For known canonical problems, use the canonical problem's standard presentation 
 
 For custom interview questions, remain faithful to the information supplied in the input.
 
-The description must be written in Markdown.
+The description MUST be written using Markdown syntax. It MUST NOT be returned as plain text when it contains meaningful content.
+
+The frontend is responsible for rendering the Markdown.
 </question_description>
 
 <canonical_problem>
