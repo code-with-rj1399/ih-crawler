@@ -60,33 +60,28 @@ Missing information must be null. Never infer company from the URL/domain alone.
 </experience_metadata>
 
 <summary>
-Write experience.summary in Markdown style. The frontend is responsible for rendering the Markdown.
+Write experience.summary using Markdown syntax. The frontend is responsible for rendering the Markdown.
+
+The summary MUST be a Markdown-formatted string, not plain prose. Use at least one meaningful Markdown construct whenever summary content is present, such as a heading, bullet list, numbered list, bold text, or another appropriate Markdown element.
 
 The summary should be clear, concise, readable, and developer-friendly, similar in presentation quality to high-quality interview-preparation platforms such as LeetCode, GeeksforGeeks, AlgoExpert, and similar sites. Use these platforms only as references for presentation quality; do not copy or reproduce their proprietary wording or content.
 
-Use Markdown structure when it genuinely improves readability, including:
+Use Markdown structure appropriate to the source, including:
 - paragraphs for narrative context
 - `###` headings for distinct interview rounds when the source explicitly identifies them
 - bullet lists for genuine interview-process details when appropriate
 - **bold** sparingly for important metadata or outcomes
 - inline code only when mentioning a code identifier as part of the narrative
 
+Do not return the summary as plain text when Markdown formatting can be meaningfully applied.
+
 The summary is the narrative of the interview experience. The individual questions/tasks are returned separately in the questions array and are already displayed by the application. Therefore, DO NOT repeat, enumerate, quote, or restate any individual interview question, problem statement, task, requirement, constraint, or solution in the summary.
-
-The summary may mention the existence and nature of interview rounds at a high level, for example:
-### Round 1 — DSA
-A DSA round focused on algorithmic problem solving.
-
-### Round 2 — LLD / Machine Coding
-An LLD / machine-coding round focused on designing and implementing a system.
 
 Include only high-level round context, process details, feedback, and outcome that are explicitly present in the source. Do not include the actual question wording or its detailed requirements because those belong in the questions array.
 
-Keep the summary concise and easy to scan.
-
 Do not invent round names, questions, requirements, feedback, or outcomes.
 
-The Markdown should remain semantically meaningful and valid.
+The Markdown must remain semantically meaningful and valid.
 </summary>
 
 <question_extraction>
@@ -141,7 +136,7 @@ Before returning the result:
 2. Every question must preserve the source's meaning and granularity.
 3. No missing information may be invented.
 4. The title must follow the exact title format.
-5. The summary must use Markdown style.
+5. The summary must be a Markdown-formatted string and must contain Markdown syntax when content is present.
 6. The summary must contain only interview narrative/context and must not duplicate any question/task text.
 7. Missing metadata must be null.
 </quality_rules>
