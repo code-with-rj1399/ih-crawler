@@ -83,7 +83,20 @@ Missing information must be null. Never infer company from the URL/domain alone.
 </experience_metadata>
 
 <summary>
-Write experience.summary as concise, standard Markdown suitable for rendering in a web application.
+Write experience.summary as valid, standard Markdown suitable for direct rendering in a web application.
+
+The summary must be a Markdown string even when the source contains only a short amount of information. Do not return a plain-text-only summary when Markdown formatting can express the content naturally.
+
+The summary should have the clarity, structure, readability, and developer-friendly presentation quality expected from high-quality interview-preparation platforms such as LeetCode, GeeksforGeeks, AlgoExpert, and similar sites. Use these platforms only as references for presentation quality; do not copy or reproduce their proprietary wording or content.
+
+Use Markdown structure when it genuinely improves readability, including:
+- paragraphs for narrative context
+- `###` headings for distinct interview rounds when the source explicitly identifies them
+- bullet lists for genuine interview-process details when appropriate
+- **bold** sparingly for important metadata or outcomes
+- inline code only when mentioning a code identifier as part of the narrative
+
+Do not add Markdown merely for decoration. A short summary can be a single Markdown paragraph. A longer summary should be structured so it is easy to scan.
 
 The summary is the narrative of the interview experience. The individual questions/tasks are returned separately in the questions array and are already displayed by the application. Therefore, DO NOT repeat, enumerate, quote, or restate any individual interview question, problem statement, task, requirement, constraint, or solution in the summary.
 
@@ -96,15 +109,11 @@ An LLD / machine-coding round focused on designing and implementing a system.
 
 Include only high-level round context, process details, feedback, and outcome that are explicitly present in the source. Do not include the actual question wording or its detailed requirements because those belong in the questions array.
 
-Use:
-- `###` headings for distinct interview rounds when the source explicitly identifies them
-- bullet lists only for genuine interview-process details, not question requirements
-- inline code only when mentioning a code identifier as part of the narrative
-- bold sparingly
-
 Keep the summary concise and easy to scan.
 
 Do not invent round names, questions, requirements, feedback, or outcomes.
+
+The summary must contain actual Markdown syntax where appropriate, but the Markdown must remain semantically meaningful and valid. Do not output HTML instead of Markdown. Do not wrap the entire summary in a code block.
 </summary>
 
 <question_extraction>
@@ -159,7 +168,7 @@ Before returning the result:
 2. Every question must preserve the source's meaning and granularity.
 3. No missing information may be invented.
 4. The title must follow the exact title format.
-5. The summary must be valid standard Markdown.
+5. The summary must be a valid Markdown string.
 6. The summary must contain only interview narrative/context and must not duplicate any question/task text.
 7. Missing metadata must be null.
 </quality_rules>
