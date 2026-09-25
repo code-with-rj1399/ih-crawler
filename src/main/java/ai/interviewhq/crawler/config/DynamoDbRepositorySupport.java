@@ -98,8 +98,6 @@ public class DynamoDbRepositorySupport {
         try {
             Object data = fromAttributeValue(item.get("data"));
             if (type.getSimpleName().equals("InterviewQuestion") && data instanceof Map<?, ?> map) {
-                Object topics = map.get("topics");
-                if (topics instanceof Map<?, ?> topicsMap) ((Map<String, Object>) map).put("topics", new ArrayList<>(topicsMap.values()));
                 Object questionType = map.get("questionType");
                 if (questionType instanceof String value && !value.isBlank()) ((Map<String, Object>) map).put("questionType", List.of(value));
                 else if (questionType instanceof Map<?, ?> questionTypeMap) ((Map<String, Object>) map).put("questionType", new ArrayList<>(questionTypeMap.values()));
@@ -113,7 +111,7 @@ public class DynamoDbRepositorySupport {
         if (value instanceof JsonNode node) { try { return toAttributeValue(objectMapper.treeToValue(node, Object.class)); } catch (Exception e) { throw new IllegalArgumentException("Failed to convert JsonNode to DynamoDB value", e); } }
         if (value instanceof String s) return AttributeValue.builder().s(s).build(); if (value instanceof Number n) return AttributeValue.builder().n(n.toString()).build(); if (value instanceof Boolean b) return AttributeValue.builder().bool(b).build();
         if (value instanceof Map<?, ?> map) { Map<String, AttributeValue> result = new HashMap<>(); map.forEach((k, v) -> result.put(String.valueOf(k), toAttributeValue(v))); return AttributeValue.builder().m(result).build(); }
-        if (value instanceof Collection<?> collection) return AttributeValue.builder().l(collection.stream().map(this::toAttributeValue).toList()).build();
+        if (value instanceof Collection<?> collection) return AttributeValue.builder().l(collection.stream().map(this::toAttributeValue).toList());
         if (value.getClass().isEnum()) return AttributeValue.builder().s(value.toString()).build(); return toAttributeValue(objectMapper.convertValue(value, MAP_TYPE));
     }
 
