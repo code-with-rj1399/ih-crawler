@@ -62,6 +62,8 @@ Missing information must be null. Never infer company from the URL/domain alone.
 <summary>
 Write experience.summary using Markdown syntax. The frontend is responsible for rendering the Markdown.
 
+Write only the interview experience summary. Do not include meta-commentary about the source, extraction, inference, uncertainty, or missing information.
+
 The summary MUST be a Markdown-formatted string, not plain prose. Use at least one meaningful Markdown construct whenever summary content is present, such as a heading, bullet list, numbered list, bold text, or another appropriate Markdown element.
 
 The summary should be clear, concise, readable, and developer-friendly, similar in presentation quality to high-quality interview-preparation platforms such as LeetCode, GeeksforGeeks, AlgoExpert, and similar sites. Use these platforms only as references for presentation quality; do not copy or reproduce their proprietary wording or content.
@@ -113,40 +115,12 @@ Do NOT require words such as:
 A specific interview problem or discussion topic may therefore be valid even
 when the source provides only a short description.
 
-For example:
-
-"Round 2. Problem solving: graph, cycle detection."
-→ extract the graph/cycle-detection problem.
-
-"Round 3. Problem solving: matrix, combinatorics and graph."
-→ extract the matrix/combinatorics/graph problem.
-
-"Round 4. Fit round with the recruiting lead. Experience and background."
-→ extract the experience/background interview question or discussion.
-
-"Round 5. Problem solving with a cofounder: place tiles on a plane."
-→ extract the tile-placement problem.
-
-"Plus questions on AI inference."
-→ extract the AI-inference question(s).
-
 However, do NOT extract every topic or technology mentioned anywhere in the
 article.
 
 A topic is extractable only when the source explicitly connects it to what was
 asked, discussed, solved, designed, implemented, or evaluated during the
 interview.
-
-For example:
-
-"The company works on AI inference."
-→ do NOT extract AI inference.
-
-"Nearly everyone on the team is an ICPC or IOI medallist."
-→ do NOT extract ICPC or IOI.
-
-"The candidate has experience with Java."
-→ do NOT extract Java.
 
 Extract the actual interview content, not unrelated contextual information.
 
