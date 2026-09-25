@@ -35,32 +35,6 @@ When an input contains a round description, do NOT automatically classify the en
 
 Instead, inspect the complete input and determine whether an actual question or problem is embedded within the round description.
 
-For example:
-
-"Round 2. Problem solving: graph, cycle detection. Medium to hard."
-
-contains an actual interview problem:
-"graph, cycle detection"
-
-Therefore it is a valid interview question.
-
-Similarly:
-
-"Round 5. Problem solving with a cofounder: place tiles on a plane. Hard. Plus questions on AI inference."
-
-contains an actual interview problem:
-"place tiles on a plane"
-
-Therefore it is a valid interview question.
-
-However:
-
-"Round 4. Fit round with the recruiting lead. Experience and background."
-
-does not identify an actual question or problem by itself.
-
-Therefore it is invalid.
-
 A round description is not automatically invalid. It is invalid only when no actual interview question or problem can be identified within it.
 
 Do NOT treat the following as questions by themselves:
@@ -84,36 +58,7 @@ questionText is the normalized representation of the actual interview question o
 
 When the input contains both metadata and a question, extract only the actual question/problem.
 
-For example:
-
-Input:
-"Round 2. Problem solving: graph, cycle detection. Medium to hard."
-
-questionText:
-"Graph, cycle detection."
-
-Do NOT include:
-- "Round 2"
-- "Problem solving"
-- "Medium to hard"
-
-Input:
-"Round 5. Problem solving with a cofounder: place tiles on a plane. Hard. Plus questions on AI inference."
-
-questionText:
-"Place tiles on a plane."
-
-Do NOT include:
-- "Round 5"
-- "with a cofounder"
-- "Hard"
-
 Do not automatically convert every topic mentioned in the input into a question.
-
-For example:
-"AI inference" is not automatically a question.
-
-Only include it as a question when the input explicitly indicates that an actual question about AI inference was asked.
 
 The specificity of questionText MUST NOT exceed the specificity of the supplied input.
 
@@ -148,43 +93,6 @@ If the input is vague, questionText MUST remain vague.
 If the input is short, questionText MUST remain short.
 If the input only identifies a problem by name, do not invent a full problem statement.
 
-Examples:
-
-Input:
-"Round 2. Problem solving: graph, cycle detection. Medium to hard."
-
-Good questionText:
-"Graph, cycle detection."
-
-Input:
-"Round 3. Problem solving: matrix, combinatorics and graph. Medium to hard."
-
-Good questionText:
-"Matrix, combinatorics and graph."
-
-Input:
-"Round 4. Fit round with the recruiting lead. Experience and background."
-
-Invalid because no identifiable question/problem is present.
-
-Input:
-"Implemented a Meeting Room Booking System with support for recurring bookings."
-
-Good questionText:
-"Implement a Meeting Room Booking System with support for recurring bookings."
-
-Bad questionText:
-"Design and implement a Meeting Room Booking System with room availability, conflict detection, recurring schedules, cancellation, APIs, and timezone support."
-
-Input:
-"The problem involved collecting a stream of data, processing it, and performing actions based on the input."
-
-Good questionText:
-"Collect a stream of data, process it, and perform actions based on the input."
-
-Bad questionText:
-"Design a Kafka-based stream-processing system with producers, consumers, partitioning, fault tolerance, ordering, and exactly-once processing."
-
 Do not introduce the concept or terminology of a separate task/entity. The extracted item is a question and must remain a question.
 </question_text>
 
@@ -217,7 +125,7 @@ If information cannot be established reliably, leave the corresponding field nul
 <content_style>
 Format questionDescription as clean, valid Markdown.
 
-The description should have the clarity, structure, precision, readability, and developer-focused presentation quality commonly found on high-quality interview-preparation platforms such as LeetCode, GeeksforGeeks, AlgoExpert, and similar sites.
+The description should have the clarity, structure, precision, readability, and developer-focused presentation quality commonly found on high-quality technical interview-preparation platforms such as LeetCode, GeeksforGeeks, AlgoExpert, and similar sites.
 
 For coding and programming questions, use a clear problem statement, understandable terminology, relevant examples, constraints when known, useful input/output explanation when applicable, and clean Markdown.
 
@@ -254,9 +162,29 @@ When a canonical problem can be confidently identified:
 - provide difficulty when reliably known
 - provide the canonical problem URL when reliably known
 
-Do not guess the identity of a canonical problem.
+The model may recognize a canonical problem from its prior knowledge, including a problem it has seen before on a known interview-preparation or coding platform.
 
-If identification is ambiguous, treat the input as a normal custom interview question and do not invent canonical metadata.
+If the supplied question clearly matches a known canonical problem and you are highly confident about the exact problem identity, return the canonical problem URL even when the URL is not present in the input.
+
+This applies when the model already knows or can reliably recall the exact canonical URL for the identified problem.
+
+Do NOT guess, approximate, construct, or fabricate a URL.
+
+Do NOT return a URL merely because the question is similar to a known problem.
+
+The URL must correspond to the exact identified canonical problem.
+
+If multiple canonical problems could plausibly match the question, return null.
+
+If the problem name is generic or ambiguous, return null unless the exact canonical problem can be identified with high confidence.
+
+If the question is custom or interview-specific and no exact canonical problem is known, return null.
+
+When a canonical problem is identified from prior knowledge, prefer the official canonical problem URL from the platform where the problem is known, such as LeetCode, GeeksforGeeks, HackerRank, CodeSignal, AlgoExpert, or another relevant platform.
+
+Never invent a platform URL from a remembered URL pattern.
+
+Never use the interview experience/post URL as problemUrl.
 </canonical_problem>
 
 <question_type>
@@ -288,12 +216,6 @@ Allowed values are exactly:
 - Resume / Project
 - Interview Process
 - Other
-
-Examples:
-- An implementation-heavy low-level design problem can be ["LLD", "Coding"].
-- A high-level architecture problem that explicitly requires implementation can be ["System Design", "Coding"].
-- A pure algorithm/data-structure problem should normally be ["Coding"].
-- A conceptual Java language question can be ["Programming Language", "Technical Concept"].
 
 Only add a second or subsequent type when the question itself provides sufficient evidence for that classification.
 
