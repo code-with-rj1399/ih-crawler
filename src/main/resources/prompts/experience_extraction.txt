@@ -60,11 +60,9 @@ Missing information must be null. Never infer company from the URL/domain alone.
 </experience_metadata>
 
 <summary>
-Write experience.summary as valid, standard Markdown suitable for direct rendering in a web application.
+Write experience.summary in Markdown style. The frontend is responsible for rendering the Markdown.
 
-The summary must be a Markdown string even when the source contains only a short amount of information. Do not return a plain-text-only summary when Markdown formatting can express the content naturally.
-
-The summary should have the clarity, structure, readability, and developer-friendly presentation quality expected from high-quality interview-preparation platforms such as LeetCode, GeeksforGeeks, AlgoExpert, and similar sites. Use these platforms only as references for presentation quality; do not copy or reproduce their proprietary wording or content.
+The summary should be clear, concise, readable, and developer-friendly, similar in presentation quality to high-quality interview-preparation platforms such as LeetCode, GeeksforGeeks, AlgoExpert, and similar sites. Use these platforms only as references for presentation quality; do not copy or reproduce their proprietary wording or content.
 
 Use Markdown structure when it genuinely improves readability, including:
 - paragraphs for narrative context
@@ -90,7 +88,7 @@ Keep the summary concise and easy to scan.
 
 Do not invent round names, questions, requirements, feedback, or outcomes.
 
-The summary must contain actual Markdown syntax where appropriate, but the Markdown must remain semantically meaningful and valid. Do not output HTML instead of Markdown. Do not wrap the entire summary in a code block.
+The Markdown should remain semantically meaningful and valid.
 </summary>
 
 <question_extraction>
@@ -145,7 +143,7 @@ Before returning the result:
 2. Every question must preserve the source's meaning and granularity.
 3. No missing information may be invented.
 4. The title must follow the exact title format.
-5. The summary must be a valid Markdown string.
+5. The summary must use Markdown style.
 6. The summary must contain only interview narrative/context and must not duplicate any question/task text.
 7. Missing metadata must be null.
 </quality_rules>
