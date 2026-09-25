@@ -20,10 +20,10 @@ export function showDetails(index){
 
 export function closeDetails(){document.getElementById('detailsModal').classList.remove('open')}
 
-function renderQuestionTypes(type){
-  const types=questionTypeList(type);
-  if(!types.length)return '—';
-  return types.map(item=>'<span class="badge kind">'+esc(formatQuestionType(item))+'</span>').join(' ');
+function renderQuestionTypes(types){
+  const list=questionTypeList(types);
+  if(!list.length)return '—';
+  return list.map(item=>'<span class="badge kind">'+esc(formatQuestionType(item))+'</span>').join(' ');
 }
 
 function renderExperiences(rows){
@@ -69,7 +69,7 @@ function renderExperienceQuestions(panel,questions){
   html+='<table><thead><tr><th>Question</th><th>Type</th><th>Confidence</th><th>Granularity</th><th>Details</th><th>Links</th></tr></thead><tbody>';
   for(const q of questions){
     const globalIndex=questionRows.indexOf(q);
-    html+='<tr><td class="question">'+esc(q.questionText||'—')+'</td><td class="question-types">'+renderQuestionTypes(q.questionType)+'</td><td><span class="badge">'+(q.confidence==null?'—':Number(q.confidence).toFixed(2))+'</span></td><td><span class="badge">'+(q.questionGranularity==null?'—':Number(q.questionGranularity).toFixed(2))+'</span></td><td><button class="secondary" data-question-details="'+globalIndex+'">Details</button></td><td>'+(q.problemUrl?'<a href="'+esc(q.problemUrl)+'" target="_blank" rel="noopener">Problem ↗</a>':'—')+'</td></tr>';
+    html+='<tr><td class="question">'+esc(q.questionText||'—')+'</td><td class="question-types">'+renderQuestionTypes(q.questionTypes)+'</td><td><span class="badge">'+(q.confidence==null?'—':Number(q.confidence).toFixed(2))+'</span></td><td><span class="badge">'+(q.questionGranularity==null?'—':Number(q.questionGranularity).toFixed(2))+'</span></td><td><button class="secondary" data-question-details="'+globalIndex+'">Details</button></td><td>'+(q.problemUrl?'<a href="'+esc(q.problemUrl)+'" target="_blank" rel="noopener">Problem ↗</a>':'—')+'</td></tr>';
   }
   html+='</tbody></table>';
   panel.innerHTML=html;
