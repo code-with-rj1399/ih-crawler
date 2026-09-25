@@ -2,10 +2,8 @@ package ai.interviewhq.crawler.repo;
 
 import ai.interviewhq.crawler.config.DynamoDbRepositorySupport;
 import ai.interviewhq.crawler.domain.InterviewQuestion;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
-import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -16,13 +14,12 @@ public class InterviewQuestionRepository extends DynamoRepository<InterviewQuest
         super(db);
     }
 
-    public InterviewQuestion save(InterviewQuestion e) {
-        if (e.getId() == null) e.setId(db.nextId("interview-question"));
-        Instant now = Instant.now();
-        if (e.getCreatedAt() == null) e.setCreatedAt(now);
-        if (e.getExtractedAt() == null) e.setExtractedAt(now);
-        if (e.getTopics() == null) e.setTopics(new java.util.ArrayList<>());
-        return db.save(e, "QUESTION#" + e.getDedupeHash(), "ENTITY");
+    public InterviewQuestion save(InterviewQuestion question) {
+        if (question.getId() == null) question.setId(db.nextId("interview-question"));
+        if (question.getCreatedAt() == null) question.setCreatedAt(java.time.Instant.now());
+        if (question.getQuestionType() == null) question.setQuestionType(new java.util.ArrayList<>());
+        if (question.getExperienceId() == null) throw new IllegalArgumentException("experienceId is required for an interview question");
+        return db.save(question, "EXPERIENCE#" + question.getExperienceId(), "QUESTION#" + question.getDedupeHash());
     }
 
     public Optional<InterviewQuestion> findById(Integer id) {
@@ -33,24 +30,18 @@ public class InterviewQuestionRepository extends DynamoRepository<InterviewQuest
         return db.scan(InterviewQuestion.class);
     }
 
-    public Optional<InterviewQuestion> findByDedupeHash(String h) {
-        return db.find(InterviewQuestion.class, "QUESTION#" + h, "ENTITY");
+    public List<InterviewQuestion> findByExperienceId(Integer experienceId) {
+        if (experienceId == null) return List.of();
+        return db.query(InterviewQuestion.class, "EXPERIENCE#" + experienceId).stream()
+                .sorted(Comparator.comparing(
+                        InterviewQuestion::getId,
+                        Comparator.nullsLast(Comparator.naturalOrder())))
+                .toList();
     }
 
-    public List<InterviewQuestion> search(String company, Pageable pageable) {
-        int limit = pageable == null ? 50 : pageable.getPageSize();
-        return findAll().stream()
-                .filter(q -> company == null
-                        || (q.getCompany() != null && q.getCompany().equalsIgnoreCase(company)))
-                .sorted(Comparator.comparing(
-                        InterviewQuestion::getPostDate,
-                        Comparator.nullsLast(Comparator.naturalOrder()))
-                        .reversed()
-                        .thenComparing(
-                                InterviewQuestion::getId,
-                                Comparator.nullsLast(Comparator.reverseOrder())))
-                .limit(limit)
-                .toList();
+    public Optional<InterviewQuestion> findByExperienceAndDedupeHash(Integer experienceId, String hash) {
+        if (experienceId == null || hash == null || hash.isBlank()) return Optional.empty();
+        return db.find(InterviewQuestion.class, "EXPERIENCE#" + experienceId, "QUESTION#" + hash);
     }
 
     public int deleteAll() {
@@ -58,6 +49,6 @@ public class InterviewQuestionRepository extends DynamoRepository<InterviewQuest
     }
 
     protected void deleteKey(Integer id) {
-        findById(id).ifPresent(e -> db.delete("QUESTION#" + e.getDedupeHash(), "ENTITY"));
+        findById(id).ifPresent(e -> db.delete("EXPERIENCE#" + e.getExperienceId(), "QUESTION#" + e.getDedupeHash()));
     }
 }
