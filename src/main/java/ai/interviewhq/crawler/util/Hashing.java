@@ -31,8 +31,13 @@ public final class Hashing {
         return value.toLowerCase(Locale.ROOT).trim().replaceAll("\\s+", " ");
     }
 
-    public static String experienceDedupeHash(String sourcePlatform, String originalPostUrl) {
-        return sha256Hex(normalize(sourcePlatform) + "\n" + normalize(originalPostUrl));
+    /**
+     * Experience identity is the canonical original post URL. The URL is
+     * intentionally global rather than scoped by source platform so the same
+     * experience URL can never create two InterviewExperience records.
+     */
+    public static String experienceDedupeHash(String originalPostUrl) {
+        return sha256Hex(normalize(originalPostUrl));
     }
 
     public static String questionDedupeHash(String company, String questionText) {
