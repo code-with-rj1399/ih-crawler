@@ -155,10 +155,10 @@ public class CrawlRunner {
             experience.setLocation(experienceExtraction.location());
             experience.setCandidateYoE(experienceExtraction.candidateYoE());
             experience.setDedupeHash(experienceHash);
-            experience.setQuestionCount(0);
             experienceRepository.save(experience);
             savedExperiences[0]++;
 
+            questionRepository.deleteByExperienceId(experience.getId());
             for (InterviewQuestion question : result.questions()) {
                 question.setExperienceId(experience.getId());
                 questionRepository.save(question);
