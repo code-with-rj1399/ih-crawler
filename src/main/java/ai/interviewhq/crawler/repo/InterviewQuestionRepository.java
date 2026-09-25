@@ -4,6 +4,7 @@ import ai.interviewhq.crawler.config.DynamoDbRepositorySupport;
 import ai.interviewhq.crawler.domain.InterviewQuestion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.Comparator;
@@ -14,7 +15,8 @@ import java.util.Optional;
 public class InterviewQuestionRepository extends DynamoRepository<InterviewQuestion, Integer> {
     private static final Logger log = LoggerFactory.getLogger(InterviewQuestionRepository.class);
 
-    public InterviewQuestionRepository(DynamoDbRepositorySupport db) {
+    public InterviewQuestionRepository(
+            @Qualifier("questionDynamoDbRepositorySupport") DynamoDbRepositorySupport db) {
         super(db);
     }
 
