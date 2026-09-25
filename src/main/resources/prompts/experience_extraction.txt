@@ -71,8 +71,6 @@ Use Markdown structure when it genuinely improves readability, including:
 - **bold** sparingly for important metadata or outcomes
 - inline code only when mentioning a code identifier as part of the narrative
 
-Do not add Markdown merely for decoration. A short summary can be a single Markdown paragraph. A longer summary should be structured so it is easy to scan.
-
 The summary is the narrative of the interview experience. The individual questions/tasks are returned separately in the questions array and are already displayed by the application. Therefore, DO NOT repeat, enumerate, quote, or restate any individual interview question, problem statement, task, requirement, constraint, or solution in the summary.
 
 The summary may mention the existence and nature of interview rounds at a high level, for example:
