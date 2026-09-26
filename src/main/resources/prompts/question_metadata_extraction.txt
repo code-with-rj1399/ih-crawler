@@ -9,7 +9,7 @@ For each item:
 1. Decide whether it is a genuine technical interview question.
 2. If valid, normalize it into a concise one-line questionText.
 3. Assign one or more applicable questionTypes from the allowed list.
-4. Provide a concise Markdown questionDescription using only reliable information from the input and reliable canonical knowledge when the exact problem is confidently identified.
+4. Provide a useful, presentation-ready Markdown questionDescription using reliable information from the input and reliable canonical knowledge when the exact problem is confidently identified.
 5. Return difficulty, canonical problemUrl, questionGranularity, and confidence when they can be established reliably.
 </goal>
 
@@ -32,7 +32,7 @@ questionText must be a concise, natural one-line representation of the actual in
 
 Write it the way a person would write a short interview-question title.
 
-Remove round information, difficulty labels, interviewer information, follow-ups, examples, implementation details, explanations, background, and other metadata.
+Remove round information, difficulty labels, interviewer information, follow-ups, examples, implementation details, explanations, background, and other metadata from questionText. Those details may belong in questionDescription when they are useful and reliable.
 
 Do not copy the complete input into questionText.
 
@@ -42,15 +42,28 @@ Do not invent missing requirements.
 </question_text>
 
 <question_description>
-questionDescription is the useful, presentation-ready description of the question.
+questionDescription is the useful, presentation-ready description of the question. It should give a candidate enough context to understand what is actually being asked without having to return to the raw interview experience.
 
-Write it as Markdown.
+Write it as concise, readable Markdown. Prefer a short paragraph followed by bullets when that makes the details clearer.
 
-Use only information supported by the input or reliable canonical knowledge when the exact canonical problem is confidently identified.
+Use all useful and reliable details available from the input. When the exact canonical problem is confidently identified, you may also include reliable canonical details that clarify the problem.
+
+Whenever the information is available and reliable, include relevant details such as:
+- A clearer explanation of the problem or task.
+- Examples, including sample input/output or concrete examples from the source or the confidently identified canonical problem.
+- Constraints such as input size, value ranges, time/space expectations, or other stated limitations.
+- Inputs and outputs and what they represent.
+- Important requirements, rules, assumptions, edge cases, or special conditions.
+- Relevant follow-up requirements when they are part of the actual technical question.
+- For system design, LLD, database, cloud, networking, or other non-coding questions, include the concrete requirements, scale, components, trade-offs, or scenarios stated in the source when available.
+
+Do not force these sections when the information is unavailable. Include only details that are supported by the input or reliable canonical knowledge when the exact canonical problem is confidently identified.
 
 Do not invent interview-specific requirements, constraints, APIs, technologies, scale, architecture, candidate actions, interviewer expectations, outcomes, or feedback.
 
-For a valid question, populate questionDescription whenever reliable information is available. If only the normalized question is known, provide a short Markdown description of that question.
+Do not present generic canonical constraints as if they were explicitly stated in the interview experience. If a detail comes from canonical knowledge rather than the source, phrase it naturally as part of the problem description without implying it was reported by the interviewer.
+
+For a valid question, make the description as informative as the available reliable information allows. A description containing only the normalized question is acceptable only when no additional reliable details can be established.
 
 For an invalid question, return null.
 </question_description>
@@ -144,7 +157,7 @@ Field types:
 For a valid question:
 - questionText must be non-null
 - questionTypes must contain at least one allowed value
-- questionDescription should normally be non-null Markdown
+- questionDescription should normally be non-null Markdown and should include useful examples, constraints, inputs/outputs, requirements, or other relevant details whenever they can be established reliably.
 
 For an invalid question:
 - questionText = null
