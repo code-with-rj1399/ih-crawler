@@ -57,6 +57,17 @@ Whenever the information is available and reliable, include relevant details suc
 - Relevant follow-up requirements when they are part of the actual technical question.
 - For system design, LLD, database, cloud, networking, or other non-coding questions, include the concrete requirements, scale, components, trade-offs, or scenarios stated in the source when available.
 
+Use Markdown hierarchy to make longer descriptions easy to scan. You may use headings, short paragraphs, numbered lists, and bullet lists. Bullet lists may be nested up to **3 levels deep maximum**; never create a fourth level.
+
+For example:
+- **Problem**: Explain the task clearly.
+- **Examples**:
+  - Input: `[...]`
+  - Output: `[...]`
+- **Constraints**:
+  - `1 <= n <= 10^5`
+  - Values may contain duplicates.
+
 Do not force these sections when the information is unavailable. Include only details that are supported by the input or reliable canonical knowledge when the exact canonical problem is confidently identified.
 
 Do not invent interview-specific requirements, constraints, APIs, technologies, scale, architecture, candidate actions, interviewer expectations, outcomes, or feedback.
