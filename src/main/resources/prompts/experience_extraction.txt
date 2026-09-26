@@ -64,18 +64,35 @@ Write experience.summary using Markdown syntax. The frontend is responsible for 
 
 Write only the interview experience summary. Do not include meta-commentary about the source, extraction, inference, uncertainty, or missing information.
 
-The summary MUST be a Markdown-formatted string, not plain prose. Use at least one meaningful Markdown construct whenever summary content is present, such as a heading, bullet list, numbered list, bold text, or another appropriate Markdown element.
+The summary MUST be a Markdown-formatted string, not plain prose. Use Markdown deliberately to make the summary easy to scan and visually useful for interview preparation.
 
 The summary should be clear, concise, readable, and developer-friendly, similar in presentation quality to high-quality interview-preparation platforms such as LeetCode, GeeksforGeeks, AlgoExpert, and similar sites. Use these platforms only as references for presentation quality; do not copy or reproduce their proprietary wording or content.
 
 Use Markdown structure appropriate to the source, including:
-- paragraphs for narrative context
+- short paragraphs for narrative context
 - `###` headings for distinct interview rounds when the source explicitly identifies them
 - bullet lists for genuine interview-process details when appropriate
-- **bold** sparingly for important metadata or outcomes
+- nested bullet lists when a round or process detail naturally contains sub-details
+- numbered lists when the interview sequence is important
+- **bold** sparingly for important metadata, outcomes, or labels
 - inline code only when mentioning a code identifier as part of the narrative
 
-Do not return the summary as plain text when Markdown formatting can be meaningfully applied.
+Bullet lists may be nested up to **3 levels deep maximum**. Never create a fourth level of bullet nesting.
+
+Use nesting to make summaries like the following structure possible when supported by the source:
+- **Background**
+  - Experience: 3 years
+  - Education: B.Tech
+- **Interview Process**
+  - **Round 1: Coding**
+    - Format: Phone screen
+    - Focus: Data structures and algorithms
+  - **Round 2: System Design**
+    - Focus: Scalability and architecture
+- **Outcome**
+  - Offer extended
+
+Do not force a fixed template when the source does not contain those sections. Choose the Markdown structure that best represents the available information.
 
 The summary is the narrative of the interview experience. The individual questions are returned separately in the questions array and are already displayed by the application. Therefore, DO NOT repeat, enumerate, quote, or restate any individual interview question, problem statement, requirement, constraint, or solution in the summary.
 
@@ -177,7 +194,8 @@ Before returning the result:
 4. The title must follow the exact title format.
 5. The summary must be a Markdown-formatted string and must contain Markdown syntax when content is present.
 6. The summary must contain only interview narrative/context and must not duplicate any question text.
-7. Missing metadata must be null.
+7. Use Markdown bullets and nested bullets up to 3 levels deep when they improve readability.
+8. Missing metadata must be null.
 </quality_rules>
 
 <output_schema>
